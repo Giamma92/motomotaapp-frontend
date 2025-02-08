@@ -23,11 +23,13 @@ jobs:
 
       # 3. Install dependencies
       - name: Install Dependencies
-        run: npm ci
+        run: npm install --force
+        env:
+            NODE_OPTIONS: "--max_old_space_size=4096"
 
       # 4. Build the Angular App in production mode
       - name: Build Angular App
-        run: npm run build -- --configuration production
+        run: npm run build -- --configuration production --aot
 
       # 5. Deploy to Firebase Hosting using the Firebase Extended action
       - name: Deploy to Firebase Hosting
