@@ -44,10 +44,4 @@ Thumbs.db
 # Enviroment variables
 src/enviroments/*
 
-# Github
-.github
-
-# Vs code
-.vscode
-
 pnpm-lock.yaml
