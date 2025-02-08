@@ -1,5 +1,14 @@
 {
   "projects": {
     "default": "motomotagp"
+  },
+  "targets": {
+    "motomotagp": {
+      "hosting": {
+        "motomota": [
+          "motomotagp"
+        ]
+      }
+    }
   }
 }
