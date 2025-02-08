@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "motomota",
     "public": "dist/motomotapp-frontend",
     "ignore": [
       "firebase.json",
