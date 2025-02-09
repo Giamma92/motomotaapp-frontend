@@ -15,9 +15,16 @@ export interface StandingsRow {
 
 export interface Race {
   id: number;
-  date: string; // or Date
-  bet?: string;
-  // additional fields...
+  name: string;
+}
+
+export interface CalendarRace {
+  id: number;
+  race_id: Race;
+  championship_id: number;
+  event_date: string; // or Date
+  event_time?: string;
+  race_order: number;
 }
 
 @Injectable({
@@ -50,8 +57,8 @@ export class DashboardService {
   }
 
   // Returns the next race.
-  getNextRace(): Observable<Race> {
+  getNextRace(): Observable<CalendarRace> {
     const headers = this.getAuthHeaders();
-    return this.http.get<Race>(`${this.apiUrl}/championship/3/next-race`, { headers });
+    return this.http.get<CalendarRace>(`${this.apiUrl}/championship/3/next-race`, { headers });
   }
 }

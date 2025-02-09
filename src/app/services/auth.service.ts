@@ -9,10 +9,14 @@ export interface LoginResponse {
 }
 
 export interface UserInfo {
-  id: number;
-  username: string;
-  email: string;
-  // Add any additional fields as needed.
+  id: string,
+  profile_id: string,
+  profile_image: string,
+  email: string,
+  last_access: string,
+  first_change: number,
+  first_name: string,
+  last_name: string
 }
 
 @Injectable({

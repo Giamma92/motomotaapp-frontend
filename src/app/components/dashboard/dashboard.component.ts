@@ -4,23 +4,30 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { DashboardService, StandingsRow, Race } from '../../services/dashboard.service';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
+import { DashboardService, StandingsRow, CalendarRace } from '../../services/dashboard.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule],
   template: `
     <div class="dashboard-container">
       <header class="header">
-        <div class="header-logo">
-          <img src="assets/images/motomotaGPLogo512x512.png" alt="MotoMota Logo">
+        <div class="header-center">
+          <h1>MotoMota - Dashboard</h1>
         </div>
-        <nav class="header-nav">
-          <button mat-button (click)="goToProfile()">Profile</button>
-          <button mat-button (click)="logout()">Logout</button>
-        </nav>
+        <div class="header-right">
+          <button mat-icon-button [matMenuTriggerFor]="menu">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="goToProfile()">Profile</button>
+            <button mat-menu-item (click)="logout()">Logout</button>
+          </mat-menu>
+        </div>
       </header>
       <main class="main-content">
         <!-- Standings Card -->
@@ -53,10 +60,13 @@ import { AuthService } from '../../services/auth.service';
             <mat-card-title>Next Race</mat-card-title>
           </mat-card-header>
           <mat-card-content>
-            <p>Date: {{ nextRace.date | date }}</p>
-            <p>Your Bet: {{ nextRace.bet ? nextRace.bet : 'No bet placed' }}</p>
+            <h2>{{ nextRace.race_id.name }}</h2>
+            <p>Date: <b>{{ nextRace.event_date | date }}</b> Time: <b>{{ nextRace.event_time || 'TBD' }}</b></p>
           </mat-card-content>
           <mat-card-actions>
+            <button mat-raised-button color="primary" (click)="goToCalendar(nextRace.id)">
+              View all races
+            </button>
             <button mat-raised-button color="primary" (click)="goToRace(nextRace.id)">
               Place Bet
             </button>
@@ -69,26 +79,37 @@ import { AuthService } from '../../services/auth.service';
     /* Overall container with vibrant gradient background */
     .dashboard-container {
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
       background: linear-gradient(135deg, #4a148c, #d81b60);
       color: #fff;
+      padding-top: 80px; /* space for fixed header */
     }
-    /* Reduced header styling */
+    /* Fixed header styling: full width, solid background, constant height */
     .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 80px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 8px 16px;  /* Reduced padding */
-      background: rgba(0, 0, 0, 0.3);
+      justify-content: space-between;
+      background: linear-gradient(135deg, #4a148c, #d81b60); /* fully opaque */
+      padding: none;
+      z-index: 1000;
     }
-    .header-logo img {
-      width: 60px;  /* Smaller logo */
-      height: auto;
+    .header-center {
+      flex: 1;
+      text-align: center;
     }
-    .header-nav button {
+    .header-center h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    .header-right {
+      flex: 0 0 auto;
+    }
+    .header-right button {
       color: #fff;
-      margin-left: 8px;
     }
     /* Main content area as a responsive grid */
     .main-content {
@@ -106,14 +127,15 @@ import { AuthService } from '../../services/auth.service';
       display: flex;
       flex-direction: column;
     }
-    .standings-card mat-card-title {
+    .standings-card mat-card-header {
       text-align: center;
     }
     .standings-table {
       width: 100%;
       border-collapse: collapse;
     }
-    .standings-table th, .standings-table td {
+    .standings-table th,
+    .standings-table td {
       padding: 12px;
       border-bottom: 1px solid #ccc;
       text-align: left;
@@ -132,15 +154,29 @@ import { AuthService } from '../../services/auth.service';
       display: flex;
       flex-direction: column;
     }
-    .next-race-card mat-card-title {
+    .next-race-card mat-card-header {
       text-align: center;
     }
-    /* For smaller screens, grid automatically stacks items full width */
+    .next-race-card mat-card-content {
+      padding: 16px;
+    }
+    /* Responsive adjustments for mobile screens */
+    @media (max-width: 600px) {
+      .dashboard-container {
+        padding-top: 70px;
+      }
+      .header {
+        height: 70px;
+      }
+      .header-center h1 {
+        font-size: 18px;
+      }
+    }
   `]
 })
 export class DashboardComponent implements OnInit {
   classificationData?: StandingsRow[];
-  nextRace?: Race;
+  nextRace?: CalendarRace;
   loggedUserId: string | null;
 
   constructor(
@@ -152,19 +188,23 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadDashboardData();
+  }
+
+  private loadDashboardData(): void {
     this.dashboardService.getClassification().subscribe({
       next: (data: StandingsRow[]) => {
         this.classificationData = data;
       },
-      error: (err) => console.error('Error fetching classification', err)
+      error: (error: any) =>
+        console.error('Error fetching classification data:', error)
     });
-
     this.dashboardService.getNextRace().subscribe({
-      next: (data: Race) => {
-        this.nextRace = data;
+      next: (race: CalendarRace) => {
+        this.nextRace = race;
       },
-      error: (err) => {
-        console.error('Error fetching next race', err);
+      error: (error: any) => {
+        console.error('Error fetching next race:', error);
         this.nextRace = undefined;
       }
     });
@@ -176,6 +216,10 @@ export class DashboardComponent implements OnInit {
 
   goToProfile(): void {
     this.router.navigate(['/profile']);
+  }
+
+  goToCalendar(raceId: number): void {
+    this.router.navigate(['/calendar', raceId]);
   }
 
   logout(): void {
