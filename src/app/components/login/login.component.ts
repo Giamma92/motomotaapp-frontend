@@ -15,7 +15,7 @@ import { MatButtonModule } from '@angular/material/button';
     <div class="login-container">
       <mat-card class="login-card">
         <div class="logo-container">
-          <img src="assets/motogp-logo.png" alt="MotoGP Logo">
+          <img src="assets/images/motomotaGPLogo512x512.png" alt="MotoMota Logo">
         </div>
         <h2>Fanta MotoGP Login</h2>
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
@@ -27,7 +27,7 @@ import { MatButtonModule } from '@angular/material/button';
             <mat-label>Password</mat-label>
             <input matInput type="password" formControlName="password" required>
           </mat-form-field>
-          <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">
+          <button mat-raised-button color="primary" class="full-width-button" type="submit" [disabled]="loginForm.invalid">
             Login
           </button>
         </form>
@@ -43,31 +43,41 @@ import { MatButtonModule } from '@angular/material/button';
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      //background: url('assets/motogp-bg.jpg') no-repeat center center/cover;
+      background: linear-gradient(135deg, #4a148c, #d81b60);
     }
     .login-card {
       width: 100%;
       max-width: 400px;
-      padding: 20px;
-      background: rgba(255, 255, 255, 0.9);
+      padding: 30px;
+      margin: 30px;
+      background: #FCFBFC;
       border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border: 2px solidrgba(0, 0, 0, 0.47);
+      box-shadow: none;
     }
     .logo-container {
       text-align: center;
       margin-bottom: 16px;
     }
     .logo-container img {
-      width: 100px;
+      width: 150px;
       height: auto;
     }
     h2 {
       text-align: center;
-      color: #d32f2f; /* A MotoGP-themed red */
+      color:rgb(0, 0, 0);
       margin-bottom: 16px;
     }
     .full-width {
       width: 100%;
+    }
+    .full-width-button {
+      width: 100%;
+      /* Optionally add a hover effect */
+      transition: background-color 0.3s ease;
+    }
+    .full-width-button:hover {
+      background-color: #c62828;
     }
     .error-message {
       color: red;
@@ -92,9 +102,7 @@ export class LoginComponent {
       const { username, password } = this.loginForm.value;
       this.authService.login(username, password).subscribe({
         next: (res) => {
-          // Save the token (e.g., in localStorage)
           this.authService.setToken(res.token);
-          // Navigate to the dashboard after successful login
           this.router.navigate(['/']);
         },
         error: (err) => {

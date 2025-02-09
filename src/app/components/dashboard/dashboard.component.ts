@@ -12,38 +12,43 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, MatCardModule, MatButtonModule],
   template: `
-    <div class="dashboard">
-      <!-- Navigation button to go to the profile page -->
-      <div class="nav-button">
-        <button mat-raised-button color="accent" (click)="goToProfile()">Profile</button>
-      </div>
-
-      <!-- Standings Card -->
-      <mat-card class="standings-card" *ngIf="classificationData && classificationData.length">
-        <mat-card-title>Standings</mat-card-title>
-        <mat-card-content>
-          <table class="standings-table">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>User</th>
-                <th>Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of classificationData" [class.highlight]="row.user_id === loggedUserId">
-                <td>{{ row.position }}</td>
-                <td>{{ row.user_id }}</td>
-                <td>{{ row.score }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Next Race Card (only shown if a next race exists) -->
-      <div class="race-cards" *ngIf="nextRace">
-        <mat-card class="race-card">
+    <div class="dashboard-container">
+      <header class="header">
+        <div class="header-logo">
+          <img src="assets/images/motomotaGPLogo512x512.png" alt="MotoMota Logo">
+        </div>
+        <nav class="header-nav">
+          <button mat-button (click)="goToProfile()">Profile</button>
+          <button mat-button (click)="logout()">Logout</button>
+        </nav>
+      </header>
+      <main class="main-content">
+        <!-- Standings Card -->
+        <mat-card class="standings-card" *ngIf="classificationData && classificationData.length">
+          <mat-card-header>
+            <mat-card-title>Standings</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <table class="standings-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>User</th>
+                  <th>Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of classificationData" [class.highlight]="row.user_id === loggedUserId">
+                  <td>{{ row.position }}</td>
+                  <td>{{ row.user_id }}</td>
+                  <td>{{ row.score }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </mat-card-content>
+        </mat-card>
+        <!-- Next Race Card (only shown if a next race exists) -->
+        <mat-card class="next-race-card" *ngIf="nextRace">
           <mat-card-header>
             <mat-card-title>Next Race</mat-card-title>
           </mat-card-header>
@@ -57,46 +62,80 @@ import { AuthService } from '../../services/auth.service';
             </button>
           </mat-card-actions>
         </mat-card>
-      </div>
+      </main>
     </div>
   `,
   styles: [`
-    .dashboard {
+    /* Overall container with vibrant gradient background */
+    .dashboard-container {
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
+      background: linear-gradient(135deg, #4a148c, #d81b60);
+      color: #fff;
+    }
+    /* Reduced header styling */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px;  /* Reduced padding */
+      background: rgba(0, 0, 0, 0.3);
+    }
+    .header-logo img {
+      width: 60px;  /* Smaller logo */
+      height: auto;
+    }
+    .header-nav button {
+      color: #fff;
+      margin-left: 8px;
+    }
+    /* Main content area as a responsive grid */
+    .main-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 20px;
       padding: 20px;
     }
-    .nav-button {
-      display: flex;
-      justify-content: flex-end;
-    }
+    /* Standings card styling */
     .standings-card {
-      max-width: 600px;
-      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      color: #333;
+      border-radius: 8px;
+      border: 2px solid #d32f2f;
+      display: flex;
+      flex-direction: column;
+    }
+    .standings-card mat-card-title {
+      text-align: center;
     }
     .standings-table {
       width: 100%;
       border-collapse: collapse;
     }
     .standings-table th, .standings-table td {
-      padding: 8px 12px;
+      padding: 12px;
       border-bottom: 1px solid #ccc;
       text-align: left;
     }
     .standings-table tr.highlight {
-      background-color: #e0f7fa;
+      background-color: #ffecb3;
       font-weight: bold;
     }
-    .race-cards {
+    /* Next race card styling */
+    .next-race-card {
+      background: rgba(255, 255, 255, 0.95);
+      color: #333;
+      border-radius: 8px;
+      border: 2px solid #d32f2f;
+      text-align: center;
       display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
+      flex-direction: column;
     }
-    .race-card {
-      flex: 1;
-      min-width: 280px;
+    .next-race-card mat-card-title {
+      text-align: center;
     }
+    /* For smaller screens, grid automatically stacks items full width */
   `]
 })
 export class DashboardComponent implements OnInit {
@@ -109,12 +148,10 @@ export class DashboardComponent implements OnInit {
     private dashboardService: DashboardService,
     private authService: AuthService
   ) {
-    // Assume AuthService has a method getUserId() that returns the logged-in user's id.
     this.loggedUserId = this.authService.getUserId();
   }
 
   ngOnInit(): void {
-    // Fetch classification (standings) data.
     this.dashboardService.getClassification().subscribe({
       next: (data: StandingsRow[]) => {
         this.classificationData = data;
@@ -122,14 +159,12 @@ export class DashboardComponent implements OnInit {
       error: (err) => console.error('Error fetching classification', err)
     });
 
-    // Fetch the next race.
     this.dashboardService.getNextRace().subscribe({
       next: (data: Race) => {
         this.nextRace = data;
       },
       error: (err) => {
         console.error('Error fetching next race', err);
-        // In case of an error or no race, clear nextRace.
         this.nextRace = undefined;
       }
     });
@@ -139,8 +174,12 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/race', raceId]);
   }
 
-  // Navigate to the profile page.
   goToProfile(): void {
     this.router.navigate(['/profile']);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }
