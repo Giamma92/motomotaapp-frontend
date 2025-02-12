@@ -15,6 +15,6 @@ export const routes: Routes = [
   // A route for a race detail/bet page.
   { path: 'race/:id', loadComponent: () => import('./components/race/race.component').then(m => m.RaceComponent), canActivate: [AuthGuard] },
   // A route for a calendar page.
-  { path: 'calendar/:id', component: CalendarComponent }
+  { path: 'calendar', component: CalendarComponent }
 
 ];

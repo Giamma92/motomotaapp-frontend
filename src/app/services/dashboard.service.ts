@@ -1,4 +1,3 @@
-// src/app/services/dashboard.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -22,11 +21,26 @@ export interface CalendarRace {
   id: number;
   race_id: Race;
   championship_id: number;
-  event_date: string; // or Date
+  event_date: string;
   event_time?: string;
   race_order: number;
 }
 
+export interface Rider {
+  first_name: string;
+  last_name: string;
+}
+
+export interface FantasyTeam {
+  id: number;
+  user_id: string;
+  name: string;
+  team_image: string;
+  championship_id: number;
+  official_rider_1: Rider;
+  official_rider_2: Rider;
+  reserve_rider: Rider;
+}
 @Injectable({
   providedIn: 'root'
 })
@@ -38,27 +52,29 @@ export class DashboardService {
     private authService: AuthService
   ) {}
 
-  // Helper method to create headers with the Bearer token.
   private getAuthHeaders(): HttpHeaders {
-    // Assume authService.getAuthHeader() returns an object like { 'Authorization': 'Bearer <token>' }
     return new HttpHeaders(this.authService.getAuthHeader());
   }
 
-  // Returns an array of standings rows.
   getClassification(): Observable<StandingsRow[]> {
     const headers = this.getAuthHeaders();
     return this.http.get<StandingsRow[]>(`${this.apiUrl}/championship/3/standings`, { headers });
   }
 
-  // Returns the full calendar or you can add other methods as needed.
-  getCalendar(): Observable<any> {
+  getCalendar(): Observable<CalendarRace[]> {
     const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.apiUrl}/championship/3/calendar`, { headers });
+    return this.http.get<CalendarRace[]>(`${this.apiUrl}/championship/3/calendar`, { headers });
   }
 
-  // Returns the next race.
   getNextRace(): Observable<CalendarRace> {
     const headers = this.getAuthHeaders();
     return this.http.get<CalendarRace>(`${this.apiUrl}/championship/3/next-race`, { headers });
+  }
+
+  // New method to fetch the fantasy team for the given championship
+  getFantasyTeam(): Observable<FantasyTeam> {
+    const headers = this.getAuthHeaders();
+    // Adjust the endpoint as needed.
+    return this.http.get<FantasyTeam>(`${this.apiUrl}/championship/3/fantasy_team`, { headers });
   }
 }

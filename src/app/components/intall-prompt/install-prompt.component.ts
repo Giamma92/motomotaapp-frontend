@@ -23,7 +23,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
       padding: 16px;
       text-align: center;
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      z-index: 1000;
+      z-index: 99999;
     }
     .install-prompt p {
       margin: 0 0 8px;

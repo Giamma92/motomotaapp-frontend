@@ -6,11 +6,19 @@ import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatCardModule, MatInputModule, MatButtonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatCardModule,
+    MatInputModule,
+    MatButtonModule,
+    MatProgressSpinnerModule
+  ],
   template: `
     <div class="login-container">
       <mat-card class="login-card">
@@ -27,10 +35,13 @@ import { MatButtonModule } from '@angular/material/button';
             <mat-label>Password</mat-label>
             <input matInput type="password" formControlName="password" required>
           </mat-form-field>
-          <button mat-raised-button color="primary" class="full-width-button" type="submit" [disabled]="loginForm.invalid">
+          <button mat-raised-button color="primary" class="full-width-button" type="submit" [disabled]="loginForm.invalid || loading">
             Login
           </button>
         </form>
+        <div *ngIf="loading" class="spinner-container">
+          <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+        </div>
         <div *ngIf="errorMessage" class="error-message">
           {{ errorMessage }}
         </div>
@@ -52,7 +63,7 @@ import { MatButtonModule } from '@angular/material/button';
       margin: 30px;
       background: #FCFBFC;
       border-radius: 8px;
-      border: 2px solidrgba(0, 0, 0, 0.47);
+      border: 2px solid rgba(0, 0, 0, 0.47);
       box-shadow: none;
     }
     .logo-container {
@@ -65,7 +76,7 @@ import { MatButtonModule } from '@angular/material/button';
     }
     h2 {
       text-align: center;
-      color:rgb(0, 0, 0);
+      color: rgb(0, 0, 0);
       margin-bottom: 16px;
     }
     .full-width {
@@ -73,7 +84,6 @@ import { MatButtonModule } from '@angular/material/button';
     }
     .full-width-button {
       width: 100%;
-      /* Optionally add a hover effect */
       transition: background-color 0.3s ease;
     }
     .full-width-button:hover {
@@ -84,11 +94,17 @@ import { MatButtonModule } from '@angular/material/button';
       text-align: center;
       margin-top: 12px;
     }
+    .spinner-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
   `]
 })
 export class LoginComponent {
   loginForm: FormGroup;
   errorMessage: string | null = null;
+  loading: boolean = false;
 
   constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
     this.loginForm = this.fb.group({
@@ -99,13 +115,16 @@ export class LoginComponent {
 
   onSubmit(): void {
     if (this.loginForm.valid) {
+      this.loading = true;
       const { username, password } = this.loginForm.value;
       this.authService.login(username, password).subscribe({
         next: (res) => {
+          this.loading = false;
           this.authService.setToken(res.token);
           this.router.navigate(['/']);
         },
         error: (err) => {
+          this.loading = false;
           console.error('Login error:', err);
           this.errorMessage = 'Invalid username or password';
         }
