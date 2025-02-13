@@ -1,7 +1,7 @@
 // src/app/dashboard/dashboard.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NavigationStart, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
@@ -25,14 +25,15 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #menu="matMenu">
-            <button mat-menu-item (click)="goToProfile()">Profile</button>
+            <button mat-menu-item (click)="goTo('profile')">Profile</button>
+            <button mat-menu-item (click)="goTo('settings')">
+              <mat-icon>settings</mat-icon> Settings
+            </button>
             <button mat-menu-item (click)="logout()">Logout</button>
           </mat-menu>
         </div>
       </header>
       <main class="main-content">
-        <!-- Wrap cards in a container with the animation trigger.
-            Bind the trigger to "firstLoad ? cardCount : 0" so that if firstLoad is false, no animation runs. -->
         <div class="cards-wrapper">
           <!-- Fantasy Team Card -->
           <mat-card class="fantasy-team-card" *ngIf="fantasyTeam">
@@ -48,7 +49,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
               <p><strong>Reserve Rider:</strong> {{ fantasyTeam.reserve_rider.first_name }} {{ fantasyTeam.reserve_rider.last_name }}</p>
             </mat-card-content>
             <mat-card-actions>
-              <button mat-raised-button color="primary" (click)="goToAllTeams()">See All Teams</button>
+              <button mat-raised-button color="primary" (click)="goTo('teams')">See All Teams</button>
             </mat-card-actions>
           </mat-card>
           <!-- Standings Card -->
@@ -78,15 +79,24 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
           <!-- Next Race Card -->
           <mat-card class="next-race-card" *ngIf="nextRace">
             <mat-card-header>
-              <mat-card-title>Next Race</mat-card-title>
+              <mat-card-title>{{isCurrentRace ? 'Current Race' : 'Next Race'}}</mat-card-title>
             </mat-card-header>
             <mat-card-content>
               <h2>{{ nextRace.race_id.name }}</h2>
               <p>Date: <b>{{ nextRace.event_date | date }}</b> Time: <b>{{ nextRace.event_time || 'TBD' }}</b></p>
             </mat-card-content>
             <mat-card-actions>
-              <button mat-raised-button color="primary" (click)="goToCalendar()">View all races</button>
-              <button mat-raised-button color="primary" (click)="goToRace(nextRace.id)">Place Bet</button>
+              <button mat-raised-button color="primary" (click)="goTo('calendar')">View all races</button>
+              <!-- Conditionally show the three new buttons -->
+              <button mat-raised-button color="primary" *ngIf="showLineupsButton" (click)="goTo('lineups', nextRace.id)">
+                Place Lineups
+              </button>
+              <button mat-raised-button color="primary" *ngIf="showSprintBetButton" (click)="goTo('sprint-bet', nextRace.id)">
+                Place Sprint Bet
+              </button>
+              <button mat-raised-button color="primary" *ngIf="showPlaceBetButton" (click)="goTo('race-bet', nextRace.id)">
+                Place Race Bet
+              </button>
             </mat-card-actions>
           </mat-card>
         </div>
@@ -98,7 +108,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
       min-height: 100vh;
       background: linear-gradient(135deg, #4a148c, #d81b60);
       color: #fff;
-      padding-top: 80px; /* space for fixed header */
+      padding-top: 80px;
     }
     .header {
       position: fixed;
@@ -110,7 +120,6 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
       align-items: center;
       justify-content: space-between;
       background: linear-gradient(135deg, #4a148c, #d81b60);
-      padding: 0 16px;
       z-index: 1000;
     }
     .header-center {
@@ -202,11 +211,15 @@ export class DashboardComponent implements OnInit {
   fantasyTeam?: FantasyTeam;
   loggedUserId: string | null;
 
+  // New boolean flags for button visibility
+  showLineupsButton: boolean = false;
+  showSprintBetButton: boolean = false;
+  showPlaceBetButton: boolean = false;
+
   constructor(
     private router: Router,
     private dashboardService: DashboardService,
-    private authService: AuthService,
-    //private dashboardState: DashboardStateService
+    private authService: AuthService
   ) {
     this.loggedUserId = this.authService.getUserId();
   }
@@ -227,6 +240,7 @@ export class DashboardComponent implements OnInit {
     this.dashboardService.getNextRace().subscribe({
       next: (race: CalendarRace) => {
         this.nextRace = race;
+        this.computeButtonVisibility();
       },
       error: (error: any) => {
         console.error('Error fetching next race:', error);
@@ -245,20 +259,71 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  goToProfile(): void {
-    this.router.navigate(['/profile']);
+  public get isCurrentRace() {
+    const today = new Date();
+    const eventDate = new Date(this.nextRace?.event_date || '');
+    return today.toDateString() === eventDate.toDateString();
   }
 
-  goToCalendar(): void {
-    this.router.navigate(['/calendar']);
+  // Compute visibility conditions for the buttons based on nextRace data and current time.
+  private computeButtonVisibility(): void {
+    if (!this.nextRace) {
+      this.showLineupsButton = false;
+      this.showSprintBetButton = false;
+      this.showPlaceBetButton = false;
+      return;
+    }
+
+    const now = new Date();
+    const eventDate = new Date(this.nextRace.event_date); // event_date as 'YYYY-MM-DD'
+    const isEventDay = now.toDateString() === eventDate.toDateString();
+
+    // Calculate diffDays using eventDate's midnight (only valid when not event day)
+    const diffDays = (eventDate.getTime() - now.getTime()) / (1000 * 3600 * 24);
+
+    // Combine event_date with the time strings to form full Date objects.
+    const qualificationsTime = this.nextRace.qualifications_time
+      ? new Date(`${this.nextRace.event_date}T${this.nextRace.qualifications_time}`)
+      : null;
+    const sprintTime = this.nextRace.sprint_time
+      ? new Date(`${this.nextRace.event_date}T${this.nextRace.sprint_time}`)
+      : null;
+    const eventTime = this.nextRace.event_time
+      ? new Date(`${this.nextRace.event_date}T${this.nextRace.event_time}`)
+      : null;
+
+    // Place Lineups button: Visible only if (when not event day) diffDays is between 1 and 3
+    // and before 1 hour prior to qualifications_time.
+    this.showLineupsButton = !isEventDay
+      && diffDays <= 3 && diffDays >= 1
+      && qualificationsTime !== null
+      && (now.getTime() < qualificationsTime.getTime() - 3600 * 1000);
+
+    // Place Sprint Bet button: Visible only if (when not event day) diffDays <= 2 and diffDays > 0
+    // and before 2 hours prior to sprint_time.
+    this.showSprintBetButton = !isEventDay
+      && diffDays <= 2 && diffDays > 0
+      && sprintTime !== null
+      && (now.getTime() < sprintTime.getTime() - 2 * 3600 * 1000);
+
+    // Place Bet button:
+    // Option 1 (for one day before event): if not event day, diffDays <= 1 and now is after sprint_time + 1 hour.
+    let condition1 = false;
+    if (!isEventDay && sprintTime) {
+      condition1 = diffDays <= 1 && now.getTime() >= sprintTime.getTime() + 3600 * 1000;
+    }
+    // Option 2 (for event day): if today is the event date and now is less than or equal to event_time - 2 hours.
+    let condition2 = false;
+    if (eventTime) {
+      condition2 = isEventDay && (now.getTime() <= eventTime.getTime() - 2 * 3600 * 1000);
+    }
+    this.showPlaceBetButton = condition1 || condition2;
   }
 
-  goToRace(raceId: number): void {
-    this.router.navigate(['/race', raceId]);
-  }
 
-  goToAllTeams(): void {
-    this.router.navigate(['/teams']);
+
+  goTo(path: string, extras: any = {}): void {
+    this.router.navigate([`/${path}`, extras]);
   }
 
   logout(): void {

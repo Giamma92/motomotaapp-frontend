@@ -5,23 +5,19 @@ import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { DashboardService, CalendarRace } from '../../services/dashboard.service';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule],
   template: `
     <div class="calendar-container">
       <header class="header">
-        <div class="header-left">
-          <button mat-button color="accent" (click)="goBack()">Back</button>
-        </div>
-        <div class="header-center">
-          <h1>Championship Calendar</h1>
-        </div>
-        <div class="header-right">
-          <!-- This area is reserved; add items if needed -->
-        </div>
+        <button mat-icon-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>Championship Calendar</h1>
       </header>
       <main class="main-content">
         <mat-card class="calendar-card">
@@ -32,7 +28,9 @@ import { DashboardService, CalendarRace } from '../../services/dashboard.service
                   <th>#</th>
                   <th>Race Name</th>
                   <th>Date</th>
-                  <th>Time</th>
+                  <th>Qualifications time</th>
+                  <th>Sprint Race time</th>
+                  <th>Race Time</th>
                 </tr>
               </thead>
               <tbody>
@@ -40,6 +38,8 @@ import { DashboardService, CalendarRace } from '../../services/dashboard.service
                   <td>{{ race.race_order }}</td>
                   <td>{{ race.race_id.name }}</td>
                   <td>{{ race.event_date | date:'shortDate' }}</td>
+                  <td>{{ race.qualifications_time || 'TBD' }}</td>
+                  <td>{{ race.sprint_time || 'TBD' }}</td>
                   <td>{{ race.event_time || 'TBD' }}</td>
                 </tr>
               </tbody>
@@ -53,10 +53,9 @@ import { DashboardService, CalendarRace } from '../../services/dashboard.service
     /* Container without extra margin */
     .calendar-container {
       min-height: 100vh;
-      margin: 0;
-      padding: 0;
       background: linear-gradient(135deg, #4a148c, #d81b60);
       color: #fff;
+      padding: 20px;
     }
     /* Header with fixed full width and constant height */
     .header {
@@ -71,17 +70,17 @@ import { DashboardService, CalendarRace } from '../../services/dashboard.service
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       z-index: 1000;
     }
-    .header-left, .header-right {
-      width: 80px;
+    .header {
       display: flex;
       align-items: center;
-      justify-content: center;
+      margin-bottom: 20px;
     }
-    .header-center {
+    .header button {
+      color: #fff;
+    }
+    .header h1 {
       flex: 1;
       text-align: center;
-    }
-    .header-center h1 {
       margin: 0;
       font-size: 24px;
     }
