@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ChampionshipService } from './championship.service';
 import { HttpService } from './http.service';
+import { UserInfo } from './auth.service';
 
 export interface StandingsRow {
   Id: number;
@@ -32,11 +33,12 @@ export interface CalendarRace {
 export interface Rider {
   first_name: string;
   last_name: string;
+  number: number;
 }
 
 export interface FantasyTeam {
   id: number;
-  user_id: string;
+  user_id: UserInfo;
   name: string;
   team_image: string;
   championship_id: number;

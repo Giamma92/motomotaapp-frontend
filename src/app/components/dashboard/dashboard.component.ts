@@ -39,24 +39,29 @@ import { ChampionshipService } from '../../services/championship.service';
       </header>
       <main class="grid-content">
         <div class="cards-wrapper">
-          <!-- Fantasy Team Card -->
-          <mat-card class="fantasy-team-card" *ngIf="fantasyTeam">
+          <!-- Next Race Card moved to top -->
+          <mat-card class="next-race-card" *ngIf="nextCalendarRace">
             <mat-card-header>
-              <mat-card-title class="team-title">{{ fantasyTeam.name }}</mat-card-title>
+              <mat-card-title>{{isCurrentRace ? 'Current Race' : 'Next Race'}}</mat-card-title>
             </mat-card-header>
             <mat-card-content>
-              <div class="team-image-container" *ngIf="fantasyTeam.team_image">
-                <img [src]="fantasyTeam.team_image" alt="{{ fantasyTeam.name }} Logo">
-              </div>
-              <p><strong>Official Rider 1:</strong> {{ fantasyTeam.official_rider_1.first_name }} {{ fantasyTeam.official_rider_1.last_name }}</p>
-              <p><strong>Official Rider 2:</strong> {{ fantasyTeam.official_rider_2.first_name }} {{ fantasyTeam.official_rider_2.last_name }}</p>
-              <p><strong>Reserve Rider:</strong> {{ fantasyTeam.reserve_rider.first_name }} {{ fantasyTeam.reserve_rider.last_name }}</p>
+              <h2>{{ nextCalendarRace.race_id.name }}</h2>
+              <p>Date: <b>{{ nextCalendarRace.event_date | date }}</b> Time: <b>{{ nextCalendarRace.event_time || 'TBD' }}</b></p>
             </mat-card-content>
             <mat-card-actions>
-              <button mat-raised-button color="primary" (click)="goTo('teams')">See All Teams</button>
+              <button mat-raised-button color="primary" (click)="goTo('calendar')">View all races</button>
+              <!-- Conditionally show the three new buttons -->
+              <button mat-raised-button color="primary" *ngIf="showLineupsButton" (click)="goTo('lineups', nextCalendarRace.id)">
+                Place Lineups
+              </button>
+              <button mat-raised-button color="primary" *ngIf="showSprintBetButton" (click)="goTo('sprint-bet', nextCalendarRace.id)">
+                Place Sprint Bet
+              </button>
+              <button mat-raised-button color="primary" *ngIf="showPlaceBetButton" (click)="goTo('race-bet', nextCalendarRace.id)">
+                Place Race Bet
+              </button>
             </mat-card-actions>
           </mat-card>
-          <!-- Standings Card -->
           <mat-card class="standings-card" *ngIf="classificationData && classificationData.length">
             <mat-card-header>
               <mat-card-title>Standings</mat-card-title>
@@ -80,26 +85,60 @@ import { ChampionshipService } from '../../services/championship.service';
               </table>
             </mat-card-content>
           </mat-card>
-          <!-- Next Race Card -->
-          <mat-card class="next-race-card" *ngIf="nextCalendarRace">
+
+          <!-- Fantasy Team Card moved to bottom -->
+          <mat-card class="fantasy-team-card" *ngIf="fantasyTeam">
             <mat-card-header>
-              <mat-card-title>{{isCurrentRace ? 'Current Race' : 'Next Race'}}</mat-card-title>
+              <mat-card-title class="team-title">
+                <mat-icon>groups</mat-icon>
+                {{ fantasyTeam.name }}
+              </mat-card-title>
             </mat-card-header>
             <mat-card-content>
-              <h2>{{ nextCalendarRace.race_id.name }}</h2>
-              <p>Date: <b>{{ nextCalendarRace.event_date | date }}</b> Time: <b>{{ nextCalendarRace.event_time || 'TBD' }}</b></p>
+              <div class="team-image-container" *ngIf="fantasyTeam.team_image">
+                <img [src]="fantasyTeam.team_image" alt="{{ fantasyTeam.name }} Logo">
+              </div>
+
+              <div class="rider-grid">
+                <div class="rider official-1">
+                  <h3><mat-icon>sports_motorsports</mat-icon> Primary Rider</h3>
+                  <div class="rider-details">
+                    <span class="rider-name">{{ fantasyTeam.official_rider_1.first_name }} {{ fantasyTeam.official_rider_1.last_name }}</span>
+                    <span class="rider-number">#{{ fantasyTeam.official_rider_1.number }}</span>
+                  </div>
+                </div>
+
+                <div class="rider official-2">
+                  <h3><mat-icon>two_wheeler</mat-icon> Secondary Rider</h3>
+                  <div class="rider-details">
+                    <span class="rider-name">{{ fantasyTeam.official_rider_2.first_name }} {{ fantasyTeam.official_rider_2.last_name }}</span>
+                    <span class="rider-number">#{{ fantasyTeam.official_rider_2.number }}</span>
+                  </div>
+                </div>
+
+                <div class="rider reserve">
+                  <h3><mat-icon>engineering</mat-icon> Reserve Rider</h3>
+                  <div class="rider-details">
+                    <span class="rider-name">{{ fantasyTeam.reserve_rider.first_name }} {{ fantasyTeam.reserve_rider.last_name }}</span>
+                    <span class="rider-number">#{{ fantasyTeam.reserve_rider.number }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="team-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Total Points</span>
+                  <span class="stat-value">1,450</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Remaining Budget</span>
+                  <span class="stat-value">€2.5M</span>
+                </div>
+              </div>
             </mat-card-content>
             <mat-card-actions>
-              <button mat-raised-button color="primary" (click)="goTo('calendar')">View all races</button>
-              <!-- Conditionally show the three new buttons -->
-              <button mat-raised-button color="primary" *ngIf="showLineupsButton" (click)="goTo('lineups', nextCalendarRace.id)">
-                Place Lineups
-              </button>
-              <button mat-raised-button color="primary" *ngIf="showSprintBetButton" (click)="goTo('sprint-bet', nextCalendarRace.id)">
-                Place Sprint Bet
-              </button>
-              <button mat-raised-button color="primary" *ngIf="showPlaceBetButton" (click)="goTo('race-bet', nextCalendarRace.id)">
-                Place Race Bet
+              <button mat-raised-button color="primary" (click)="goTo('teams')">
+                <mat-icon>list_alt</mat-icon> Team Management
               </button>
             </mat-card-actions>
           </mat-card>
@@ -205,6 +244,116 @@ import { ChampionshipService } from '../../services/championship.service';
       }
       .header-center h1 {
         font-size: 18px;
+      }
+    }
+    .fantasy-team-card {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border: 2px solid #d32f2f;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+      .team-title {
+        font-size: 1.5rem;
+        color: #4a148c;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        mat-icon {
+          color: #d32f2f;
+        }
+      }
+
+      .team-image-container {
+        margin: 1rem 0;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+
+        img {
+          max-width: 200px;
+          border: 3px solid #4a148c;
+          padding: 4px;
+          border-radius: 50%;
+        }
+      }
+
+      .rider-grid {
+        display: grid;
+        gap: 1rem;
+        margin: 1rem 0;
+
+        .rider {
+          padding: 1rem;
+          border-radius: 8px;
+
+          h3 {
+            margin: 0 0 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #4a148c;
+          }
+
+          .rider-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .rider-name {
+              font-weight: 500;
+              font-size: 1.1rem;
+            }
+
+            .rider-number {
+              background: #4a148c;
+              color: white;
+              padding: 4px 12px;
+              border-radius: 20px;
+              font-weight: bold;
+            }
+          }
+        }
+
+        .official-1 { background: #f8d7da; border-left: 4px solid #dc3545; }
+        .official-2 { background: #d1ecf1; border-left: 4px solid #0dcaf0; }
+        .reserve { background: #e2e3e5; border-left: 4px solid #6c757d; }
+      }
+
+      .team-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-top: 1.5rem;
+
+        .stat-item {
+          text-align: center;
+          padding: 1rem;
+          background: #f8f9fa;
+          border-radius: 8px;
+
+          .stat-label {
+            display: block;
+            color: #6c757d;
+            font-size: 0.9rem;
+          }
+
+          .stat-value {
+            display: block;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #4a148c;
+          }
+        }
+      }
+
+      mat-card-actions {
+        margin-top: auto;
+        button {
+          mat-icon {
+            margin-right: 8px;
+          }
+        }
       }
     }
   `]

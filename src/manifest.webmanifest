@@ -1,7 +1,7 @@
 {
   "name": "MotoMota",
   "short_name": "MotoMota",
-  "theme_color": "#d81b60",
+  "theme_color": "#4a148c",
   "background_color": "#4a148c",
   "display": "standalone",
   "scope": "/",

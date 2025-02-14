@@ -24,25 +24,71 @@ import { ChampionshipService } from '../../services/championship.service';
         <div class="teams-grid">
           <mat-card class="team-card" *ngFor="let team of teams">
             <mat-card-header>
-              <mat-card-title>{{ team.name }}</mat-card-title>
+              <div class="team-header">
+                <div class="team-image-container" *ngIf="team.team_image">
+                  <img [src]="team.team_image" alt="{{ team.name }} Logo">
+                </div>
+                <div class="header-content">
+                  <div class="team-info">
+                    <mat-card-title class="team-name">{{ team.name }}</mat-card-title>
+                    <div class="user-details">
+                      <span class="username">{{ team.user_id.first_name }} {{ team.user_id.last_name }}</span>
+                      <span class="user-id">ID: {{ team.user_id.id }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </mat-card-header>
             <mat-card-content>
-              <div class="team-image-container" *ngIf="team.team_image">
-                <img [src]="team.team_image" alt="{{ team.name }} Logo">
+              <div class="content-grid">
+                <div class="riders-section">
+                  <div class="rider official-1">
+                    <h3>Primary Riders</h3>
+                    <div class="rider-details">
+                      <div class="rider">
+                        <span class="number">#{{ team.official_rider_1.number }}</span>
+                        <span class="name">{{ team.official_rider_1.first_name }} {{ team.official_rider_1.last_name }}</span>
+                      </div>
+                      <div class="rider">
+                        <span class="number">#{{ team.official_rider_2.number }}</span>
+                        <span class="name">{{ team.official_rider_2.first_name }} {{ team.official_rider_2.last_name }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="rider reserve">
+                    <h3>Reserve Rider</h3>
+                    <div class="rider-details">
+                      <div class="rider">
+                        <span class="number">#{{ team.reserve_rider.number }}</span>
+                        <span class="name">{{ team.reserve_rider.first_name }} {{ team.reserve_rider.last_name }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="stats-section">
+                  <div class="stat-item">
+                    <mat-icon>emoji_events</mat-icon>
+                    <div>
+                      <div class="stat-label">Total Points</div>
+                      <div class="stat-value">1,450</div>
+                    </div>
+                  </div>
+                  <div class="stat-item">
+                    <mat-icon>euro_symbol</mat-icon>
+                    <div>
+                      <div class="stat-label">Remaining Budget</div>
+                      <div class="stat-value">€2.5M</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p>
-                <strong>Official Rider 1:</strong>
-                {{ team.official_rider_1.first_name }} {{ team.official_rider_1.last_name }}
-              </p>
-              <p>
-                <strong>Official Rider 2:</strong>
-                {{ team.official_rider_2.first_name }} {{ team.official_rider_2.last_name }}
-              </p>
-              <p>
-                <strong>Reserve Rider:</strong>
-                {{ team.reserve_rider.first_name }} {{ team.reserve_rider.last_name }}
-              </p>
             </mat-card-content>
+            <mat-card-actions>
+              <button mat-button color="primary" class="view-button">
+                <mat-icon>visibility</mat-icon>
+                View Team
+              </button>
+            </mat-card-actions>
           </mat-card>
         </div>
         <div *ngIf="teams.length === 0" class="no-teams">
@@ -54,36 +100,250 @@ import { ChampionshipService } from '../../services/championship.service';
   styles: [`
     .teams-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      width: 100%;
+      grid-template-columns: 1fr;
+      gap: 25px;
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
     }
+
     .team-card {
-      background: rgba(255, 255, 255, 0.95);
-      color: #333;
-      border-radius: 8px;
-      border: 2px solid #d32f2f;
       display: flex;
       flex-direction: column;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      border: 2px solid #d32f2f;
+      transition: transform 0.2s ease;
+
+      &:hover {
+        transform: translateY(-3px);
+      }
+
+      .team-header {
+        display: flex;
+        gap: 0px;
+        padding: 15px;
+        background: white;
+        border-bottom: 2px solid var(--accent-red);
+        align-items: center;
+        width: 100%;
+
+        .team-image-container {
+          flex: 0 0 60px;
+          img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+            margin-top: 4px;
+          }
+        }
+
+        .header-content {
+          flex: 1;
+
+          .team-info {
+            max-width: 200px;
+
+            mat-card-title.mat-mdc-card-title.team-name {
+              padding-top: 0px;
+            }
+          }
+
+          .team-name-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 8px;
+
+            .team-name {
+              margin: 0;
+              font-size: 1.4rem;
+              color: var(--primary-color);
+              font-family: 'MotoGP Bold', sans-serif;
+              line-height: 1.2;
+            }
+          }
+
+          .user-info {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+
+            .username {
+              font-size: 0.95rem;
+              color: #444;
+              font-weight: 500;
+              position: relative;
+              padding-left: 8px;
+
+              &::before {
+                content: "•";
+                margin-right: 8px;
+                color: #ddd;
+              }
+            }
+
+            .user-id {
+              font-size: 0.85rem;
+              color: #666;
+              background: #f5f5f5;
+              padding: 4px 10px;
+              border-radius: 12px;
+            }
+          }
+        }
+      }
+
+      .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+        padding: 15px;
+
+        .riders-section {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+
+          .rider {
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+            h3 {
+              margin: 0 0 10px 0;
+              padding-bottom: 8px;
+              border-bottom: 1px solid rgba(0,0,0,0.1);
+            }
+
+            .rider-details {
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+
+              .rider {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px;
+                border-radius: 4px;
+
+                .number {
+                  background: var(--primary-color);
+                  color: white;
+                  padding: 2px 8px;
+                  border-radius: 12px;
+                  font-size: 0.9rem;
+                }
+
+                .name {
+                  font-size: 0.95rem;
+                  color: #333;
+                }
+              }
+            }
+          }
+
+          .official-1 {
+            background: linear-gradient(145deg, #f8d7da, #fff5f6);
+            border: 1px solid #f8d7da;
+          }
+
+          .reserve {
+            background: linear-gradient(145deg, #e2e3e5, #f8f9fa);
+            border: 1px solid #e2e3e5;
+          }
+        }
+
+        .stats-section {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+          padding-left: 15px;
+          border-left: 2px solid #eee;
+
+          .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            mat-icon {
+              color: var(--accent-red);
+              font-size: 1.8rem;
+            }
+
+            .stat-label {
+              font-size: 0.9rem;
+              color: #666;
+            }
+
+            .stat-value {
+              font-size: 1.1rem;
+              color: var(--primary-color);
+              font-weight: 500;
+            }
+          }
+        }
+      }
+
+      mat-card-actions {
+        padding: 10px 15px;
+        border-top: 1px solid #eee;
+
+        .view-button {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.9rem;
+          padding: 4px 12px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .content-grid {
+          grid-template-columns: 1fr;
+
+          .stats-section {
+            border-left: none;
+            border-top: 2px solid #eee;
+            padding-top: 15px;
+            padding-left: 0;
+          }
+        }
+
+        .team-header {
+          flex-direction: column;
+          align-items: center;
+
+          .header-content {
+            width: 100%;
+
+            .team-name-container {
+              justify-content: center;
+              text-align: center;
+            }
+
+            .user-info {
+              justify-content: center;
+              flex-wrap: wrap;
+            }
+          }
+        }
+      }
     }
-    .team-card mat-card-header {
-      text-align: center;
-    }
-    .team-image-container {
-      text-align: center;
-      margin: 16px 0;
-    }
-    .team-image-container img {
-      width: 100%;
-      max-width: 150px;
-      height: auto;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
+
     .no-teams {
       margin-top: 20px;
       text-align: center;
       font-size: 18px;
+    }
+
+    @media (min-width: 1600px) {
+      .teams-grid {
+        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      }
     }
   `]
 })
