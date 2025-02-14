@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { environment } from '../../environments/environment';
@@ -50,7 +50,7 @@ export class AuthService {
 
   getAuthHeader() {
     const token = this.getToken();
-    return { 'Authorization': `Bearer ${token}` };
+    return new HttpHeaders({ 'Authorization': `Bearer ${token}` });
   }
 
   // This method decodes the JWT and returns the userId from the token payload.

@@ -1,10 +1,8 @@
 // src/app/services/dashboard.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { AuthService } from './auth.service';
 import { ChampionshipService } from './championship.service';
+import { HttpService } from './http.service';
 
 export interface StandingsRow {
   Id: number;
@@ -17,6 +15,7 @@ export interface StandingsRow {
 export interface Race {
   id: number;
   name: string;
+  location: string;
 }
 
 export interface CalendarRace {
@@ -50,40 +49,33 @@ export interface FantasyTeam {
   providedIn: 'root'
 })
 export class DashboardService {
-  private apiUrl = environment.apiUrl;
 
   constructor(
-    private http: HttpClient,
-    private authService: AuthService,
+    private httpService: HttpService,
     private championshipService: ChampionshipService
   ) {}
 
-  private getAuthHeaders(): HttpHeaders {
-    return new HttpHeaders(this.authService.getAuthHeader());
+  private get championshipId(): number {
+    return this.championshipService.selectedChampionshipId;
   }
 
   getClassification(): Observable<StandingsRow[]> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<StandingsRow[]>(`${this.apiUrl}/championship/${this.championshipService.selectedChampionshipId}/standings`, { headers });
+    return this.httpService.genericGet<StandingsRow[]>(`championship/${this.championshipId}/standings`);
   }
 
   getCalendar(): Observable<CalendarRace[]> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<CalendarRace[]>(`${this.apiUrl}/championship/${this.championshipService.selectedChampionshipId}/calendar`, { headers });
+    return this.httpService.genericGet<CalendarRace[]>(`championship/${this.championshipId}/calendar`);
   }
 
   getNextRace(): Observable<CalendarRace> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<CalendarRace>(`${this.apiUrl}/championship/${this.championshipService.selectedChampionshipId}/next-race`, { headers });
+    return this.httpService.genericGet<CalendarRace>(`championship/${this.championshipId}/next-race`);
   }
 
   getAllFantasyTeams(): Observable<FantasyTeam[]> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<FantasyTeam[]>(`${this.apiUrl}/championship/${this.championshipService.selectedChampionshipId}/fantasy_teams`, { headers });
+    return this.httpService.genericGet<FantasyTeam[]>(`championship/${this.championshipId}/fantasy_teams`);
   }
 
   getFantasyTeam(): Observable<FantasyTeam> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<FantasyTeam>(`${this.apiUrl}/championship/${this.championshipService.selectedChampionshipId}/fantasy_team`, { headers });
+    return this.httpService.genericGet<FantasyTeam>(`championship/${this.championshipId}/fantasy_team`);
   }
 }

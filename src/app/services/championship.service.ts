@@ -1,10 +1,9 @@
 // src/app/services/championship.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
+import { HttpService } from './http.service';
 
 export interface Championship {
   id: number;
@@ -17,7 +16,6 @@ export interface Championship {
   providedIn: 'root'
 })
 export class ChampionshipService {
-  private apiUrl = environment.apiUrl;
 
   private _selectedChampionshipId: number = Number(localStorage.getItem('selectedChampionshipId')) || 0;
   public get selectedChampionshipId(): number {
@@ -31,8 +29,7 @@ export class ChampionshipService {
   }
 
   constructor(
-    private http: HttpClient,
-    private authService: AuthService,
+    private httpService: HttpService,
     private router: Router
   ) {
     if(this._selectedChampionshipId === 0) {
@@ -44,17 +41,13 @@ export class ChampionshipService {
     }
   }
 
-  private getAuthHeaders(): HttpHeaders {
-    return new HttpHeaders(this.authService.getAuthHeader());
-  }
-
   // Fetch default championship (current year)
   getDefaultChampionship(): Observable<Championship> {
-    return this.http.get<Championship>(`${this.apiUrl}/championship/default`, { headers: this.getAuthHeaders() });
+    return this.httpService.genericGet<Championship>(`championship/default`);
   }
 
   // Fetch all championships
   getChampionships(): Observable<Championship[]> {
-    return this.http.get<Championship[]>(`${this.apiUrl}/championships`, { headers: this.getAuthHeaders() });
+    return this.httpService.genericGet<Championship[]>(`championships`);
   }
 }

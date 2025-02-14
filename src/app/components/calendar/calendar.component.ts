@@ -4,8 +4,8 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { DashboardService, CalendarRace } from '../../services/dashboard.service';
-import { MatIcon, MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-calendar',
@@ -22,28 +22,59 @@ import { MatIcon, MatIconModule } from '@angular/material/icon';
       <main class="main-content">
         <mat-card class="calendar-card">
           <mat-card-content>
-            <table class="calendar-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Race Name</th>
-                  <th>Date</th>
-                  <th>Qualifications time</th>
-                  <th>Sprint Race time</th>
-                  <th>Race Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let race of calendar">
-                  <td>{{ race.race_order }}</td>
-                  <td>{{ race.race_id.name }}</td>
-                  <td>{{ race.event_date | date:'shortDate' }}</td>
-                  <td>{{ race.qualifications_time || 'TBD' }}</td>
-                  <td>{{ race.sprint_time || 'TBD' }}</td>
-                  <td>{{ race.event_time || 'TBD' }}</td>
-                </tr>
-              </tbody>
-            </table>
+
+            <!-- TABLE for Desktop (Hidden on Mobile) -->
+            <div class="table-wrapper desktop-only">
+              <table class="calendar-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Race Name</th>
+                    <th>Date</th>
+                    <th>Qualifications</th>
+                    <th>Sprint Race</th>
+                    <th>Race Time</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let race of calendar">
+                    <td>{{ race.race_order }}</td>
+                    <td>{{ race.race_id.name }}</td>
+                    <td>{{ race.event_date | date:'shortDate' }}</td>
+                    <td>{{ race.qualifications_time || 'TBD' }}</td>
+                    <td>{{ race.sprint_time || 'TBD' }}</td>
+                    <td>{{ race.event_time || 'TBD' }}</td>
+                    <td>
+                      <button mat-icon-button color="primary" (click)="goToRaceDetail(race)">
+                        <mat-icon>chevron_right</mat-icon>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- LIST for Mobile (Hidden on Desktop) -->
+            <div class="mobile-only">
+              <mat-card class="race-card" *ngFor="let race of calendar">
+                <mat-card-header>
+                  <mat-card-title>{{ race.race_id.name }}</mat-card-title>
+                  <mat-card-subtitle>#{{ race.race_order }} - {{ race.event_date | date:'shortDate' }}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <p><strong>Qualifications:</strong> {{ race.qualifications_time || 'TBD' }}</p>
+                  <p><strong>Sprint Race:</strong> {{ race.sprint_time || 'TBD' }}</p>
+                  <p><strong>Race Time:</strong> {{ race.event_time || 'TBD' }}</p>
+                </mat-card-content>
+                <mat-card-actions>
+                  <button mat-raised-button color="primary" (click)="goToRaceDetail(race)">
+                    View Details
+                  </button>
+                </mat-card-actions>
+              </mat-card>
+            </div>
+
           </mat-card-content>
         </mat-card>
       </main>
@@ -54,7 +85,6 @@ import { MatIcon, MatIconModule } from '@angular/material/icon';
     .calendar-container {
       min-height: 100vh;
       background: linear-gradient(135deg, #4a148c, #d81b60);
-      color: #fff;
       padding: 20px;
     }
     /* Header with fixed full width and constant height */
@@ -69,10 +99,7 @@ import { MatIcon, MatIconModule } from '@angular/material/icon';
       background: linear-gradient(135deg, #4a148c, #d81b60);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       z-index: 1000;
-    }
-    .header {
-      display: flex;
-      align-items: center;
+      color: #fff;
       margin-bottom: 20px;
     }
     .header button {
@@ -88,19 +115,16 @@ import { MatIcon, MatIconModule } from '@angular/material/icon';
     .main-content {
       padding: 70px 20px 20px; /* 60px header + 10px extra */
     }
-    /* Calendar card styling */
-    .calendar-card {
-      background: rgba(255, 255, 255, 0.95);
-      color: #333;
-      border-radius: 8px;
-      border: 2px solid #d32f2f;
-      max-width: 800px;
-      margin: 0 auto;
+    /* General Styles */
+    .table-wrapper {
+      overflow-x: auto;
+      width: 100%;
+      -webkit-overflow-scrolling: touch; /* Smooth scrolling for mobile */
     }
     .calendar-table {
       width: 100%;
+      min-width: 600px; /* Prevents table shrinking */
       border-collapse: collapse;
-      margin-top: 10px;
     }
     .calendar-table th,
     .calendar-table td {
@@ -109,17 +133,32 @@ import { MatIcon, MatIconModule } from '@angular/material/icon';
       text-align: left;
       font-size: 14px;
     }
-    /* Responsive adjustments for mobile screens */
+    /* Race Card for Mobile */
+    .race-card {
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #333;
+      border-radius: 8px;
+      border-left: 5px solid #d32f2f;
+      padding: 10px;
+    }
+    .race-card p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    /* Toggle Views: Hide Table on Mobile, Show List */
     @media (max-width: 600px) {
-      .calendar-card {
-        margin: 0 10px;
-        width: 100%;
+      .desktop-only {
+        display: none;
       }
-      .header-left, .header-right {
-        width: 60px;
+      mat-card.mat-mdc-card.mdc-card.calendar-card {
+          background: transparent !important;
       }
-      .header-center h1 {
-        font-size: 20px;
+    }
+    /* Toggle Views: Show Table on Desktop, Hide List */
+    @media (min-width: 601px) {
+      .mobile-only {
+        display: none;
       }
     }
   `]
@@ -146,5 +185,11 @@ export class CalendarComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/']);  // Navigates back to the dashboard
+  }
+
+  goToRaceDetail(race: CalendarRace): void {
+    // Assumes that race.race_id has an 'id' property.
+    const calendarRaceId = race.id;
+    this.router.navigate(['/race-detail', calendarRaceId]);
   }
 }

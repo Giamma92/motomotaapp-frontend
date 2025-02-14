@@ -24,6 +24,8 @@ export const routes: Routes = [
   { path: 'lineups/:id', loadComponent: () => import('./components/lineups/lineups.component').then(m => m.LineupsComponent), canActivate: [AuthGuard] },
   // A route for a calendar page.
   { path: 'calendar', component: CalendarComponent },
+  // A route for Race details page.
+  { path: 'race-detail/:id', loadComponent: () => import('./components/race-detail/race-detail.component').then(m => m.RaceDetailComponent) },
   // A route for a teams page.
   { path: 'teams', component: AllTeamsComponent, canActivate: [AuthGuard] },
 ];
