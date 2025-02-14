@@ -8,7 +8,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { DashboardService, StandingsRow, CalendarRace, FantasyTeam } from '../../services/dashboard.service';
 import { AuthService } from '../../services/auth.service';
-import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
+// import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
+import { ChampionshipService } from '../../services/championship.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -17,23 +18,26 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
   template: `
     <div class="dashboard-container">
       <header class="header">
-        <div class="header-center">
-          <h1>MotoMota - Dashboard</h1>
-        </div>
-        <div class="header-right">
-          <button mat-icon-button [matMenuTriggerFor]="menu">
-            <mat-icon>more_vert</mat-icon>
+        <h1>MotoMota - Dashboard</h1>
+
+
+        <button mat-icon-button [matMenuTriggerFor]="menu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="goTo('profile')">
+            <i class="fa-solid fa-user"></i> Profile
           </button>
-          <mat-menu #menu="matMenu">
-            <button mat-menu-item (click)="goTo('profile')">Profile</button>
-            <button mat-menu-item (click)="goTo('settings')">
-              <mat-icon>settings</mat-icon> Settings
-            </button>
-            <button mat-menu-item (click)="logout()">Logout</button>
-          </mat-menu>
-        </div>
+          <button mat-menu-item (click)="goTo('settings')">
+            <i class="fa-solid fa-gear"></i> Settings
+          </button>
+          <button mat-menu-item (click)="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+          </button>
+        </mat-menu>
+
       </header>
-      <main class="main-content">
+      <main class="grid-content">
         <div class="cards-wrapper">
           <!-- Fantasy Team Card -->
           <mat-card class="fantasy-team-card" *ngIf="fantasyTeam">
@@ -110,33 +114,33 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
       color: #fff;
       padding-top: 80px;
     }
-    .header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 80px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: linear-gradient(135deg, #4a148c, #d81b60);
-      z-index: 1000;
-    }
-    .header-center {
-      flex: 1;
-      text-align: center;
-    }
-    .header-center h1 {
-      margin: 0;
-      font-size: 20px;
-    }
-    .header-right {
-      flex: 0 0 auto;
-    }
-    .header-right button {
-      color: #fff;
-    }
-    .main-content {
+    // .header {
+    //   position: fixed;
+    //   top: 0;
+    //   left: 0;
+    //   width: 100%;
+    //   height: 80px;
+    //   display: flex;
+    //   align-items: center;
+    //   justify-content: space-between;
+    //   background: linear-gradient(135deg, #4a148c, #d81b60);
+    //   z-index: 1000;
+    // }
+    // .header-center {
+    //   flex: 1;
+    //   text-align: center;
+    // }
+    // .header-center h1 {
+    //   margin: 0;
+    //   font-size: 20px;
+    // }
+    // .header-right {
+    //   flex: 0 0 auto;
+    // }
+    // .header-right button {
+    //   color: #fff;
+    // }
+    .grid-content {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 20px;
@@ -219,24 +223,27 @@ export class DashboardComponent implements OnInit {
   constructor(
     private router: Router,
     private dashboardService: DashboardService,
+    private championshipService: ChampionshipService,
     private authService: AuthService
   ) {
     this.loggedUserId = this.authService.getUserId();
   }
 
   ngOnInit(): void {
-    this.loadDashboardData();
+    this.championshipService.getChampIdObs().subscribe((champId: number) => {
+      champId > 0 && this.loadDashboardData(champId);
+    });
   }
 
-  private loadDashboardData(): void {
-    this.dashboardService.getClassification().subscribe({
+  private loadDashboardData(champId: number): void {
+    this.dashboardService.getClassification(champId).subscribe({
       next: (data: StandingsRow[]) => {
         this.classificationData = data;
       },
       error: (error: any) =>
         console.error('Error fetching classification data:', error)
     });
-    this.dashboardService.getNextRace().subscribe({
+    this.dashboardService.getNextRace(champId).subscribe({
       next: (race: CalendarRace) => {
         this.nextCalendarRace = race;
         this.computeButtonVisibility();
@@ -246,7 +253,7 @@ export class DashboardComponent implements OnInit {
         this.nextCalendarRace = undefined;
       }
     });
-    this.dashboardService.getFantasyTeam().subscribe({
+    this.dashboardService.getFantasyTeam(champId).subscribe({
       next: (team: FantasyTeam) => {
         this.fantasyTeam = team;
       },

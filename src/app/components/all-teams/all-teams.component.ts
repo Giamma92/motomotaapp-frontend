@@ -6,20 +6,21 @@ import { DashboardService, FantasyTeam } from '../../services/dashboard.service'
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { ChampionshipService } from '../../services/championship.service';
 
 @Component({
   selector: 'app-all-teams',
   standalone: true,
   imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule],
   template: `
-    <div class="all-teams-container">
+    <div class="page-container">
       <header class="header">
         <button mat-icon-button (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>All Teams</h1>
       </header>
-      <main class="teams-content">
+      <main class="main-content">
         <div class="teams-grid">
           <mat-card class="team-card" *ngFor="let team of teams">
             <mat-card-header>
@@ -51,44 +52,6 @@ import { MatIconModule } from '@angular/material/icon';
     </div>
   `,
   styles: [`
-    .all-teams-container {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #4a148c, #d81b60);
-      color: #fff;
-      padding: 20px;
-    }
-    .header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      background: linear-gradient(135deg, #4a148c, #d81b60);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-    }
-    .header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .header button {
-      color: #fff;
-    }
-    .header h1 {
-      flex: 1;
-      text-align: center;
-      margin: 0;
-      font-size: 24px;
-    }
-    .teams-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 70px 20px 20px; /* 60px header + 10px extra */
-    }
     .teams-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -129,18 +92,22 @@ export class AllTeamsComponent implements OnInit {
 
   constructor(
     private dashboardService: DashboardService,
+    private championshipService: ChampionshipService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.dashboardService.getAllFantasyTeams().subscribe({
-      next: (data: FantasyTeam[]) => {
-        this.teams = data;
-      },
-      error: (err) => {
-        console.error('Error fetching all fantasy teams:', err);
-        this.teams = [];
-      }
+    this.championshipService.getChampIdObs().subscribe((champId: number) => {
+      if (champId == 0) return;
+      this.dashboardService.getAllFantasyTeams(champId).subscribe({
+        next: (data: FantasyTeam[]) => {
+          this.teams = data;
+        },
+        error: (err) => {
+          console.error('Error fetching all fantasy teams:', err);
+          this.teams = [];
+        }
+      });
     });
   }
 

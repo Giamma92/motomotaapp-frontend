@@ -1,7 +1,7 @@
 // src/app/services/championship.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { HttpService } from './http.service';
 
@@ -17,28 +17,30 @@ export interface Championship {
 })
 export class ChampionshipService {
 
-  private _selectedChampionshipId: number = Number(localStorage.getItem('selectedChampionshipId')) || 0;
-  public get selectedChampionshipId(): number {
-    return this._selectedChampionshipId;
-  }
+  private subjChampObs: Observable<number> = new Observable<number>();
+  private subjChampId: BehaviorSubject<number>;
 
+  private _selectedChampionshipId: number;
   public set selectedChampionshipId(champId: number) {
     this._selectedChampionshipId = champId;
-    localStorage.setItem('selectedChampionshipId', champId.toString());
-    this.router.navigate(['/']);
+    champId > 0 && this.subjChampId.next(champId);
   }
 
   constructor(
-    private httpService: HttpService,
-    private router: Router
+    private httpService: HttpService
   ) {
-    if(this._selectedChampionshipId === 0) {
-      this.getDefaultChampionship().subscribe({
-        next: (champ: Championship) => {
-          this.selectedChampionshipId = champ.id;
-        }
-      });
-    }
+    this._selectedChampionshipId = 0;
+    this.getDefaultChampionship().subscribe({
+      next: (champ: Championship) => {
+        this.selectedChampionshipId = champ.id;
+      }
+    });
+    this.subjChampId = new BehaviorSubject<number>(this._selectedChampionshipId);
+    this.subjChampObs = this.subjChampId.asObservable();
+  }
+
+  getChampIdObs(): Observable<number> {
+    return this.subjChampObs;
   }
 
   // Fetch default championship (current year)

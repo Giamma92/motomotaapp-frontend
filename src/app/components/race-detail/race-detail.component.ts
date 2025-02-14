@@ -8,13 +8,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { BetResult, LineupsResult, RaceDetailService } from '../../services/race-detail.service';
 import { CalendarRace, Race } from '../../services/dashboard.service';
+import { ChampionshipService } from '../../services/championship.service';
 
 @Component({
   selector: 'app-race-detail',
   standalone: true,
   imports: [CommonModule, MatCardModule, MatTableModule, MatButtonModule, MatIconModule, MatExpansionModule],
   template: `
-    <div class="race-detail-container">
+    <div class="page-container">
       <header class="header">
         <button mat-icon-button (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
@@ -154,13 +155,17 @@ export class RaceDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private championshipService: ChampionshipService,
     private raceDetailService: RaceDetailService
-  ) {}
+  ) {
+
+  }
 
   ngOnInit(): void {
     this.raceId = this.route.snapshot.paramMap.get('id');
-    if (this.raceId) {
-      this.raceDetailService.getRaceDetails(this.raceId).subscribe({
+    this.championshipService.getChampIdObs().subscribe((champId: number) => {
+      if (champId == 0 || !this.raceId) return;
+      this.raceDetailService.getRaceDetails(champId, this.raceId).subscribe({
         next: (data) => {
           this.groupedLineups = this.groupByRaceId(data.lineups);
           this.groupedSprints = this.groupByRaceId(data.sprints);
@@ -168,7 +173,7 @@ export class RaceDetailComponent implements OnInit {
         },
         error: (err) => console.error('Error fetching race details:', err)
       });
-    }
+    });
   }
 
   private groupByRaceId<T extends { calendar_id: CalendarRace }>(items: T[]): { raceId: number, data: T[] }[] {

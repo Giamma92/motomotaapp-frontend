@@ -1,43 +1,52 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChampionshipService, Championship } from '../../services/championship.service';
-import { DashboardService } from '../../services/dashboard.service';
 import { Router } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { UserSettingsService } from '../../services/user-settings.service';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, MatSelectModule, MatFormFieldModule, FormsModule, MatCardModule, MatButtonModule, MatIconModule],
+  imports: [
+    CommonModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    ReactiveFormsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+  ],
   template: `
     <div class="settings-container">
+      <header class="header">
+        <button mat-icon-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>User settings</h1>
+      </header>
       <mat-card class="settings-card">
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>settings</mat-icon>
-            Settings
-          </mat-card-title>
-        </mat-card-header>
         <mat-card-content>
-          <div class="form-group">
+          <form [formGroup]="settingsForm" (ngSubmit)="save()">
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Select Championship</mat-label>
-              <mat-select [(ngModel)]="selectedChampionshipId">
+              <mat-select formControlName="championship_id">
                 <mat-option *ngFor="let champ of championships" [value]="champ.id">
                   {{ champ.description }} ({{ champ.year }})
                 </mat-option>
               </mat-select>
             </mat-form-field>
-          </div>
-          <!-- Additional inputs can be added here as new form-group blocks -->
+
+          </form>
+          <p *ngIf="successMessage" class="success-message">{{ successMessage }}</p>
         </mat-card-content>
         <mat-card-actions>
-          <button mat-raised-button color="primary" (click)="save()">Save</button>
+          <button mat-raised-button color="primary" (click)="save()" [disabled]="settingsForm.invalid || loading">Save</button>
         </mat-card-actions>
       </mat-card>
     </div>
@@ -51,26 +60,10 @@ import { MatIconModule } from '@angular/material/icon';
       background: linear-gradient(135deg, #4a148c, #d81b60);
       padding: 20px;
     }
-    mat-card-header.mat-mdc-card-header {
-        background: none;
-        border-bottom: none;
-        padding-bottom: 20px;
-    }
     .settings-card {
       width: 100%;
       max-width: 500px;
       padding: 20px;
-    }
-    mat-card-header {
-      background: rgba(0, 0, 0, 0.05);
-      border-bottom: 1px solid #ccc;
-    }
-    mat-card-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 24px;
-      font-weight: bold;
     }
     .form-group {
       margin-bottom: 20px;
@@ -78,35 +71,83 @@ import { MatIconModule } from '@angular/material/icon';
     .full-width {
       width: 100%;
     }
-    mat-card-actions {
-      display: flex;
-      justify-content: flex-end;
+    .success-message {
+      color: green;
+      margin-top: 10px;
+      font-weight: bold;
     }
-  `]
+    mat-card-header.mat-mdc-card-header {
+        padding-bottom: 20px;
+    }
+  `],
 })
 export class SettingsComponent implements OnInit {
   championships: Championship[] = [];
-  selectedChampionshipId: number = 0;
+  settingsForm: FormGroup;
+  loading = false;
+  successMessage = '';
 
   constructor(
+    private fb: FormBuilder,
     private championshipService: ChampionshipService,
-    private dashboardService: DashboardService,
+    private userSettingsService: UserSettingsService,
     private router: Router
-  ) {}
-
-  ngOnInit(): void {
-    this.championshipService.getChampionships().subscribe({
-      next: (data: Championship[]) => {
-        this.championships = data;
-        const currentYear = new Date().getFullYear();
-        const defaultChamp = data.find(champ => champ.year === currentYear);
-        this.selectedChampionshipId = defaultChamp ? defaultChamp.id : data[0]?.id;
-      },
-      error: (err) => console.error('Error fetching championships', err)
+  ) {
+    this.settingsForm = this.fb.group({
+      championship_id: ['', Validators.required],
     });
   }
 
+  ngOnInit(): void {
+    this.loadChampionships();
+    this.loadUserSettings();
+  }
+
+  /** Fetch available championships */
+  loadChampionships(): void {
+    this.championshipService.getChampionships().subscribe({
+      next: (data: Championship[]) => {
+        this.championships = data;
+      },
+      error: (err) => console.error('Error fetching championships', err),
+    });
+  }
+
+  /** Fetch user settings */
+  loadUserSettings(): void {
+    this.userSettingsService.getUserSettings().subscribe({
+      next: (userSettings) => {
+        if (userSettings?.championship_id) {
+          this.settingsForm.patchValue({ championship_id: userSettings.championship_id });
+        }
+      },
+      error: (err) => console.error('Error fetching user settings', err),
+    });
+  }
+
+  /** Save settings */
   save(): void {
-    this.championshipService.selectedChampionshipId = this.selectedChampionshipId;
+    if (this.settingsForm.invalid) return;
+
+    this.loading = true;
+    this.successMessage = '';
+
+    const championshipId = this.settingsForm.value.championship_id;
+    this.championshipService.selectedChampionshipId = championshipId;
+
+    this.userSettingsService.updateUserSettings(championshipId).subscribe({
+      next: () => {
+        this.successMessage = 'Settings updated successfully!';
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error updating settings:', err);
+        this.loading = false;
+      },
+    });
+  }
+
+  goBack() {
+    this.router.navigate(['/']);
   }
 }

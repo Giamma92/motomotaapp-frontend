@@ -20,4 +20,9 @@ export class HttpService {
     return this.http.get<T>(`${this.apiUrl}/${url}`, { headers });
   }
 
+  genericPut(url: string, payload: any): Observable<object>{
+    const headers = this.authService.getAuthHeader();
+    return this.http.put(`${this.apiUrl}/${url}`, payload, { headers });
+  }
+
 }

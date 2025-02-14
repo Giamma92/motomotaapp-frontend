@@ -1,7 +1,6 @@
 // src/app/services/race-detail.service.ts
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ChampionshipService } from './championship.service';
 import { HttpService } from './http.service';
 import { CalendarRace } from './dashboard.service';
 
@@ -39,21 +38,17 @@ export interface RaceDetails {
 })
 export class RaceDetailService {
 
-  constructor(private httpService: HttpService,
-              private championshipService: ChampionshipService) {}
+  constructor(private httpService: HttpService) {}
 
-  private get championshipId(): number {
-    return this.championshipService.selectedChampionshipId;
-  }
 
-  getRaceDetails(raceId: string): Observable<RaceDetails> {
+  getRaceDetails(championshipId: number, raceId: string): Observable<RaceDetails> {
     // Calls the backend API using the generic GET method, providing the championship ID and race ID
     return this.httpService.genericGet<RaceDetails>(
-      `championship/${this.championshipId}/race-details/${raceId}`
+      `championship/${championshipId}/race-details/${raceId}`
     );
   }
 
-  getCalendarRace(raceId: string): Observable<CalendarRace[]> {
-      return this.httpService.genericGet<CalendarRace[]>(`championship/${this.championshipId}/calendar/${raceId}`);
+  getCalendarRace(championshipId: number, raceId: string): Observable<CalendarRace[]> {
+      return this.httpService.genericGet<CalendarRace[]>(`championship/${championshipId}/calendar/${raceId}`);
     }
 }

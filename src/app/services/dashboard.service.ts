@@ -51,31 +51,26 @@ export interface FantasyTeam {
 export class DashboardService {
 
   constructor(
-    private httpService: HttpService,
-    private championshipService: ChampionshipService
+    private httpService: HttpService
   ) {}
 
-  private get championshipId(): number {
-    return this.championshipService.selectedChampionshipId;
+  getClassification(championshipId: number): Observable<StandingsRow[]> {
+    return this.httpService.genericGet<StandingsRow[]>(`championship/${championshipId}/standings`);
   }
 
-  getClassification(): Observable<StandingsRow[]> {
-    return this.httpService.genericGet<StandingsRow[]>(`championship/${this.championshipId}/standings`);
+  getCalendar(championshipId: number): Observable<CalendarRace[]> {
+    return this.httpService.genericGet<CalendarRace[]>(`championship/${championshipId}/calendar`);
   }
 
-  getCalendar(): Observable<CalendarRace[]> {
-    return this.httpService.genericGet<CalendarRace[]>(`championship/${this.championshipId}/calendar`);
+  getNextRace(championshipId: number): Observable<CalendarRace> {
+    return this.httpService.genericGet<CalendarRace>(`championship/${championshipId}/next-race`);
   }
 
-  getNextRace(): Observable<CalendarRace> {
-    return this.httpService.genericGet<CalendarRace>(`championship/${this.championshipId}/next-race`);
+  getAllFantasyTeams(championshipId: number): Observable<FantasyTeam[]> {
+    return this.httpService.genericGet<FantasyTeam[]>(`championship/${championshipId}/fantasy_teams`);
   }
 
-  getAllFantasyTeams(): Observable<FantasyTeam[]> {
-    return this.httpService.genericGet<FantasyTeam[]>(`championship/${this.championshipId}/fantasy_teams`);
-  }
-
-  getFantasyTeam(): Observable<FantasyTeam> {
-    return this.httpService.genericGet<FantasyTeam>(`championship/${this.championshipId}/fantasy_team`);
+  getFantasyTeam(championshipId: number): Observable<FantasyTeam> {
+    return this.httpService.genericGet<FantasyTeam>(`championship/${championshipId}/fantasy_team`);
   }
 }

@@ -5,21 +5,19 @@ import { AuthService, UserInfo } from '../../services/auth.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-user-info',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule],
   template: `
     <div class="profile-container">
-      <header class="profile-header">
-        <div class="header-logo">
-          <img src="assets/images/motomotaGPLogo512x512.png" alt="MotoMota Logo">
-        </div>
-        <nav class="header-nav">
-          <button mat-button (click)="goToDashboard()">Dashboard</button>
-          <button mat-button (click)="logout()">Logout</button>
-        </nav>
+      <header class="header">
+        <button mat-icon-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>User profile</h1>
       </header>
       <main class="profile-main">
         <mat-card *ngIf="userInfo; else notLoggedIn" class="profile-card">
@@ -39,7 +37,7 @@ import { Router } from '@angular/router';
             </div>
           </mat-card-content>
           <mat-card-actions>
-            <button mat-raised-button color="primary" (click)="goToDashboard()">Back to Dashboard</button>
+            <button mat-raised-button color="primary" (click)="logout()">Logout</button>
           </mat-card-actions>
         </mat-card>
         <ng-template #notLoggedIn>
@@ -64,22 +62,6 @@ import { Router } from '@angular/router';
       flex-direction: column;
       background: linear-gradient(135deg, #4a148c, #d81b60);
       color: #fff;
-    }
-    /* Header styling */
-    .profile-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 16px;
-      background: rgba(0,0,0,0.3);
-    }
-    .header-logo img {
-      width: 60px;
-      height: auto;
-    }
-    .header-nav button {
-      color: #fff;
-      margin-left: 8px;
     }
     /* Main content area: center the profile card */
     .profile-main {
@@ -150,8 +132,7 @@ export class UserInfoComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  // Navigate back to the dashboard
-  goToDashboard(): void {
+  goBack(): void {
     this.router.navigate(['/']);
   }
 }

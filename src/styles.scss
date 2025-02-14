@@ -35,4 +35,56 @@ h1,h2,h3 {
   text-align: center;
 }
 
+mat-card-actions.mat-mdc-card-actions.mdc-card__actions {
+  padding: 10px 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+mat-card.mat-mdc-card.mdc-card.calendar-card {
+  color: black;
+}
+
+.page-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #4a148c, #d81b60);
+  color: #fff;
+  padding: 20px;
+}
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #4a148c, #d81b60);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: #fff;
+  margin-bottom: 20px;
+  z-index: 1000;
+}
+.header button {
+  color: #fff;
+}
+.header h1 {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  font-size: 24px;
+}
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 70px 20px 20px; /* 60px header + 10px extra */
+}
+span.mat-mdc-menu-item-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 

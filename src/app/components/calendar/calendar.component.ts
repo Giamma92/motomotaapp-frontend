@@ -6,13 +6,14 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { DashboardService, CalendarRace } from '../../services/dashboard.service';
+import { ChampionshipService } from '../../services/championship.service';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
   imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule],
   template: `
-    <div class="calendar-container">
+    <div class="page-container">
       <header class="header">
         <button mat-icon-button (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
@@ -81,40 +82,6 @@ import { DashboardService, CalendarRace } from '../../services/dashboard.service
     </div>
   `,
   styles: [`
-    /* Container without extra margin */
-    .calendar-container {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #4a148c, #d81b60);
-      padding: 20px;
-    }
-    /* Header with fixed full width and constant height */
-    .header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      background: linear-gradient(135deg, #4a148c, #d81b60);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      color: #fff;
-      margin-bottom: 20px;
-    }
-    .header button {
-      color: #fff;
-    }
-    .header h1 {
-      flex: 1;
-      text-align: center;
-      margin: 0;
-      font-size: 24px;
-    }
-    /* Main content area: add top padding to account for fixed header */
-    .main-content {
-      padding: 70px 20px 20px; /* 60px header + 10px extra */
-    }
     /* General Styles */
     .table-wrapper {
       overflow-x: auto;
@@ -168,18 +135,22 @@ export class CalendarComponent implements OnInit {
 
   constructor(
     private dashboardService: DashboardService,
+    private championshipService: ChampionshipService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.dashboardService.getCalendar().subscribe({
-      next: (data: CalendarRace[]) => {
-        this.calendar = data;
-      },
-      error: (err) => {
-        console.error('Error fetching calendar data:', err);
-        this.calendar = [];
-      }
+    this.championshipService.getChampIdObs().subscribe((champId: number) => {
+      if (champId == 0) return;
+      this.dashboardService.getCalendar(champId).subscribe({
+        next: (data: CalendarRace[]) => {
+          this.calendar = data;
+        },
+        error: (err) => {
+          console.error('Error fetching calendar data:', err);
+          this.calendar = [];
+        }
+      });
     });
   }
 
