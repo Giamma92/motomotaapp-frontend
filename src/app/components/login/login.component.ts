@@ -7,6 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import * as CryptoJS from 'crypto-js';
 
 @Component({
   selector: 'app-login',
@@ -116,8 +117,12 @@ export class LoginComponent {
   onSubmit(): void {
     if (this.loginForm.valid) {
       this.loading = true;
-      const { username, password } = this.loginForm.value;
-      this.authService.login(username, password).subscribe({
+      let { username, password } = this.loginForm.value;
+
+      // 🔹 Hash the password using SHA-256
+      const hashedPassword = CryptoJS.SHA256(password).toString();
+
+      this.authService.login(username, hashedPassword).subscribe({
         next: (res) => {
           this.loading = false;
           this.authService.setToken(res.token);
@@ -127,7 +132,7 @@ export class LoginComponent {
           this.loading = false;
           console.error('Login error:', err);
           this.errorMessage = 'Invalid username or password';
-        }
+        },
       });
     }
   }
