@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import * as CryptoJS from 'crypto-js';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-login',
@@ -18,32 +19,44 @@ import * as CryptoJS from 'crypto-js';
     MatCardModule,
     MatInputModule,
     MatButtonModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatIconModule
   ],
   template: `
     <div class="login-container">
       <mat-card class="login-card">
-        <div class="logo-container">
-          <img src="assets/images/motomotaGPLogo512x512.png" alt="MotoMota Logo">
-        </div>
-        <h2>Fanta MotoGP Login</h2>
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-          <mat-form-field appearance="fill" class="full-width">
+        <mat-card-header class="card-header">
+          <mat-card-title>
+            <img src="assets/images/motomotaGPLogo512x512.png" alt="MotoMota Logo">
+            <div class="header-content">
+              Welcome to Fanta MotoGP
+              <div class="subtitle">Manage your championship</div>
+            </div>
+          </mat-card-title>
+        </mat-card-header>
+
+        <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <mat-form-field appearance="outline" class="full-width">
             <mat-label>Username</mat-label>
             <input matInput formControlName="username" required>
+            <mat-icon matPrefix>person</mat-icon>
           </mat-form-field>
-          <mat-form-field appearance="fill" class="full-width">
+
+          <mat-form-field appearance="outline" class="full-width">
             <mat-label>Password</mat-label>
             <input matInput type="password" formControlName="password" required>
+            <mat-icon matPrefix>lock</mat-icon>
           </mat-form-field>
-          <button mat-raised-button color="primary" class="full-width-button" type="submit" [disabled]="loginForm.invalid || loading">
-            Login
+
+          <button mat-raised-button color="primary" class="login-button" type="submit"
+                  [disabled]="loginForm.invalid || loading">
+            <span *ngIf="!loading">Sign In</span>
+            <mat-spinner *ngIf="loading" diameter="24"></mat-spinner>
           </button>
         </form>
-        <div *ngIf="loading" class="spinner-container">
-          <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
-        </div>
+
         <div *ngIf="errorMessage" class="error-message">
+          <mat-icon>error</mat-icon>
           {{ errorMessage }}
         </div>
       </mat-card>
@@ -55,50 +68,126 @@ import * as CryptoJS from 'crypto-js';
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, #4a148c, #d81b60);
+      background: linear-gradient(135deg, var(--primary-color), var(--accent-red));
     }
+
     .login-card {
       width: 100%;
-      max-width: 400px;
-      padding: 30px;
-      margin: 30px;
-      background: #FCFBFC;
-      border-radius: 8px;
-      border: 2px solid rgba(0, 0, 0, 0.47);
-      box-shadow: none;
+      max-width: 440px;
+      padding: 2.5rem;
+      margin: 1rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      overflow: hidden;
+
+      .login-form {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0px 10px;
+      }
+
+      .card-header {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 2rem;
+        justify-content: center;
+
+        mat-card-title {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1.5rem;
+
+          img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          }
+
+          .header-content {
+            text-align: center;
+            font-family: 'MotoGP Bold', sans-serif;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+
+            .subtitle {
+              font-family: 'Roboto', sans-serif;
+              font-size: 1rem;
+              color: #666;
+              margin-top: 0.5rem;
+            }
+          }
+        }
+      }
+
+      .mat-form-field {
+        margin: 1.5rem 0;
+
+        .mat-icon {
+          color: var(--accent-red);
+          margin-right: 0.5rem;
+        }
+      }
+
+      .login-button {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        margin-top: 1rem;
+        transition: all 0.3s ease;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(var(--primary-color), 0.3);
+        }
+      }
+
+      .error-message {
+        background: #ffecec;
+        color: var(--accent-red);
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid var(--accent-red);
+      }
+
+      .footer-links {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+
+        a {
+          color: var(--primary-color);
+          text-decoration: none;
+          font-weight: 500;
+          transition: color 0.3s ease;
+
+          &:hover {
+            color: var(--accent-red);
+          }
+        }
+      }
     }
-    .logo-container {
-      text-align: center;
-      margin-bottom: 16px;
-    }
-    .logo-container img {
-      width: 150px;
-      height: auto;
-    }
-    h2 {
-      text-align: center;
-      color: rgb(0, 0, 0);
-      margin-bottom: 16px;
-    }
-    .full-width {
-      width: 100%;
-    }
-    .full-width-button {
-      width: 100%;
-      transition: background-color 0.3s ease;
-    }
-    .full-width-button:hover {
-      background-color: #c62828;
-    }
-    .error-message {
-      color: red;
-      text-align: center;
-      margin-top: 12px;
-    }
-    .spinner-container {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 1.5rem;
+
+        .card-header mat-card-title .header-content {
+          font-size: 1.3rem;
+        }
+
+        .footer-links {
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+        }
+      }
     }
   `]
 })

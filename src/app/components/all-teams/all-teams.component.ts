@@ -102,9 +102,34 @@ import { ChampionshipService } from '../../services/championship.service';
       display: grid;
       grid-template-columns: 1fr;
       gap: 25px;
-      padding: 20px;
       max-width: 1400px;
-      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Team Cards */
+    .mat-mdc-card.team-card {
+      background: rgba(255, 255, 255, 0.95) !important;
+      color: #333 !important;
+
+      .mat-mdc-card-title {
+        color: #4a148c !important;
+      }
+
+      .rider {
+        &.official-1 {
+          background: lighten(#f8d7da, 3%);
+          border-color: #dc3545;
+        }
+        &.reserve {
+          background: lighten(#e2e3e5, 3%);
+          border-color: #6c757d;
+        }
+      }
+
+      .stat-item {
+        background: #f8f9fa !important;
+        color: #4a148c !important;
+      }
     }
 
     .team-card {
@@ -127,6 +152,7 @@ import { ChampionshipService } from '../../services/championship.service';
         border-bottom: 2px solid var(--accent-red);
         align-items: center;
         width: 100%;
+        background: whitesmoke;
 
         .team-image-container {
           flex: 0 0 60px;
@@ -193,6 +219,10 @@ import { ChampionshipService } from '../../services/championship.service';
             }
           }
         }
+      }
+
+      .main-content {
+        padding: 70px 0px 0px 0px;
       }
 
       .content-grid {
@@ -340,7 +370,7 @@ import { ChampionshipService } from '../../services/championship.service';
       font-size: 18px;
     }
 
-    @media (min-width: 1600px) {
+    @media (min-width: 1200px) {
       .teams-grid {
         grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
       }

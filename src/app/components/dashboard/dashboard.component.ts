@@ -39,10 +39,12 @@ import { ChampionshipService } from '../../services/championship.service';
       </header>
       <main class="grid-content">
         <div class="cards-wrapper">
-          <!-- Next Race Card moved to top -->
           <mat-card class="next-race-card" *ngIf="nextCalendarRace">
-            <mat-card-header>
-              <mat-card-title>{{isCurrentRace ? 'Current Race' : 'Next Race'}}</mat-card-title>
+            <mat-card-header class="next-race-header">
+              <mat-card-title>
+                <mat-icon>flag</mat-icon>
+                {{isCurrentRace ? 'Current Race' : 'Next Race'}}
+              </mat-card-title>
             </mat-card-header>
             <mat-card-content>
               <h2>{{ nextCalendarRace.race_id.name }}</h2>
@@ -63,8 +65,11 @@ import { ChampionshipService } from '../../services/championship.service';
             </mat-card-actions>
           </mat-card>
           <mat-card class="standings-card" *ngIf="classificationData && classificationData.length">
-            <mat-card-header>
-              <mat-card-title>Standings</mat-card-title>
+            <mat-card-header class="standings-header">
+              <mat-card-title>
+                <mat-icon>leaderboard</mat-icon>
+                Championship Standings
+              </mat-card-title>
             </mat-card-header>
             <mat-card-content>
               <table class="standings-table">
@@ -86,7 +91,6 @@ import { ChampionshipService } from '../../services/championship.service';
             </mat-card-content>
           </mat-card>
 
-          <!-- Fantasy Team Card moved to bottom -->
           <mat-card class="fantasy-team-card" *ngIf="fantasyTeam">
             <mat-card-header>
               <mat-card-title class="team-title">
@@ -138,7 +142,7 @@ import { ChampionshipService } from '../../services/championship.service';
             </mat-card-content>
             <mat-card-actions>
               <button mat-raised-button color="primary" (click)="goTo('teams')">
-                <mat-icon>list_alt</mat-icon> Team Management
+                <mat-icon>list_alt</mat-icon> View all Teams
               </button>
             </mat-card-actions>
           </mat-card>
@@ -153,32 +157,25 @@ import { ChampionshipService } from '../../services/championship.service';
       color: #fff;
       padding-top: 80px;
     }
-    // .header {
-    //   position: fixed;
-    //   top: 0;
-    //   left: 0;
-    //   width: 100%;
-    //   height: 80px;
-    //   display: flex;
-    //   align-items: center;
-    //   justify-content: space-between;
-    //   background: linear-gradient(135deg, #4a148c, #d81b60);
-    //   z-index: 1000;
-    // }
-    // .header-center {
-    //   flex: 1;
-    //   text-align: center;
-    // }
-    // .header-center h1 {
-    //   margin: 0;
-    //   font-size: 20px;
-    // }
-    // .header-right {
-    //   flex: 0 0 auto;
-    // }
-    // .header-right button {
-    //   color: #fff;
-    // }
+    /* Dashboard Cards */
+    .mat-mdc-card.fantasy-team-card,
+    .mat-mdc-card.next-race-card,
+    .mat-mdc-card.standings-card {
+      background: rgba(255, 255, 255, 0.95) !important;
+      color: #333 !important;
+
+      .mat-mdc-card-title {
+        color: #4a148c !important;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        font-family: 'MotoGP Bold' !important;
+        font-size: 24px;
+        padding: 10px;
+        background-color: whitesmoke;
+      }
+    }
+
     .grid-content {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
