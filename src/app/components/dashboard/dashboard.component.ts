@@ -8,18 +8,30 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { DashboardService, StandingsRow, CalendarRace, FantasyTeam } from '../../services/dashboard.service';
 import { AuthService } from '../../services/auth.service';
-// import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
+import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 import { ChampionshipService } from '../../services/championship.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule],
+  animations: [
+    trigger('cardAnimation', [
+      transition(':enter', [
+        query('.standings-card, .next-race-card, .fantasy-team-card', [
+          style({ opacity: 0, transform: 'translateY(20px)' }),
+          stagger(100, [
+            animate('300ms cubic-bezier(0.4, 0, 0.2, 1)',
+              style({ opacity: 1, transform: 'translateY(0)' }))
+          ])
+        ], { optional: true })
+      ])
+    ])
+  ],
   template: `
-    <div class="dashboard-container">
+    <div class="dashboard-container" @cardAnimation>
       <header class="header">
         <h1>MotoMota - Dashboard</h1>
-
 
         <button mat-icon-button [matMenuTriggerFor]="menu">
           <mat-icon>more_vert</mat-icon>
@@ -39,31 +51,6 @@ import { ChampionshipService } from '../../services/championship.service';
       </header>
       <main class="grid-content">
         <div class="cards-wrapper">
-          <mat-card class="next-race-card" *ngIf="nextCalendarRace">
-            <mat-card-header class="next-race-header">
-              <mat-card-title>
-                <mat-icon>flag</mat-icon>
-                {{isCurrentRace ? 'Current Race' : 'Next Race'}}
-              </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <h2>{{ nextCalendarRace.race_id.name }}</h2>
-              <p>Date: <b>{{ nextCalendarRace.event_date | date }}</b> Time: <b>{{ nextCalendarRace.event_time || 'TBD' }}</b></p>
-            </mat-card-content>
-            <mat-card-actions>
-              <button mat-raised-button color="primary" (click)="goTo('calendar')">View all races</button>
-              <!-- Conditionally show the three new buttons -->
-              <button mat-raised-button color="primary" *ngIf="showLineupsButton" (click)="goTo('lineups', nextCalendarRace.id)">
-                Place Lineups
-              </button>
-              <button mat-raised-button color="primary" *ngIf="showSprintBetButton" (click)="goTo('sprint-bet', nextCalendarRace.id)">
-                Place Sprint Bet
-              </button>
-              <button mat-raised-button color="primary" *ngIf="showPlaceBetButton" (click)="goTo('race-bet', nextCalendarRace.id)">
-                Place Race Bet
-              </button>
-            </mat-card-actions>
-          </mat-card>
           <mat-card class="standings-card" *ngIf="classificationData && classificationData.length">
             <mat-card-header class="standings-header">
               <mat-card-title>
@@ -89,6 +76,74 @@ import { ChampionshipService } from '../../services/championship.service';
                 </tbody>
               </table>
             </mat-card-content>
+          </mat-card>
+
+          <mat-card class="next-race-card" *ngIf="nextCalendarRace">
+            <mat-card-header class="next-race-header">
+              <mat-card-title>
+                <mat-icon>flag</mat-icon>
+                {{isCurrentRace ? 'Current Race' : 'Next Race'}}
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="race-content">
+                <div class="race-header">
+                  <span class="race-round">Round {{ nextCalendarRace.race_order }}</span>
+                  <h3 class="race-name">{{ nextCalendarRace.race_id.name }}</h3>
+                </div>
+
+                <div class="compact-details">
+                  <div class="detail-row">
+                    <mat-icon class="detail-icon">calendar_today</mat-icon>
+                    <span class="detail-text">{{ nextCalendarRace.event_date | date:'mediumDate' }}</span>
+                  </div>
+
+                  <div class="time-grid">
+                    <div class="time-item">
+                      <mat-icon class="time-icon">timer</mat-icon>
+                      <div>
+                        <div class="time-label">Qualifying</div>
+                        <div class="time-value">{{ nextCalendarRace.qualifications_time || 'TBD' }}</div>
+                      </div>
+                    </div>
+
+                    <div class="time-item">
+                      <mat-icon class="time-icon">flag</mat-icon>
+                      <div>
+                        <div class="time-label">Sprint</div>
+                        <div class="time-value">{{ nextCalendarRace.sprint_time || 'TBD' }}</div>
+                      </div>
+                    </div>
+
+                    <div class="time-item">
+                      <mat-icon class="time-icon">sports_motorsports</mat-icon>
+                      <div>
+                        <div class="time-label">Race</div>
+                        <div class="time-value">{{ nextCalendarRace.event_time || 'TBD'  }}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="detail-row">
+                    <mat-icon class="detail-icon">place</mat-icon>
+                    <span class="detail-text">{{ nextCalendarRace.race_id.location }}</span>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+            <mat-card-actions>
+              <button mat-raised-button color="primary" (click)="goTo('calendar')">View all races</button>
+              <!-- Conditionally show the three new buttons -->
+              <button mat-raised-button color="primary" *ngIf="showLineupsButton" (click)="goTo('lineups', nextCalendarRace.id)">
+                Place Lineups
+              </button>
+              <button mat-raised-button color="primary" *ngIf="showSprintBetButton" (click)="goTo('sprint-bet', nextCalendarRace.id)">
+                Place Sprint Bet
+              </button>
+              <button mat-raised-button color="primary" *ngIf="showPlaceBetButton" (click)="goTo('race-bet', nextCalendarRace.id)">
+                Place Race Bet
+              </button>
+            </mat-card-actions>
           </mat-card>
 
           <mat-card class="fantasy-team-card" *ngIf="fantasyTeam">
@@ -157,6 +212,41 @@ import { ChampionshipService } from '../../services/championship.service';
       color: #fff;
       padding-top: 80px;
     }
+
+    .grid-content {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 20px;
+
+      @media (min-width: 768px) {
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        grid-auto-rows: min-content;
+        gap: 30px;
+        padding: 30px;
+      }
+
+      @media (min-width: 1200px) {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+
+        .fantasy-team-card {
+          grid-column: 2;
+          grid-row: 1 / span 2;
+        }
+      }
+    }
+
+    .next-race-card {
+      @media (min-width: 768px) {
+        grid-column: span 2;
+      }
+
+      @media (min-width: 1200px) {
+        grid-column: 1;
+      }
+    }
+
     /* Dashboard Cards */
     .mat-mdc-card.fantasy-team-card,
     .mat-mdc-card.next-race-card,
@@ -172,28 +262,100 @@ import { ChampionshipService } from '../../services/championship.service';
         font-family: 'MotoGP Bold' !important;
         font-size: 24px;
         padding: 10px;
-        background-color: whitesmoke;
       }
     }
 
-    .grid-content {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      padding: 20px;
-    }
     .cards-wrapper {
       display: contents;
     }
     .fantasy-team-card,
     .standings-card,
     .next-race-card {
-      background: rgba(255, 255, 255, 0.95);
-      color: #333;
-      border-radius: 8px;
-      border: 2px solid #d32f2f;
-      display: flex;
-      flex-direction: column;
+      margin-bottom: 1rem;
+        border-left: 4px solid var(--accent-red);
+        border-radius: 12px;
+        overflow: hidden;
+
+        .race-content {
+          padding: 0 0.5rem;
+
+          .race-header {
+            margin-bottom: 1rem;
+
+            .race-round {
+              font-size: 0.9rem;
+              color: #666;
+              display: block;
+            }
+
+            .race-name {
+              font-family: 'MotoGP Bold', sans-serif;
+              color: var(--primary-color);
+              font-size: 1.3rem;
+              margin: 0;
+            }
+          }
+
+          .compact-details {
+            .detail-row {
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              padding: 0.25rem 0;
+
+              .detail-icon {
+                font-size: 18px;
+                width: 18px;
+                height: 18px;
+                color: #4a148c;
+              }
+
+              .detail-text {
+                font-size: 0.95rem;
+                color: #444;
+              }
+            }
+
+            .time-grid {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 0.75rem;
+              margin: 0.5rem 0;
+
+              .time-item {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem;
+                background: rgba(245, 245, 245, 0.5);
+                border-radius: 6px;
+
+                .time-icon {
+                  font-size: 20px;
+                  color: #d32f2f;
+                }
+
+                .time-label {
+                  font-size: 0.8rem;
+                  color: #666;
+                  line-height: 1;
+                }
+
+                .time-value {
+                  font-weight: 600;
+                  color: #4a148c;
+                  font-size: 0.95rem;
+                  line-height: 1.2;
+                }
+              }
+            }
+          }
+        }
+
+        mat-card-actions {
+          padding: 1rem;
+          border-top: 1px solid #eee;
+        }
     }
     .fantasy-team-card mat-card-header,
     .standings-card mat-card-header,
@@ -351,6 +513,48 @@ import { ChampionshipService } from '../../services/championship.service';
             margin-right: 8px;
           }
         }
+      }
+    }
+
+    /* Add these new animation-related styles */
+    .mat-mdc-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      &.standings-card,
+      &.next-race-card,
+      &.fantasy-team-card {
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+
+    mat-card-actions button {
+      transition: transform 0.2s ease-in-out;
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+
+    .rider-grid .rider {
+      transition: transform 0.3s, box-shadow 0.3s;
+
+      &:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    .time-item {
+      transition: background 0.3s, transform 0.3s;
+
+      &:hover {
+        background: rgba(245, 245, 245, 0.8) !important;
+        transform: scale(1.02);
       }
     }
   `]
