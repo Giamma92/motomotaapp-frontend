@@ -34,11 +34,19 @@ import { ChampionshipService } from '../../services/championship.service';
             <table mat-table [dataSource]="lineups" class="result-table">
               <ng-container matColumnDef="user">
                 <th mat-header-cell *matHeaderCellDef>User</th>
-                <td mat-cell *matCellDef="let element">{{ element.user_id }}</td>
+                <td mat-cell *matCellDef="let element">{{ element.user_id.first_name + ' ' + element.user_id.last_name || 'Unknown User' }}</td>
               </ng-container>
               <ng-container matColumnDef="qualifying_rider">
                 <th mat-header-cell *matHeaderCellDef>Qualifying Rider</th>
-                <td mat-cell *matCellDef="let element">{{ element.qualifying_rider_id || 'N/A' }}</td>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.qualifying_rider_id?.first_name + ' ' + element.qualifying_rider_id.last_name + ' ' + '#' + element.qualifying_rider_id.number || 'N/A' }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="race_rider">
+                <th mat-header-cell *matHeaderCellDef>Race Rider</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.race_rider_id?.first_name + ' ' + element.race_rider_id.last_name + ' ' + '#' + element.race_rider_id.number || 'N/A' }}
+                </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="lineupColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: lineupColumns;"></tr>
@@ -56,11 +64,11 @@ import { ChampionshipService } from '../../services/championship.service';
             <table mat-table [dataSource]="sprints" class="result-table">
               <ng-container matColumnDef="user">
                 <th mat-header-cell *matHeaderCellDef>User</th>
-                <td mat-cell *matCellDef="let element">{{ element.user_id }}</td>
+                <td mat-cell *matCellDef="let element">{{ element.user_id.name }}</td>
               </ng-container>
               <ng-container matColumnDef="rider">
                 <th mat-header-cell *matHeaderCellDef>Rider</th>
-                <td mat-cell *matCellDef="let element">{{ element.rider_id }}</td>
+                <td mat-cell *matCellDef="let element">{{ element.rider_id.name }}</td>
               </ng-container>
               <ng-container matColumnDef="position">
                 <th mat-header-cell *matHeaderCellDef>Position</th>
@@ -82,11 +90,11 @@ import { ChampionshipService } from '../../services/championship.service';
             <table mat-table [dataSource]="bets" class="result-table">
               <ng-container matColumnDef="user">
                 <th mat-header-cell *matHeaderCellDef>User</th>
-                <td mat-cell *matCellDef="let element">{{ element.user_id }}</td>
+                <td mat-cell *matCellDef="let element">{{ element.user_id.name }}</td>
               </ng-container>
               <ng-container matColumnDef="rider">
                 <th mat-header-cell *matHeaderCellDef>Rider</th>
-                <td mat-cell *matCellDef="let element">{{ element.rider_id }}</td>
+                <td mat-cell *matCellDef="let element">{{ element.rider_id.name }}</td>
               </ng-container>
               <ng-container matColumnDef="points">
                 <th mat-header-cell *matHeaderCellDef>Points</th>
@@ -171,7 +179,7 @@ import { ChampionshipService } from '../../services/championship.service';
 export class RaceDetailComponent implements OnInit {
   raceId: string | null = null;
   raceName: string = '';
-  lineupColumns: string[] = ['user', 'qualifying_rider'];
+  lineupColumns: string[] = ['user', 'qualifying_rider','race_rider'];
   sprintColumns: string[] = ['user', 'rider', 'position'];
   betColumns: string[] = ['user', 'rider', 'points'];
 

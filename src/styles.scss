@@ -48,7 +48,7 @@ mat-card.mat-mdc-card.mdc-card.calendar-card {
 
 .page-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #4a148c, #d81b60);
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   color: #fff;
   padding: 20px;
 }
@@ -60,7 +60,7 @@ mat-card.mat-mdc-card.mdc-card.calendar-card {
   height: 60px;
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, #4a148c, #d81b60);
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   color: #fff;
   margin-bottom: 20px;
@@ -89,13 +89,38 @@ span.mat-mdc-menu-item-text {
 
 /* Consistent Color Variables */
 :root {
-  --primary-color: #4a148c;
-  --secondary-color: #d32f2f;
-  --accent-purple: #4a148c;
-  --accent-red: #d32f2f;
+  --primary-color: #4A148C;      // MotoGP Primary Red
+  --secondary-color: #D81B60;    // MotoGP Black
+  --accent-red: #e40000;         // Primary red for accents
+  --accent-black: #000000;       // Pure black
   --text-dark: #333;
   --text-light: white;
   --background-light: #f8f9fa;
+}
+
+// Update gradients to use MotoGP colors
+.page-container {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.header {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+// Update button colors
+button.mat-raised-button {
+  background-color: var(--primary-color) !important;
+  color: var(--text-light) !important;
+
+  &:hover {
+    background-color: #c40000 !important;
+  }
+}
+
+// Update card styling
+mat-card.mat-mdc-card.mdc-card.calendar-card {
+  color: var(--secondary-color);
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 

@@ -133,6 +133,7 @@ import { ChampionshipService } from '../../services/championship.service';
             </mat-card-content>
             <mat-card-actions>
               <button mat-raised-button color="primary" (click)="goTo('calendar')">View all races</button>
+              <button mat-raised-button color="primary" (click)="goTo('race-detail', nextCalendarRace.id)">View race detail</button>
               <!-- Conditionally show the three new buttons -->
               <button mat-raised-button color="primary" *ngIf="showLineupsButton" (click)="goTo('lineups', nextCalendarRace.id)">
                 Place Lineups
@@ -208,7 +209,7 @@ import { ChampionshipService } from '../../services/championship.service';
   styles: [`
     .dashboard-container {
       min-height: 100vh;
-      background: linear-gradient(135deg, #4a148c, #d81b60);
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       color: #fff;
       padding-top: 80px;
     }
@@ -251,11 +252,10 @@ import { ChampionshipService } from '../../services/championship.service';
     .mat-mdc-card.fantasy-team-card,
     .mat-mdc-card.next-race-card,
     .mat-mdc-card.standings-card {
-      background: rgba(255, 255, 255, 0.95) !important;
       color: #333 !important;
 
       .mat-mdc-card-title {
-        color: #4a148c !important;
+        color: var(--primary-color) !important;
         display: flex;
         gap: 10px;
         align-items: center;
@@ -307,7 +307,7 @@ import { ChampionshipService } from '../../services/championship.service';
                 font-size: 18px;
                 width: 18px;
                 height: 18px;
-                color: #4a148c;
+                color: var(--primary-color);
               }
 
               .detail-text {
@@ -343,7 +343,7 @@ import { ChampionshipService } from '../../services/championship.service';
 
                 .time-value {
                   font-weight: 600;
-                  color: #4a148c;
+                  color: var(--primary-color);
                   font-size: 0.95rem;
                   line-height: 1.2;
                 }
@@ -413,7 +413,7 @@ import { ChampionshipService } from '../../services/championship.service';
 
       .team-title {
         font-size: 1.5rem;
-        color: #4a148c;
+        color: var(--primary-color);
         display: flex;
         align-items: center;
         gap: 8px;
@@ -431,7 +431,7 @@ import { ChampionshipService } from '../../services/championship.service';
 
         img {
           max-width: 200px;
-          border: 3px solid #4a148c;
+          border: 3px solid var(--primary-color);
           padding: 4px;
           border-radius: 50%;
         }
@@ -451,7 +451,7 @@ import { ChampionshipService } from '../../services/championship.service';
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #4a148c;
+            color: var(--primary-color);
           }
 
           .rider-details {
@@ -465,7 +465,7 @@ import { ChampionshipService } from '../../services/championship.service';
             }
 
             .rider-number {
-              background: #4a148c;
+              background: var(--secondary-color);
               color: white;
               padding: 4px 12px;
               border-radius: 20px;
@@ -501,7 +501,7 @@ import { ChampionshipService } from '../../services/championship.service';
             display: block;
             font-size: 1.4rem;
             font-weight: bold;
-            color: #4a148c;
+            color: var(--primary-color);
           }
         }
       }

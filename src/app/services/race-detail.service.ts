@@ -2,15 +2,16 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from './http.service';
-import { CalendarRace } from './dashboard.service';
+import { CalendarRace, Rider } from './dashboard.service';
+import { UserInfo } from './auth.service';
 
 // Define the interface for standings results
 export interface LineupsResult {
   championship_id: number;
   calendar_id: CalendarRace;
-  user_id: string;
-  race_rider_id?: number;        // Rider ID for qualification
-  qualifying_rider_id?: number;  // Rider ID for race
+  user_id: UserInfo;
+  race_rider_id?: Rider;        // Rider ID for qualification
+  qualifying_rider_id?: Rider;  // Rider ID for race
   inserted_at?: string;
 }
 
@@ -18,8 +19,8 @@ export interface LineupsResult {
 export interface BetResult {
   championship_id: number;
   calendar_id: CalendarRace;
-  user_id: string;
-  rider_id: string;
+  user_id: UserInfo;
+  rider_id: Rider;
   position: number;
   points: number;
   inserted_at?: string;

@@ -112,7 +112,7 @@ import { ChampionshipService } from '../../services/championship.service';
       color: #333 !important;
 
       .mat-mdc-card-title {
-        color: #4a148c !important;
+        color: var(--primary-color) !important;
       }
 
       .rider {
@@ -128,7 +128,7 @@ import { ChampionshipService } from '../../services/championship.service';
 
       .stat-item {
         background: #f8f9fa !important;
-        color: #4a148c !important;
+        color: var(--primary-color) !important;
       }
     }
 

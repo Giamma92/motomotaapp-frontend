@@ -1,7 +1,6 @@
 // src/app/services/dashboard.service.ts
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { ChampionshipService } from './championship.service';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { HttpService } from './http.service';
 import { UserInfo } from './auth.service';
 

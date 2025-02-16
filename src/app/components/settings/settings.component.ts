@@ -57,7 +57,7 @@ import { UserSettingsService } from '../../services/user-settings.service';
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, #4a148c, #d81b60);
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       padding: 20px;
     }
     .settings-card {

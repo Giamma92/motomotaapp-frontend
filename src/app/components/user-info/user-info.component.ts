@@ -60,7 +60,7 @@ import { MatIconModule } from '@angular/material/icon';
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      background: linear-gradient(135deg, #4a148c, #d81b60);
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       color: #fff;
     }
     /* Main content area: center the profile card */
