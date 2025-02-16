@@ -132,18 +132,21 @@ import { ChampionshipService } from '../../services/championship.service';
               </div>
             </mat-card-content>
             <mat-card-actions>
-              <button mat-raised-button color="primary" (click)="goTo('calendar')">View all races</button>
-              <button mat-raised-button color="primary" (click)="goTo('race-detail', nextCalendarRace.id)">View race detail</button>
-              <!-- Conditionally show the three new buttons -->
-              <button mat-raised-button color="primary" *ngIf="showLineupsButton" (click)="goTo('lineups', nextCalendarRace.id)">
-                Place Lineups
-              </button>
-              <button mat-raised-button color="primary" *ngIf="showSprintBetButton" (click)="goTo('sprint-bet', nextCalendarRace.id)">
-                Place Sprint Bet
-              </button>
-              <button mat-raised-button color="primary" *ngIf="showPlaceBetButton" (click)="goTo('race-bet', nextCalendarRace.id)">
-                Place Race Bet
-              </button>
+              <div class="button-row first-row">
+                <button mat-raised-button color="primary" (click)="goTo('calendar')">View all races</button>
+                <button mat-raised-button color="primary" (click)="goTo('race-detail', nextCalendarRace.id)">View race detail</button>
+              </div>
+              <div class="button-row second-row" *ngIf="showLineupsButton || showSprintBetButton || showPlaceBetButton">
+                <button mat-raised-button color="accent" *ngIf="showLineupsButton" (click)="goTo('lineups', nextCalendarRace.id)">
+                  Place Lineups
+                </button>
+                <button mat-raised-button color="accent" *ngIf="showSprintBetButton" (click)="goTo('sprint-bet', nextCalendarRace.id)">
+                  Place Sprint Bet
+                </button>
+                <button mat-raised-button color="accent" *ngIf="showPlaceBetButton" (click)="goTo('race-bet', nextCalendarRace.id)">
+                  Place Race Bet
+                </button>
+              </div>
             </mat-card-actions>
           </mat-card>
 
@@ -353,8 +356,26 @@ import { ChampionshipService } from '../../services/championship.service';
         }
 
         mat-card-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
           padding: 1rem;
           border-top: 1px solid #eee;
+
+          .button-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+
+            &.second-row {
+              padding-top: 12px;
+              border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+              button {
+                background-color: rgba(255, 64, 129, 0.1);
+              }
+            }
+          }
         }
     }
     .fantasy-team-card mat-card-header,
@@ -556,6 +577,23 @@ import { ChampionshipService } from '../../services/championship.service';
         background: rgba(245, 245, 245, 0.8) !important;
         transform: scale(1.02);
       }
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .button-row.first-row {
+      margin-bottom: 10px;
+    }
+
+    .button-row.second-row {
+      margin-top: 10px;
+    }
+
+    .button-row.second-row button {
+      background-color: var(--accent);
     }
   `]
 })

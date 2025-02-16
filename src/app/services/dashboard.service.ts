@@ -30,6 +30,7 @@ export interface CalendarRace {
 }
 
 export interface Rider {
+  id: number;
   first_name: string;
   last_name: string;
   number: number;
