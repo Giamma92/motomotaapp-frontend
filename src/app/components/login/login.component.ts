@@ -149,7 +149,7 @@ import { MatIconModule } from '@angular/material/icon';
         color: var(--accent-red);
         padding: 1rem;
         border-radius: 8px;
-        margin: 1.5rem 0;
+        margin: 1.5rem 10px;
         display: flex;
         align-items: center;
         gap: 0.5rem;

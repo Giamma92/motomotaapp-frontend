@@ -6,7 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { DashboardService, Rider } from '../../services/dashboard.service';
+import { CalendarRace, DashboardService, Rider } from '../../services/dashboard.service';
 import { ChampionshipService } from '../../services/championship.service';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -35,8 +35,12 @@ import { LineupsResult } from '../../services/race-detail.service';
       </header>
       <mat-card class="settings-card">
         <mat-card-header>
-          <mat-card-title>Configure Your Lineup</mat-card-title>
-          <mat-card-subtitle>Select riders for race and qualifying</mat-card-subtitle>
+          <div class="header-content">
+            <mat-card-title class="race-title"><h3>{{ raceTitle }}</h3></mat-card-title>
+            <mat-card-subtitle class="session-info">
+              Configure your riders for Race & Qualifying sessions
+            </mat-card-subtitle>
+          </div>
         </mat-card-header>
         <mat-card-content>
           <form [formGroup]="lineupsForm" (ngSubmit)="onSubmit()">
@@ -77,6 +81,38 @@ import { LineupsResult } from '../../services/race-detail.service';
     </div>
   `,
   styles: [`
+    @font-face {
+      font-family: 'MotoGP-Bold';
+      src: url('/assets/fonts/MotoGP-Bold.woff2') format('woff2');
+    }
+
+    .header-content {
+      width: 100%;
+      padding: 24px 16px;
+      background: white;
+      border-bottom: 3px solid var(--primary-color);
+      margin-bottom: 24px;
+      background-color: whitesmoke;
+    }
+
+    .race-title {
+      font-family: 'MotoGP-Bold', sans-serif;
+      font-size: 1.8rem;
+      color: var(--primary-color);
+      letter-spacing: 1.5px;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .session-info {
+      font-family: 'MotoGP Regular';
+      font-size: 1rem;
+      color: #666;
+      text-align: center;
+      letter-spacing: 0.8px;
+      font-weight: 500;
+    }
+
     .settings-container {
       display: flex;
       justify-content: center;
@@ -102,10 +138,12 @@ import { LineupsResult } from '../../services/race-detail.service';
       }
     }
     mat-card-header {
-      margin-bottom: 24px;
+      padding: 0px !important;
+      margin-bottom: 24px !important;
+
       mat-card-title {
-        font-size: 1.25rem;
-        font-weight: 500;
+        font-size: 1.25rem !important;
+        font-weight: 500 !important;
       }
     }
     .full-width {
@@ -125,6 +163,7 @@ export class LineupsComponent implements OnInit {
   riders: Rider[] = [];
   private champId: number = 0;
   private raceId: string|null = '';
+  raceTitle: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -143,11 +182,24 @@ export class LineupsComponent implements OnInit {
   ngOnInit(): void {
     this.raceId = this.route.snapshot.paramMap.get('id');
     this.riders = [];
+
     this.championshipService.getChampIdObs().subscribe((champId: number) => {
       if (champId > 0) {
         this.champId = champId;
+        this.loadChampionshipConfiguration(champId);
         this.loadRiders(champId);
+        this.loadCalendarRace(champId);
       }
+    });
+  }
+
+
+  loadCalendarRace(championshipId: number) {
+    this.httpService.genericGet<CalendarRace>(`championship/${championshipId}/calendar/${this.raceId}`).subscribe({
+      next: (race) => {
+        this.raceTitle = race.race_id.name;
+      },
+      error: (err) => console.error('Failed to load race details', err)
     });
   }
 
@@ -159,19 +211,22 @@ export class LineupsComponent implements OnInit {
           team.official_rider_2,
           team.reserve_rider
         ];
-
-        // Load existing lineups if available
-        this.httpService.genericGet<LineupsResult>(`championship/${this.champId}/lineups/${this.raceId}`).subscribe({
-          next: (existingLineup: LineupsResult) => {
-            this.lineupsForm.patchValue({
-              race_rider_id: existingLineup?.race_rider_id || this.riders[0]?.id,
-              qualifying_rider_id: existingLineup?.qualifying_rider_id || this.riders[1]?.id
-            });
-          },
-          error: (err) => console.error('Error loading existing lineup', err)
-        });
+        this.loadExistingLineup(championshipId);
       },
       error: (err) => console.error('Failed to load riders', err)
+    });
+  }
+
+  loadExistingLineup(champId: number) {
+    // Load existing lineups if available
+    this.httpService.genericGet<LineupsResult>(`championship/${champId}/lineups/${this.raceId}`).subscribe({
+      next: (existingLineup: LineupsResult) => {
+        this.lineupsForm.patchValue({
+          race_rider_id: existingLineup?.race_rider_id || this.riders[0]?.id,
+          qualifying_rider_id: existingLineup?.qualifying_rider_id || this.riders[1]?.id
+        });
+      },
+      error: (err) => console.error('Error loading existing lineup', err)
     });
   }
 
@@ -196,6 +251,15 @@ export class LineupsComponent implements OnInit {
         }
       });
     }
+  }
+
+  private loadChampionshipConfiguration(champId: number): void {
+    this.httpService.genericGet<any>(`championship/${champId}/configuration`).subscribe({
+      next: (config) => {
+        console.log('Championship configuration loaded:', config);
+      },
+      error: (err) => console.error('Failed to load championship configuration', err)
+    });
   }
 
   goToRaceDetail(): void {
