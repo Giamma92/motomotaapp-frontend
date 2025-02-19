@@ -50,7 +50,7 @@ import { BetResult } from '../../services/race-detail.service'
               <mat-label>Rider</mat-label>
               <mat-select formControlName="rider_id" required>
                 <mat-option [value]="" disabled>Select a rider</mat-option>
-                <mat-option *ngFor="let rider of riders" [value]="rider.id">
+                <mat-option *ngFor="let rider of riders" [value]="rider.rider_id.id">
                   {{ rider.rider_id.first_name }} {{ rider.rider_id.last_name }} (#{{ rider.rider_id.number }})
                 </mat-option>
               </mat-select>
@@ -193,13 +193,9 @@ export class SprintBetComponent implements OnInit {
   }
 
   loadExistingSprintBet(champId: number) {
-    this.httpService.genericGet<BetResult>(`championship/${this.champId}/sprint_bet/${this.raceId}`).subscribe({
-      next: (existingBet) => {
-        this.sprintBetForm.patchValue({
-          rider_id: existingBet?.rider_id || '',
-          position: existingBet?.position || '',
-          points: existingBet?.points || ''
-        });
+    this.httpService.genericGet<BetResult[]>(`championship/${this.champId}/sprint_bet/${this.raceId}`).subscribe({
+      next: (existingBets) => {
+
       },
       error: (err) => console.error('Error loading existing bet', err)
     });

@@ -666,36 +666,53 @@ export class DashboardComponent implements OnInit {
     }
 
     const now = new Date();
-    const eventDate = new Date(this.nextCalendarRace.event_date); // event_date as 'YYYY-MM-DD'
+    const eventDate = new Date(this.nextCalendarRace.event_date);
     const isEventDay = now.toDateString() === eventDate.toDateString();
 
     // Calculate diffDays using eventDate's midnight (only valid when not event day)
     const diffDays = (eventDate.getTime() - now.getTime()) / (1000 * 3600 * 24);
 
+    const dayBeforeEvent = new Date(
+      eventDate.getUTCFullYear(),
+      eventDate.getUTCMonth(),
+      eventDate.getUTCDate() - 1
+    );
+
     // Combine event_date with the time strings to form full Date objects.
     const qualificationsTime = this.nextCalendarRace.qualifications_time
-      ? new Date(`${this.nextCalendarRace.event_date}T${this.nextCalendarRace.qualifications_time}`)
+      ? new Date(
+          `${dayBeforeEvent.getUTCFullYear()}-` +
+          `${(dayBeforeEvent.getUTCMonth() + 1).toString().padStart(2, '0')}-` +
+          `${(dayBeforeEvent.getUTCDate() + 1).toString().padStart(2, '0')}T` +
+          `${this.nextCalendarRace.qualifications_time}`
+        )
       : null;
+
     const sprintTime = this.nextCalendarRace.sprint_time
-      ? new Date(`${this.nextCalendarRace.event_date}T${this.nextCalendarRace.sprint_time}`)
+      ? new Date(
+          `${dayBeforeEvent.getUTCFullYear()}-` +
+          `${(dayBeforeEvent.getUTCMonth() + 1).toString().padStart(2, '0')}-` +
+          `${(dayBeforeEvent.getUTCDate() + 1).toString().padStart(2, '0')}T` +
+          `${this.nextCalendarRace.sprint_time}`
+        )
       : null;
     const eventTime = this.nextCalendarRace.event_time
       ? new Date(`${this.nextCalendarRace.event_date}T${this.nextCalendarRace.event_time}`)
       : null;
 
+
     // Place Lineups button: Visible only if (when not event day) diffDays is between 1 and 3
     // and before 1 hour prior to qualifications_time.
     this.showLineupsButton = !isEventDay
-      && diffDays <= 3 && diffDays >= 1
       && qualificationsTime !== null
-      && (now.getTime() < qualificationsTime.getTime() - 3600 * 1000);
+      && now.getTime() >= dayBeforeEvent.getTime()
+      && now.getTime() < qualificationsTime.getTime() - (60 * 60 * 1000);
 
-    // Place Sprint Bet button: Visible only if (when not event day) diffDays <= 2 and diffDays > 0
-    // and before 2 hours prior to sprint_time.
+    // Place Sprint Bet button: Visible only on the day before event_date until 30 minutes before sprint_time
     this.showSprintBetButton = !isEventDay
-      && diffDays <= 2 && diffDays > 0
       && sprintTime !== null
-      && (now.getTime() < sprintTime.getTime() - 2 * 3600 * 1000);
+      && now.getTime() >= dayBeforeEvent.getTime()
+      && now.getTime() < sprintTime.getTime() - (30 * 60 * 1000);
 
     // Place Bet button:
     // Option 1 (for one day before event): if not event day, diffDays <= 1 and now is after sprint_time + 1 hour.
