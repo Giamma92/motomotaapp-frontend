@@ -12,7 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { HttpService } from '../../services/http.service';
-import { BetResult } from '../../services/race-detail.service'
+import { BetResult, RaceDetailService } from '../../services/race-detail.service'
 
 @Component({
   selector: 'app-sprint-bet',
@@ -164,6 +164,7 @@ export class SprintBetComponent implements OnInit {
   private raceId: string | null = '';
   raceTitle: string = '';
   championshipConfig: ChampionshipConfig | null = null;
+  existingBets: BetResult[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -171,7 +172,8 @@ export class SprintBetComponent implements OnInit {
     private dashboardService: DashboardService,
     private championshipService: ChampionshipService,
     private httpService: HttpService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private raceDetailService: RaceDetailService
   ) {
     this.sprintBetForm = this.fb.group({
       rider_id: ['', Validators.required],
@@ -195,7 +197,7 @@ export class SprintBetComponent implements OnInit {
   loadExistingSprintBet(champId: number) {
     this.httpService.genericGet<BetResult[]>(`championship/${this.champId}/sprint_bet/${this.raceId}`).subscribe({
       next: (existingBets) => {
-
+        this.existingBets = existingBets;
       },
       error: (err) => console.error('Error loading existing bet', err)
     });
@@ -217,7 +219,7 @@ export class SprintBetComponent implements OnInit {
   }
 
   loadCalendarRace(championshipId: number) {
-    this.httpService.genericGet<CalendarRace>(`championship/${championshipId}/calendar/${this.raceId}`).subscribe({
+    this.raceDetailService.getCalendarRace(championshipId, this.raceId!).subscribe({
       next: (race) => {
         this.raceTitle = race.race_id.name;
       },

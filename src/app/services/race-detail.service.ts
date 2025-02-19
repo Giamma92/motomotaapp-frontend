@@ -49,7 +49,9 @@ export class RaceDetailService {
     );
   }
 
-  getCalendarRace(championshipId: number, raceId: string): Observable<CalendarRace[]> {
-      return this.httpService.genericGet<CalendarRace[]>(`championship/${championshipId}/calendar/${raceId}`);
-    }
+  getCalendarRace(championshipId: number, raceId: string): Observable<CalendarRace> {
+    return this.httpService.genericGet<CalendarRace>(
+      `championship/${championshipId}/calendar/${raceId}`
+    );
+  }
 }

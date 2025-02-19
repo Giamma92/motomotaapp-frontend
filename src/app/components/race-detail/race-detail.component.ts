@@ -219,7 +219,7 @@ export class RaceDetailComponent implements OnInit {
 
       // Load race name
       this.raceDetailService.getCalendarRace(champId, this.raceId).subscribe({
-        next: ([race]) => this.raceName = race.race_id.name,
+        next: (race) => this.raceName = race.race_id.name,
         error: (err) => console.error('Error fetching race info:', err)
       });
     });

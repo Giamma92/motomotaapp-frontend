@@ -6,13 +6,16 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { CalendarRace, ChampionshipConfig, ChampionshipRider, DashboardService, Rider } from '../../services/dashboard.service';
+import { ChampionshipConfig, ChampionshipRider, DashboardService } from '../../services/dashboard.service';
 import { ChampionshipService } from '../../services/championship.service';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { HttpService } from '../../services/http.service';
 import { BetResult } from '../../services/race-detail.service'
+import { RaceDetailService } from '../../services/race-detail.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ExistingBetsModalComponent } from './existing-bets-modal/existing-bets-modal.component';
 
 @Component({
   selector: 'app-race-bet',
@@ -67,22 +70,36 @@ import { BetResult } from '../../services/race-detail.service'
             </mat-form-field>
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Points</mat-label>
-              <input matInput type="number" formControlName="points" required [max]="championshipConfig?.bets_limit_points ?? 9999">
+              <input matInput type="number" formControlName="points" required [max]="(championshipConfig?.bets_limit_points || 0) - existingBetsPointsSum">
               <mat-error *ngIf="raceBetForm.get('points')?.hasError('max')">
-                Max allowed points: {{ championshipConfig?.bets_limit_points }}
+                Remaining points available: {{ (championshipConfig?.bets_limit_points || 0) - existingBetsPointsSum }}
               </mat-error>
               <mat-error *ngIf="raceBetForm.get('points')?.hasError('required')">
                 Points are required
               </mat-error>
             </mat-form-field>
+            <div *ngIf="raceBetForm.hasError('maxBetsReached')" class="form-level-error">
+              <mat-icon>error</mat-icon>
+              Maximum {{ championshipConfig?.bets_limit_race }} bets reached for this race
+            </div>
           </form>
         </mat-card-content>
         <mat-card-actions>
           <button mat-raised-button
                   color="primary"
+                  class="action-button"
                   [disabled]="raceBetForm.invalid || loading"
                   (click)="onSubmit()">
-            {{ loading ? 'Submitting...' : 'Save race Bet' }}
+            {{ loading ? 'Submitting...' : 'Save Race Bet' }}
+          </button>
+          <button mat-stroked-button
+                  color="primary"
+                  class="action-button"
+                  (click)="openExistingBetsModal()"
+                  [disabled]="existingBets.length === 0"
+                  matTooltip="View existing bets">
+            <mat-icon>history</mat-icon>
+            View Bets
           </button>
         </mat-card-actions>
       </mat-card>
@@ -151,8 +168,27 @@ import { BetResult } from '../../services/race-detail.service'
 
     mat-card-actions {
       display: flex;
-      justify-content: flex-end;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
       padding: 16px 0 0 0;
+      min-height: 150px;
+    }
+
+    .action-button {
+      padding: 0 16px;
+      min-width: 120px;
+      width: 100%;
+    }
+
+    mat-card-actions button:last-child {
+      margin-top: auto;
+    }
+
+    .form-level-error {
+      color: red;
+      font-size: 0.8rem;
+      margin-top: 10px;
     }
   `]
 })
@@ -164,6 +200,8 @@ export class RaceBetComponent implements OnInit {
   private raceId: string | null = '';
   raceTitle: string = '';
   championshipConfig: ChampionshipConfig | null = null;
+  existingBets: BetResult[] = [];
+  existingBetsPointsSum: number = 0;
 
   constructor(
     private fb: FormBuilder,
@@ -171,7 +209,9 @@ export class RaceBetComponent implements OnInit {
     private dashboardService: DashboardService,
     private championshipService: ChampionshipService,
     private httpService: HttpService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private raceDetailService: RaceDetailService,
+    private dialog: MatDialog
   ) {
     this.raceBetForm = this.fb.group({
       rider_id: ['', Validators.required],
@@ -195,7 +235,10 @@ export class RaceBetComponent implements OnInit {
   loadExistingRaceBet(champId: number) {
     this.httpService.genericGet<BetResult[]>(`championship/${this.champId}/race_bet/${this.raceId}`).subscribe({
       next: (existingBets) => {
-
+        this.existingBets = existingBets;
+        this.existingBetsPointsSum = existingBets.reduce((acc, bet) => acc + bet.points, 0);
+        this.updatePointsValidation();
+        this.updateMaxBetsValidation();
       },
       error: (err) => console.error('Error loading existing bet', err)
     });
@@ -217,7 +260,7 @@ export class RaceBetComponent implements OnInit {
   }
 
   loadCalendarRace(championshipId: number) {
-    this.httpService.genericGet<CalendarRace>(`championship/${championshipId}/calendar/${this.raceId}`).subscribe({
+    this.raceDetailService.getCalendarRace(championshipId, this.raceId!).subscribe({
       next: (race) => {
         this.raceTitle = race.race_id.name;
       },
@@ -226,6 +269,10 @@ export class RaceBetComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.championshipConfig && this.existingBets.length >= this.championshipConfig.bets_limit_race) {
+      alert(`Maximum ${this.championshipConfig.bets_limit_race} bets reached for this race`);
+      return;
+    }
     if (this.raceBetForm.valid && this.champId && this.raceId) {
       this.loading = true;
       const payload = {
@@ -257,6 +304,7 @@ export class RaceBetComponent implements OnInit {
       next: (config) => {
         this.championshipConfig = config;
         this.updatePointsValidation();
+        this.updateMaxBetsValidation();
       },
       error: (err) => console.error('Failed to load championship configuration', err)
     });
@@ -265,10 +313,35 @@ export class RaceBetComponent implements OnInit {
   private updatePointsValidation(): void {
     const pointsControl = this.raceBetForm.get('points');
     if (pointsControl && this.championshipConfig) {
-      pointsControl.addValidators([
-        Validators.max(this.championshipConfig.bets_limit_points)
+      const maxPoints = this.championshipConfig.bets_limit_points - this.existingBetsPointsSum;
+      pointsControl.setValidators([
+        Validators.required,
+        Validators.max(maxPoints)
       ]);
       pointsControl.updateValueAndValidity();
     }
+  }
+
+  private updateMaxBetsValidation(): void {
+    if (this.championshipConfig) {
+      const maxReached = this.existingBets.length >= this.championshipConfig.bets_limit_race;
+      const currentErrors = this.raceBetForm.errors || {};
+
+      if (maxReached) {
+        this.raceBetForm.setErrors({ ...currentErrors, maxBetsReached: true });
+        this.raceBetForm.disable();
+      } else {
+        const { maxBetsReached, ...remainingErrors } = currentErrors;
+        this.raceBetForm.setErrors(Object.keys(remainingErrors).length ? remainingErrors : null);
+        this.raceBetForm.enable();
+      }
+    }
+  }
+
+  openExistingBetsModal(): void {
+    this.dialog.open(ExistingBetsModalComponent, {
+      width: '500px',
+      data: { bets: this.existingBets, riders: this.riders }
+    });
   }
 }

@@ -7,12 +7,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { DashboardService, CalendarRace } from '../../services/dashboard.service';
 import { ChampionshipService } from '../../services/championship.service';
-import { CdkDragDrop, CdkDrag, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, CdkDrag, CdkDropList],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule],
   template: `
     <div class="page-container">
       <header class="header">

@@ -10,6 +10,7 @@ import { DashboardService, StandingsRow, CalendarRace, FantasyTeam } from '../..
 import { AuthService } from '../../services/auth.service';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 import { ChampionshipService } from '../../services/championship.service';
+import { RaceScheduleService } from '../../services/race-schedule.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -612,7 +613,8 @@ export class DashboardComponent implements OnInit {
     private router: Router,
     private dashboardService: DashboardService,
     private championshipService: ChampionshipService,
-    private authService: AuthService
+    private authService: AuthService,
+    private raceScheduleService: RaceScheduleService
   ) {
     this.loggedUserId = this.authService.getUserId();
   }
@@ -656,7 +658,6 @@ export class DashboardComponent implements OnInit {
     return today.toDateString() === eventDate.toDateString();
   }
 
-  // Compute visibility conditions for the buttons based on nextRace data and current time.
   private computeButtonVisibility(): void {
     if (!this.nextCalendarRace) {
       this.showLineupsButton = false;
@@ -665,67 +666,9 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    const now = new Date();
-    const eventDate = new Date(this.nextCalendarRace.event_date);
-    const isEventDay = now.toDateString() === eventDate.toDateString();
-
-    // Calculate diffDays using eventDate's midnight (only valid when not event day)
-    const diffDays = (eventDate.getTime() - now.getTime()) / (1000 * 3600 * 24);
-
-    const dayBeforeEvent = new Date(
-      eventDate.getUTCFullYear(),
-      eventDate.getUTCMonth(),
-      eventDate.getUTCDate() - 1
-    );
-
-    // Combine event_date with the time strings to form full Date objects.
-    const qualificationsTime = this.nextCalendarRace.qualifications_time
-      ? new Date(
-          `${dayBeforeEvent.getUTCFullYear()}-` +
-          `${(dayBeforeEvent.getUTCMonth() + 1).toString().padStart(2, '0')}-` +
-          `${(dayBeforeEvent.getUTCDate() + 1).toString().padStart(2, '0')}T` +
-          `${this.nextCalendarRace.qualifications_time}`
-        )
-      : null;
-
-    const sprintTime = this.nextCalendarRace.sprint_time
-      ? new Date(
-          `${dayBeforeEvent.getUTCFullYear()}-` +
-          `${(dayBeforeEvent.getUTCMonth() + 1).toString().padStart(2, '0')}-` +
-          `${(dayBeforeEvent.getUTCDate() + 1).toString().padStart(2, '0')}T` +
-          `${this.nextCalendarRace.sprint_time}`
-        )
-      : null;
-    const eventTime = this.nextCalendarRace.event_time
-      ? new Date(`${this.nextCalendarRace.event_date}T${this.nextCalendarRace.event_time}`)
-      : null;
-
-
-    // Place Lineups button: Visible only if (when not event day) diffDays is between 1 and 3
-    // and before 1 hour prior to qualifications_time.
-    this.showLineupsButton = !isEventDay
-      && qualificationsTime !== null
-      && now.getTime() >= dayBeforeEvent.getTime()
-      && now.getTime() < qualificationsTime.getTime() - (60 * 60 * 1000);
-
-    // Place Sprint Bet button: Visible only on the day before event_date until 30 minutes before sprint_time
-    this.showSprintBetButton = !isEventDay
-      && sprintTime !== null
-      && now.getTime() >= dayBeforeEvent.getTime()
-      && now.getTime() < sprintTime.getTime() - (30 * 60 * 1000);
-
-    // Place Bet button:
-    // Option 1 (for one day before event): if not event day, diffDays <= 1 and now is after sprint_time + 1 hour.
-    let condition1 = false;
-    if (!isEventDay && sprintTime) {
-      condition1 = diffDays <= 1 && now.getTime() >= sprintTime.getTime() + 3600 * 1000;
-    }
-    // Option 2 (for event day): if today is the event date and now is less than or equal to event_time - 2 hours.
-    let condition2 = false;
-    if (eventTime) {
-      condition2 = isEventDay && (now.getTime() <= eventTime.getTime() - 2 * 3600 * 1000);
-    }
-    this.showPlaceBetButton = condition1 || condition2;
+    this.showLineupsButton = this.raceScheduleService.canShowLineups(this.nextCalendarRace);
+    this.showSprintBetButton = this.raceScheduleService.canShowSprintBet(this.nextCalendarRace);
+    this.showPlaceBetButton = this.raceScheduleService.canShowRaceBet(this.nextCalendarRace);
   }
 
   goTo(path: string, extras: any = {}): void {
