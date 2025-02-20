@@ -20,9 +20,13 @@ export class RaceScheduleService {
 
     if (!qualificationsTime || isEventDay) return false;
 
-    const dayBeforeEvent = this.getDayBeforeEvent(eventDate);
-    return now.getTime() >= dayBeforeEvent.getTime() &&
-           now.getTime() < qualificationsTime.getTime() - (60 * 60 * 1000);
+    const twoDayBeforeEvent = this.getDayBeforeEvent(eventDate,2);
+
+    const twoDayBeforeEventEnd = new Date(twoDayBeforeEvent);
+    twoDayBeforeEventEnd.setHours(23, 59, 59, 999);
+
+    return now.getTime() >= twoDayBeforeEvent.getTime() &&
+           now.getTime() < twoDayBeforeEventEnd.getTime();
   }
 
   canShowSprintBet(nextRace: CalendarRace): boolean {
@@ -47,29 +51,28 @@ export class RaceScheduleService {
     const eventDate = new Date(nextRace.event_date);
     const isEventDay = now.toDateString() === eventDate.toDateString();
     const sprintTime = this.getSprintTime(nextRace);
-    const eventTime = this.getEventTime(nextRace);
+    const dayBeforeEvent = this.getDayBeforeEvent(eventDate);
 
-    // Condition 1: Day before event
-    const condition1 = !isEventDay && !!sprintTime &&
-                      this.getDiffDays(eventDate, now) <= 1 &&
-                      now.getTime() >= sprintTime.getTime() + 3600 * 1000;
+    // Create end time as midnight of day before event
+    const dayBeforeEventEnd = new Date(dayBeforeEvent);
+    dayBeforeEventEnd.setHours(23, 59, 59, 999);
 
-    // Condition 2: Event day
-    const condition2 = !!isEventDay && !!eventTime &&
-                      now.getTime() <= eventTime.getTime() - 2 * 3600 * 1000;
+    if (!sprintTime || isEventDay) return false;
 
-    return condition1 || condition2;
+    const oneHourAfterSprint = sprintTime.getTime() + (60 * 60 * 1000);
+    return now.getTime() >= oneHourAfterSprint &&
+           now.getTime() <= dayBeforeEventEnd.getTime();
   }
 
   private getDiffDays(eventDate: Date, now: Date): number {
     return (eventDate.getTime() - now.getTime()) / (1000 * 3600 * 24);
   }
 
-  private getDayBeforeEvent(eventDate: Date): Date {
+  private getDayBeforeEvent(eventDate: Date, numDays: number = 1): Date {
     return new Date(
       eventDate.getUTCFullYear(),
       eventDate.getUTCMonth(),
-      eventDate.getUTCDate() - 1
+      eventDate.getUTCDate() - numDays
     );
   }
 

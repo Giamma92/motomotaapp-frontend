@@ -117,11 +117,11 @@ import { ChampionshipService } from '../../services/championship.service';
 
       .rider {
         &.official-1 {
-          background: lighten(#f8d7da, 3%);
+          background: #f8d7da;
           border-color: #dc3545;
         }
         &.reserve {
-          background: lighten(#e2e3e5, 3%);
+          background: #e2e3e5;
           border-color: #6c757d;
         }
       }

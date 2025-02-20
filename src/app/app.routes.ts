@@ -18,9 +18,9 @@ export const routes: Routes = [
   // The root route shows the dashboard.
   { path: '', component: DashboardComponent, canActivate: [AuthGuard] },
   // A route for a bet race page.
-  { path: 'race-bet/:id', loadComponent: () => import('./components/race-bet/race-bet.component').then(m => m.RaceBetComponent), canActivate: [AuthGuard, RaceAccessGuard] },
+  { path: 'race-bet/:id', loadComponent: () => import('./components/bets/race-bet/race-bet.component').then(m => m.RaceBetComponent), canActivate: [AuthGuard, RaceAccessGuard] },
   // A route for a sprint bet page.
-  { path: 'sprint-bet/:id', loadComponent: () => import('./components/sprint-bet/sprint-bet.component').then(m => m.SprintBetComponent), canActivate: [AuthGuard, RaceAccessGuard] },
+  { path: 'sprint-bet/:id', loadComponent: () => import('./components/bets/sprint-bet/sprint-bet.component').then(m => m.SprintBetComponent), canActivate: [AuthGuard, RaceAccessGuard] },
   // A route for a lineups page.
   { path: 'lineups/:id', loadComponent: () => import('./components/lineups/lineups.component').then(m => m.LineupsComponent), canActivate: [AuthGuard, RaceAccessGuard] },
   // A route for a calendar page.
