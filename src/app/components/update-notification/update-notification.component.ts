@@ -31,6 +31,7 @@ import { UpdateService } from '../../services/update.service';
       gap: 12px;
       animation: slideUp 0.5s ease-out;
       max-width: 300px;
+      z-index: 99999;
     }
 
     .popup-content {
