@@ -58,19 +58,6 @@ export interface ChampionshipRider {
   constructor_id: Constructor
 }
 
-export interface ChampionshipConfig {
-  id: number;
-  championship_id: number;
-  session_timeout: number;
-  bets_limit_points: number;
-  bets_limit_sprint_points: number;
-  bets_limit_driver: number;
-  bets_limit_sprint_driver: number;
-  bets_limit_race: number;
-  bets_limit_sprint_race: number;
-  formation_limit_driver: number;
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -102,10 +89,6 @@ export class DashboardService {
 
   getAllRiders(championshipId: number): Observable<ChampionshipRider[]> {
     return this.httpService.genericGet<ChampionshipRider[]>(`championship/${championshipId}/riders`);
-  }
-
-  getChampionshipConfig(championshipId: number): Observable<ChampionshipConfig> {
-    return this.httpService.genericGet<ChampionshipConfig>(`championship/${championshipId}/config`);
   }
 }
 

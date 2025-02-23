@@ -7,11 +7,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { DashboardService, CalendarRace } from '../../services/dashboard.service';
 import { ChampionshipService } from '../../services/championship.service';
+import { TimeFormatPipe } from '../../pipes/time-format.pipe';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, TimeFormatPipe],
   template: `
     <div class="page-container">
       <header class="header">
@@ -31,9 +32,9 @@ import { ChampionshipService } from '../../services/championship.service';
                 <th>Round</th>
                 <th>Event</th>
                 <th>Date</th>
-                <th>Qualifying</th>
-                <th>Sprint</th>
-                <th>Race</th>
+                <th>Qualifying time</th>
+                <th>Sprint time</th>
+                <th>Race time</th>
                 <th></th>
               </tr>
             </thead>
@@ -47,10 +48,14 @@ import { ChampionshipService } from '../../services/championship.service';
                     {{ race.race_id.location }}
                   </div>
                 </td>
-                <td>{{ race.event_date | date:'mediumDate' }}</td>
-                <td>{{ race.qualifications_time || 'TBD' }}</td>
-                <td>{{ race.sprint_time || 'TBD' }}</td>
-                <td>{{ race.event_time || 'TBD' }}</td>
+                <td><span class="detail-text">
+                    {{ getEventDateRange(race.event_date).start | date:'MMM d' }} -
+                    {{ getEventDateRange(race.event_date).end | date:'MMM d, y' }}
+                  </span>
+                </td>
+                <td>{{ race.qualifications_time ?? '10:00:00' | timeFormat }}</td>
+                <td>{{ race.sprint_time ?? '15:00:00' | timeFormat }}</td>
+                <td>{{ race.event_time ?? '14:00:00' | timeFormat }}</td>
                 <td>
                   <button mat-icon-button color="primary" (click)="goToRaceDetail(race)">
                     <mat-icon>chevron_right</mat-icon>
@@ -71,8 +76,19 @@ import { ChampionshipService } from '../../services/championship.service';
                 <div class="round-badge">Race #{{ race.race_order }}</div>
                 <mat-card-title>{{ race.race_id.name }}</mat-card-title>
                 <mat-card-subtitle>
-                  <mat-icon>event</mat-icon>
-                  {{ race.event_date | date:'mediumDate' }}
+                  <div class="event-details">
+                    <div class="detail-item">
+                      <mat-icon>event</mat-icon>
+                      <span class="detail-text">
+                        {{ getEventDateRange(race.event_date).start | date:'MMM d' }} -
+                        {{ getEventDateRange(race.event_date).end | date:'MMM d, y' }}
+                      </span>
+                    </div>
+                    <div class="detail-item">
+                      <mat-icon>location_on</mat-icon>
+                      <span class="location-text">{{ race.race_id.location }}</span>
+                    </div>
+                  </div>
                 </mat-card-subtitle>
               </div>
             </mat-card-title-group>
@@ -81,31 +97,33 @@ import { ChampionshipService } from '../../services/championship.service';
           <mat-card-content>
             <div class="race-content">
               <div class="race-details-grid">
-                <div class="detail-item">
-                  <mat-icon class="detail-icon">sports_motorsports</mat-icon>
-                  <div class="detail-text">
-                    <span class="detail-label">Race</span>
-                    {{ race.event_time || 'TBD' }}
+                <div class="time-detail-container">
+                  <div class="time-icon-container">
+                    <mat-icon class="time-icon">sports_motorsports</mat-icon>
+                  </div>
+                  <div class="time-info">
+                    <span class="time-label">Race</span>
+                    <span class="time-value">{{ race.event_time ?? '14:00:00' | timeFormat }}</span>
                   </div>
                 </div>
-                <div class="detail-item">
-                  <mat-icon class="detail-icon">flag</mat-icon>
-                  <div class="detail-text">
-                    <span class="detail-label">Sprint</span>
-                    {{ race.sprint_time || 'TBD' }}
+                <div class="time-detail-container">
+                  <div class="time-icon-container">
+                    <mat-icon class="time-icon">flag</mat-icon>
+                  </div>
+                  <div class="time-info">
+                    <span class="time-label">Sprint</span>
+                    <span class="time-value">{{ race.sprint_time ?? '15:00:00' | timeFormat }}</span>
                   </div>
                 </div>
-                <div class="detail-item">
-                  <mat-icon class="detail-icon">timer</mat-icon>
-                  <div class="detail-text">
-                    <span class="detail-label">Qualifying</span>
-                    {{ race.qualifications_time || 'TBD' }}
+                <div class="time-detail-container">
+                  <div class="time-icon-container">
+                    <mat-icon class="time-icon">timer</mat-icon>
+                  </div>
+                  <div class="time-info">
+                    <span class="time-label">Qualifying</span>
+                    <span class="time-value">{{ race.qualifications_time ?? '10:00:00' | timeFormat }}</span>
                   </div>
                 </div>
-              </div>
-              <div class="location-section">
-                <mat-icon>location_on</mat-icon>
-                <span class="location-text">{{ race.race_id.location }}</span>
               </div>
             </div>
           </mat-card-content>
@@ -175,6 +193,30 @@ import { ChampionshipService } from '../../services/championship.service';
         display: flex;
         align-items: center;
         gap: 1rem;
+      }
+
+      .event-details {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 8px;
+
+        .detail-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.9rem;
+
+          mat-icon {
+            font-size: 1.1rem;
+            width: 1.1rem;
+            height: 1.1rem;
+          }
+        }
+
+        .location-text {
+          font-weight: 500;
+        }
       }
     }
 
@@ -256,12 +298,42 @@ import { ChampionshipService } from '../../services/championship.service';
         box-sizing: border-box;
         transition: transform 0.3s ease;
         background: white;
-        border-radius: 12px;
+        border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow:
+          0 0 0 1.5px rgba(0, 0, 0, 0.08),
+          0 8px 24px rgba(0, 0, 0, 0.1);
+        position: relative;
+
+        &::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          border-radius: 20px;
+          box-shadow:
+            0 4px 12px rgba(0, 0, 0, 0.08),
+            0 6px 20px rgba(0, 0, 0, 0.04);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          z-index: -1;
+        }
+
+        &:hover {
+          transform: translateY(-4px) scale(1.02);
+          box-shadow:
+            0 0 0 2px rgba(var(--primary-color), 0.15),
+            0 12px 32px rgba(0, 0, 0, 0.15);
+
+          &::after {
+            opacity: 1;
+          }
+        }
 
         &:active {
-          transform: none;
+          transform: translateY(-2px) scale(1.01);
         }
 
         &:first-child {
@@ -311,48 +383,49 @@ import { ChampionshipService } from '../../services/championship.service';
           .race-details-grid {
             display: grid;
             gap: 1rem;
-            margin: 1rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            padding: 1rem 0;
 
-            .detail-item {
+            .time-detail-container {
               display: flex;
               align-items: center;
-              gap: 12px;
-              padding: 12px;
-              background: #f8f9fa;
+              gap: 1rem;
+              padding: 1rem;
+              background: white;
               border-radius: 8px;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            }
 
-              .detail-icon {
+            .time-icon-container {
+              background: rgba(var(--primary-color), 0.1);
+              border-radius: 50%;
+              padding: 8px;
+              display: flex;
+
+              .time-icon {
                 color: var(--primary-color);
-              }
-
-              .detail-text {
-                display: flex;
-                flex-direction: column;
-
-                .detail-label {
-                  font-weight: 500;
-                  font-size: 0.9rem;
-                  color: #666;
-                }
+                width: 24px;
+                height: 24px;
+                font-size: 24px;
               }
             }
-          }
 
-          .location-section {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-top: 1rem;
+            .time-info {
+              display: flex;
+              flex-direction: column;
 
-            mat-icon {
-              color: var(--primary-color);
-            }
+              .time-label {
+                color: #666;
+                font-size: 0.9rem;
+                font-weight: 500;
+              }
 
-            .location-text {
-              font-weight: 500;
+              .time-value {
+                color: var(--primary-color);
+                font-size: 1.1rem;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+              }
             }
           }
         }
@@ -390,6 +463,189 @@ import { ChampionshipService } from '../../services/championship.service';
 
     .mobile-view {
       scroll-behavior: smooth;
+    }
+
+    .calendar-container {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .calendar-title {
+      text-align: center;
+      color: var(--primary-color);
+      margin-bottom: 2rem;
+      font-size: 2.5rem;
+    }
+
+    .race-cards {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .race-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      box-shadow:
+        0 0 0 1.5px rgba(0, 0, 0, 0.08),
+        0 8px 24px rgba(0, 0, 0, 0.1);
+      transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s ease;
+      position: relative;
+      background: white;
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 20px;
+        box-shadow:
+          0 4px 12px rgba(0, 0, 0, 0.08),
+          0 6px 20px rgba(0, 0, 0, 0.04);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: -1;
+      }
+
+      &:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow:
+          0 0 0 2px rgba(var(--primary-color), 0.15),
+          0 12px 32px rgba(0, 0, 0, 0.15);
+
+        &::after {
+          opacity: 1;
+        }
+      }
+
+      &:active {
+        transform: translateY(-2px) scale(1.01);
+      }
+    }
+
+    .race-header {
+      background: linear-gradient(135deg, var(--primary-color), #0d47a1);
+      padding: 1.5rem;
+      color: white;
+
+      .round-badge {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 0.5rem 1.2rem;
+        border-radius: 20px;
+        font-weight: 500;
+        display: inline-block;
+        margin-bottom: 1rem;
+      }
+
+      .event-title {
+        margin: 0 0 1rem;
+        font-size: 1.8rem;
+      }
+
+      .event-details {
+        display: grid;
+        gap: 1rem;
+
+        .detail-item {
+          display: flex;
+          align-items: center;
+          gap: 0.8rem;
+          font-size: 1.1rem;
+
+          mat-icon {
+            color: #ffcc00;
+            font-size: 1.6rem;
+            width: 1.6rem;
+            height: 1.6rem;
+          }
+        }
+      }
+    }
+
+    .time-grid-container {
+      padding: 1.5rem;
+      background: #f8f9fa;
+
+      .time-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+
+        .time-item {
+          background: white;
+          padding: 1.2rem;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .time-icon-container {
+          background: #ffe5e5;
+          border-radius: 50%;
+          padding: 0.8rem;
+
+          .time-icon {
+            color: #d32f2f;
+            font-size: 1.8rem;
+            width: 1.8rem;
+            height: 1.8rem;
+          }
+        }
+
+        .time-label {
+          font-weight: 500;
+          color: #666;
+          font-size: 0.9rem;
+        }
+
+        .time-value {
+          font-weight: 600;
+          color: var(--primary-color);
+          font-size: 1.2rem;
+        }
+      }
+    }
+
+    .race-status {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+
+      &.completed {
+        background: #4CAF50;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .race-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .event-title {
+        font-size: 2rem !important;
+      }
+
+      .time-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .race-cards {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
   `]
 })
@@ -445,6 +701,19 @@ export class CalendarComponent implements OnInit, AfterViewInit {
         behavior: 'smooth'
       });
     }
+  }
+
+  public getEventDateRange(eventDateString: string): { start: Date, end: Date } {
+    if (!eventDateString) return { start: new Date(), end: new Date() };
+
+    const eventDate = new Date(eventDateString);
+    const startDate = new Date(eventDate);
+    startDate.setDate(eventDate.getDate() - 2);
+
+    return {
+      start: startDate,
+      end: eventDate
+    };
   }
 
   goBack(): void {

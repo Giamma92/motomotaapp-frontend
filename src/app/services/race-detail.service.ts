@@ -54,4 +54,13 @@ export class RaceDetailService {
       `championship/${championshipId}/calendar/${raceId}`
     );
   }
+
+  getLineupRace(championshipId: number, raceId: string): Observable<LineupsResult> {
+    return this.httpService.genericGet<LineupsResult>(`championship/${championshipId}/lineups/${raceId}`)
+  }
+
+  upsertLineup(championshipId: number, payload: any): Observable<object> {
+    return this.httpService.genericPut(`championship/${championshipId}/lineups`, payload);
+  }
+
 }

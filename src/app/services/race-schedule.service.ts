@@ -49,6 +49,7 @@ export class RaceScheduleService {
 
     const now = new Date();
     const eventDate = new Date(nextRace.event_date);
+    const eventTime = new Date(`${nextRace.event_date}T${nextRace.event_time ?? '14:00:00'}`);
     const isEventDay = now.toDateString() === eventDate.toDateString();
     const sprintTime = this.getSprintTime(nextRace);
     const dayBeforeEvent = this.getDayBeforeEvent(eventDate);
@@ -57,11 +58,17 @@ export class RaceScheduleService {
     const dayBeforeEventEnd = new Date(dayBeforeEvent);
     dayBeforeEventEnd.setHours(23, 59, 59, 999);
 
-    if (!sprintTime || isEventDay) return false;
+    if (!sprintTime) return false;
 
     const oneHourAfterSprint = sprintTime.getTime() + (60 * 60 * 1000);
-    return now.getTime() >= oneHourAfterSprint &&
-           now.getTime() <= dayBeforeEventEnd.getTime();
+    const condition1 =  !isEventDay &&
+                        now.getTime() >= oneHourAfterSprint &&
+                        now.getTime() <= dayBeforeEventEnd.getTime();
+    const condition2 =  isEventDay &&
+                        now.getTime() >= eventDate.getTime() &&
+                        now.getTime() <= eventTime.getTime() - (60 * 60 * 1000);
+
+    return condition1 || condition2
   }
 
   private getDiffDays(eventDate: Date, now: Date): number {

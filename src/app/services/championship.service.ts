@@ -12,6 +12,19 @@ export interface Championship {
   year: number;
 }
 
+export interface ChampionshipConfig {
+  id: number;
+  championship_id: number;
+  session_timeout: number;
+  bets_limit_points: number;
+  bets_limit_sprint_points: number;
+  bets_limit_driver: number;
+  bets_limit_sprint_driver: number;
+  bets_limit_race: number;
+  bets_limit_sprint_race: number;
+  formation_limit_driver: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -51,5 +64,9 @@ export class ChampionshipService {
   // Fetch all championships
   getChampionships(): Observable<Championship[]> {
     return this.httpService.genericGet<Championship[]>(`championships`);
+  }
+
+  getChampionshipConfig(championshipId: number): Observable<ChampionshipConfig> {
+    return this.httpService.genericGet<ChampionshipConfig>(`championship/${championshipId}/config`);
   }
 }

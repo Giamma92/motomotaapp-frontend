@@ -2,11 +2,12 @@ import { Component, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
 import { Router, ActivatedRoute } from "@angular/router";
-import { ChampionshipService } from "../../services/championship.service";
-import { ChampionshipRider, ChampionshipConfig, DashboardService } from "../../services/dashboard.service";
+import { ChampionshipService, ChampionshipConfig } from "../../services/championship.service";
+import { ChampionshipRider, DashboardService } from "../../services/dashboard.service";
 import { HttpService } from "../../services/http.service";
-import { BetResult, RaceDetailService } from "../../services/race-detail.service";
+import { BetResult, LineupsResult, RaceDetailService } from "../../services/race-detail.service";
 import { ExistingBetsModalComponent } from "./existing-bets-modal/existing-bets-modal.component";
+import { LineupModalComponent } from "./lineup-modal/lineup-modal.component";
 
 @Component({
   template: ''
@@ -17,14 +18,18 @@ export abstract class BaseBetComponent implements OnInit {
   abstract get betEndpoint(): string;
   abstract get pointsLimit(): number;
   abstract get maxBets(): number;
+  abstract get formTitle(): string;
+  abstract get formSubtitle(): string;
+  abstract get removeRaceRider(): boolean;
 
+  raceTitle = '';
   loading = false;
   riders: ChampionshipRider[] = [];
   protected champId = 0;
   protected raceId: string | null = '';
-  raceTitle = '';
   protected championshipConfig: ChampionshipConfig | null = null;
   existingBets: BetResult[] = [];
+  existingLineup: LineupsResult|null = null;
   existingBetsPointsSum = 0;
 
   constructor(
@@ -61,8 +66,8 @@ export abstract class BaseBetComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.championshipConfig && this.existingBets.length >= this.maxBets) {
-      alert(`Maximum ${this.championshipConfig.bets_limit_race} bets reached for this race`);
+    if (this.maxBets && this.existingBets.length >= this.maxBets) {
+      alert(`Maximum ${this.maxBets} bets reached for this race`);
       return;
     }
     if (this.betForm.valid && this.champId && this.raceId) {
@@ -111,11 +116,21 @@ export abstract class BaseBetComponent implements OnInit {
     });
   }
 
+  loadLineupRace(): void {
+    this.raceDetailService.getLineupRace(this.champId, this.raceId ?? '0').subscribe({
+      next: (existingLineup: LineupsResult) => {
+        this.existingLineup = existingLineup;
+      },
+      error: (err) => console.error('Error loading existing lineup', err)
+    });
+  }
+
   loadRiders(championshipId: number): void {
     this.dashboardService.getAllRiders(championshipId).subscribe({
       next: (riders) => {
         this.riders = riders;
         this.loadExistingRaceBet();
+        this.loadLineupRace();
         const positionControl = this.betForm.get('position');
         if (positionControl) {
           positionControl.addValidators(Validators.max(this.riders.length));
@@ -140,7 +155,7 @@ export abstract class BaseBetComponent implements OnInit {
   }
 
   private loadChampionshipConfiguration(champId: number): void {
-    this.dashboardService.getChampionshipConfig(champId).subscribe({
+    this.championshipService.getChampionshipConfig(champId).subscribe({
       next: (config) => {
         this.championshipConfig = config;
         this.updatePointsValidation();
@@ -152,8 +167,8 @@ export abstract class BaseBetComponent implements OnInit {
 
   private updatePointsValidation(): void {
     const pointsControl = this.betForm.get('points');
-    if (pointsControl && this.championshipConfig) {
-      const maxPoints = this.championshipConfig.bets_limit_points - this.existingBetsPointsSum;
+    if (pointsControl && this.pointsLimit) {
+      const maxPoints = this.pointsLimit - this.existingBetsPointsSum;
       pointsControl.setValidators([
         Validators.required,
         Validators.max(maxPoints)
@@ -163,8 +178,8 @@ export abstract class BaseBetComponent implements OnInit {
   }
 
   private updateMaxBetsValidation(): void {
-    if (this.championshipConfig) {
-      const maxReached = this.existingBets.length >= this.championshipConfig.bets_limit_race;
+    if (this.maxBets) {
+      const maxReached = this.existingBets.length >= this.maxBets;
       const currentErrors = this.betForm.errors || {};
 
       if (maxReached) {
@@ -182,6 +197,13 @@ export abstract class BaseBetComponent implements OnInit {
     this.dialog?.open(ExistingBetsModalComponent, {
       width: '500px',
       data: { bets: this.existingBets, riders: this.riders }
+    });
+  }
+
+  openLineupModal(): void {
+    this.dialog?.open(LineupModalComponent, {
+      width: '500px',
+      data: { lineups: [this.existingLineup] }
     });
   }
 }

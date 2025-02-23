@@ -2,32 +2,31 @@ import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
-import { BetResult } from '../../../services/race-detail.service';
-import { ChampionshipRider } from '../../../services/dashboard.service';
+import { LineupsResult } from '../../../services/race-detail.service';
+import { Rider } from '../../../services/dashboard.service';
 import { MatButtonModule } from '@angular/material/button';
 
+
 @Component({
+  selector: 'app-lineup-modal',
   standalone: true,
   imports: [CommonModule, MatDialogModule, MatTableModule, MatButtonModule],
   template: `
-    <h2 mat-dialog-title>Existing Bets</h2>
+    <h2 mat-dialog-title>Your Lineup</h2>
     <mat-dialog-content>
-      <table mat-table [dataSource]="data.bets" class="mat-elevation-z4">
-        <ng-container matColumnDef="rider">
-          <th mat-header-cell *matHeaderCellDef> Rider </th>
-          <td mat-cell *matCellDef="let bet">
-            {{ getRiderName(bet.rider_id) }}
+      <table mat-table [dataSource]="data.lineups" class="mat-elevation-z4">
+        <ng-container matColumnDef="race_rider">
+          <th mat-header-cell *matHeaderCellDef> Race rider </th>
+          <td mat-cell *matCellDef="let lineup">
+            {{ getRiderName(lineup.race_rider_id) }}
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="position">
-          <th mat-header-cell *matHeaderCellDef> Position </th>
-          <td mat-cell *matCellDef="let bet"> {{ bet.position }} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="points">
-          <th mat-header-cell *matHeaderCellDef> Points </th>
-          <td mat-cell *matCellDef="let bet"> {{ bet.points }} </td>
+        <ng-container matColumnDef="qualifying_rider">
+          <th mat-header-cell *matHeaderCellDef> Qualifying rider </th>
+          <td mat-cell *matCellDef="let lineup">
+            {{ getRiderName(lineup.qualifying_rider_id) }}
+          </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
@@ -62,13 +61,12 @@ import { MatButtonModule } from '@angular/material/button';
     }
   `]
 })
-export class ExistingBetsModalComponent {
-  displayedColumns: string[] = ['rider', 'position', 'points'];
+export class LineupModalComponent {
+  displayedColumns: string[] = ['race_rider', 'qualifying_rider'];
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: { bets: BetResult[], riders: ChampionshipRider[] }) {}
+  constructor(@Inject(MAT_DIALOG_DATA) public data: {lineups: LineupsResult[]}) {}
 
-  getRiderName(riderId: number): string {
-    const rider = this.data.riders.find(r => r.rider_id.id === riderId)?.rider_id;
+  getRiderName(rider: Rider): string {
     return rider ? `${rider.first_name} ${rider.last_name}` : 'Unknown Rider';
   }
 }

@@ -11,7 +11,7 @@ import { ChampionshipService } from '../../services/championship.service';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { HttpService } from '../../services/http.service';
-import { LineupsResult } from '../../services/race-detail.service';
+import { LineupsResult, RaceDetailService } from '../../services/race-detail.service';
 
 @Component({
   selector: 'app-lineups',
@@ -171,7 +171,7 @@ export class LineupsComponent implements OnInit {
     private route: ActivatedRoute,
     private dashboardService: DashboardService,
     private championshipService: ChampionshipService,
-    private httpService: HttpService
+    private raceDetailService: RaceDetailService
 ) {
     this.lineupsForm = this.fb.group({
       race_rider_id: ['', Validators.required],
@@ -186,7 +186,6 @@ export class LineupsComponent implements OnInit {
     this.championshipService.getChampIdObs().subscribe((champId: number) => {
       if (champId > 0) {
         this.champId = champId;
-        this.loadChampionshipConfiguration(champId);
         this.loadRiders(champId);
         this.loadCalendarRace(champId);
       }
@@ -195,7 +194,7 @@ export class LineupsComponent implements OnInit {
 
 
   loadCalendarRace(championshipId: number) {
-    this.httpService.genericGet<CalendarRace>(`championship/${championshipId}/calendar/${this.raceId}`).subscribe({
+    this.raceDetailService.getCalendarRace(championshipId, this.raceId ?? '0').subscribe({
       next: (race) => {
         this.raceTitle = race.race_id.name;
       },
@@ -218,8 +217,7 @@ export class LineupsComponent implements OnInit {
   }
 
   loadExistingLineup(champId: number) {
-    // Load existing lineups if available
-    this.httpService.genericGet<LineupsResult>(`championship/${champId}/lineups/${this.raceId}`).subscribe({
+    this.raceDetailService.getLineupRace(champId, this.raceId ?? '0').subscribe({
       next: (existingLineup: LineupsResult) => {
         this.lineupsForm.patchValue({
           race_rider_id: existingLineup?.race_rider_id || this.riders[0]?.id,
@@ -238,7 +236,7 @@ export class LineupsComponent implements OnInit {
         calendar_id: this.raceId,
       };
 
-      this.httpService.genericPut(`championship/${this.champId}/lineups`, payload).subscribe({
+      this.raceDetailService.upsertLineup(this.champId, payload).subscribe({
         next: () => {
           this.loading = false;
           alert('Lineup submitted successfully!');
@@ -253,14 +251,7 @@ export class LineupsComponent implements OnInit {
     }
   }
 
-  private loadChampionshipConfiguration(champId: number): void {
-    this.httpService.genericGet<any>(`championship/${champId}/configuration`).subscribe({
-      next: (config) => {
-        console.log('Championship configuration loaded:', config);
-      },
-      error: (err) => console.error('Failed to load championship configuration', err)
-    });
-  }
+
 
   goToRaceDetail(): void {
     this.router.navigate(['/race-detail', this.raceId]);
