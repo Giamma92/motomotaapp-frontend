@@ -6,7 +6,7 @@ import { UserInfo } from './auth.service';
 
 export interface StandingsRow {
   Id: number;
-  user_id: string;
+  user_id: UserInfo;
   championship_id: number;
   position: number;
   score: number;
@@ -89,6 +89,14 @@ export class DashboardService {
 
   getAllRiders(championshipId: number): Observable<ChampionshipRider[]> {
     return this.httpService.genericGet<ChampionshipRider[]>(`championship/${championshipId}/riders`);
+  }
+
+  updateStandings(championshipId: number, calendarId: number): Observable<any> {
+    return this.httpService.genericGet<ChampionshipRider[]>(`championship/${championshipId}/calendar/${calendarId}/calc-scores`);
+  }
+
+  fetchMotoGPResults(championshipId: number, calendarId: number): Observable<any> {
+    return this.httpService.genericGet<any>(`championship/${championshipId}/calendar/${calendarId}/motogp-results`);
   }
 }
 

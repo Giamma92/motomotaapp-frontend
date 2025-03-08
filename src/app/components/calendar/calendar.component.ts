@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { DashboardService, CalendarRace } from '../../services/dashboard.service';
 import { ChampionshipService } from '../../services/championship.service';
 import { TimeFormatPipe } from '../../pipes/time-format.pipe';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-calendar',
@@ -60,6 +61,14 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
                   <button mat-icon-button color="primary" (click)="goToRaceDetail(race)">
                     <mat-icon>chevron_right</mat-icon>
                   </button>
+                </td>
+                <td *ngIf="isAdmin()" class="admin-actions">
+                    <button mat-icon-button color="primary" (click)="fetchMotoGPResults(race.id)" aria-label="Fetch MotoGP Results">
+                      <mat-icon>get_app</mat-icon>
+                    </button>
+                    <button mat-icon-button color="accent" (click)="updateStandings(race.id)" aria-label="Update standings">
+                      <mat-icon>sync</mat-icon>
+                    </button>
                 </td>
               </tr>
             </tbody>
@@ -128,9 +137,14 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
             </div>
           </mat-card-content>
 
-          <mat-card-actions>
-            <button mat-raised-button color="primary" (click)="goToRaceDetail(race)" class="action-button">
-              View Full Details
+          <mat-card-actions class="action-buttons">
+            <button mat-mini-fab color="accent" *ngIf="isAdmin()" (click)="updateStandings(race.id)" aria-label="Update Standings">
+                <mat-icon>sync</mat-icon>
+            </button>
+            <button mat-mini-fab color="primary" *ngIf="isAdmin()" (click)="fetchMotoGPResults(race.id)" aria-label="Fetch MotoGP Results">
+              <mat-icon>get_app</mat-icon>
+            </button>
+            <button mat-mini-fab color="primary" (click)="goToRaceDetail(race)">
               <mat-icon>arrow_forward</mat-icon>
             </button>
           </mat-card-actions>
@@ -430,20 +444,11 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
           }
         }
 
-        .action-button {
-          width: 100%;
-          margin: 0;
+        .action-buttons {
+          padding: 10px 30px !important;
           display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 12px 20px;
-          font-weight: 500;
-          transition: all 0.2s ease;
-
-          &:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          }
+          justify-content: end;
+          gap: 10px;
         }
       }
     }
@@ -628,6 +633,16 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
       }
     }
 
+    .admin-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+
+      button {
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+    }
+
     @media (min-width: 768px) {
       .race-cards {
         grid-template-columns: repeat(2, 1fr);
@@ -650,19 +665,23 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
   `]
 })
 export class CalendarComponent implements OnInit, AfterViewInit {
+
   @ViewChildren('raceCards') raceCards!: QueryList<ElementRef>;
   currentRaceIndex: number = 0;
   calendar: CalendarRace[] = [];
+  championshipId: number = 0;
 
   constructor(
     private dashboardService: DashboardService,
     private championshipService: ChampionshipService,
+    private authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.championshipService.getChampIdObs().subscribe((champId: number) => {
       if (champId == 0) return;
+      this.championshipId = champId;
       this.dashboardService.getCalendar(champId).subscribe({
         next: (data: CalendarRace[]) => {
           this.calendar = data;
@@ -716,6 +735,32 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     };
   }
 
+  updateStandings(raceId: number) {
+    alert('Starting to update Standings!');
+    this.dashboardService.updateStandings(this.championshipId, raceId).subscribe({
+      next: () => {
+        alert('Standings updated successfully!');
+      },
+      error: (err: any) => {
+        console.error('Error updating standings:', err);
+        alert('Error updating standings. Please try again.');
+      }
+    });
+  }
+
+  fetchMotoGPResults(calendarId: number) {
+    alert('Starting to fetch MotoGP Results! It takes few minutes, please wait');
+    this.dashboardService.fetchMotoGPResults(this.championshipId, calendarId).subscribe({
+      next: () => {
+        alert('Fetching MotoGP results completed! The results could be not loaded if the race is not completed yet.');
+      },
+      error: (err: any) => {
+        console.error('Error fetching MotoGP results:', err);
+        alert('Error fetching MotoGP results. Please try again.');
+      }
+    });
+  }
+
   goBack(): void {
     this.router.navigate(['/']);  // Navigates back to the dashboard
   }
@@ -724,5 +769,9 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     // Assumes that race.race_id has an 'id' property.
     const calendarRaceId = race.id;
     this.router.navigate(['/race-detail', calendarRaceId]);
+  }
+
+  isAdmin() {
+    return this.authService.isCurrentUserAdmin();
   }
 }

@@ -67,4 +67,23 @@ export class AuthService {
       return null;
     }
   }
+
+  getUserRoles(): any[] | null {
+    const token = this.getToken();
+    if (!token) {
+      return null;
+    }
+    try {
+      const decoded = jwtDecode<any>(token);
+      return decoded?.roles;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  }
+
+  isCurrentUserAdmin(): boolean {
+    const roles = this.getUserRoles();
+    return roles?.includes('Administrator') || false;
+  }
 }

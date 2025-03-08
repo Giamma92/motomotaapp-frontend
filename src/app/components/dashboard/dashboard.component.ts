@@ -73,13 +73,13 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
                   </thead>
                   <tbody>
                     <tr *ngFor="let row of classificationData; let i = index"
-                        [class.highlight]="row.user_id === loggedUserId">
+                        [class.highlight]="row.user_id.id === loggedUserId">
                       <td class="rank-col">
                         <span class="position">{{ row.position }}</span>
                       </td>
                       <td class="user-col">
                         <div class="user-info">
-                          <span class="username">{{ row.user_id || 'Anonymous Rider' }}</span>
+                          <span class="username">{{ row.user_id.first_name+ ' '+row.user_id.last_name || 'Anonymous Rider' }}</span>
                         </div>
                       </td>
                       <td class="score-col">{{ row.score | number:'1.0-0' }}</td>
