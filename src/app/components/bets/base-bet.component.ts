@@ -77,7 +77,7 @@ export abstract class BaseBetComponent implements OnInit {
         calendar_id: this.raceId
       };
 
-      this.httpService.genericPut(`/championship/${this.champId}/${this.betEndpoint}`, payload).subscribe({
+      this.httpService.genericPut(`championship/${this.champId}/${this.betEndpoint}`, payload).subscribe({
         next: () => {
           this.loading = false;
           alert('race bet submitted successfully!');
