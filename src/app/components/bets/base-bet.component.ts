@@ -16,8 +16,9 @@ export abstract class BaseBetComponent implements OnInit {
   abstract betForm: FormGroup;
   abstract betType: 'sprint' | 'race';
   abstract get betEndpoint(): string;
-  abstract get pointsLimit(): number;
-  abstract get maxBets(): number;
+  abstract get maxPointsPerBet(): number;
+  abstract get maxBetsPerRace(): number;
+  abstract get maxBetsPerPilot(): number;
   abstract get formTitle(): string;
   abstract get formSubtitle(): string;
   abstract get removeRaceRider(): boolean;
@@ -28,7 +29,8 @@ export abstract class BaseBetComponent implements OnInit {
   protected champId = 0;
   protected raceId: string | null = '';
   protected championshipConfig: ChampionshipConfig | null = null;
-  existingBets: BetResult[] = [];
+  existingBetsCurrentRace: any[] = [];
+  existingBetsAllCalendar: any[] = [];
   existingLineup: LineupsResult|null = null;
   existingBetsPointsSum = 0;
 
@@ -66,8 +68,8 @@ export abstract class BaseBetComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.maxBets && this.existingBets.length >= this.maxBets) {
-      alert(`Maximum ${this.maxBets} bets reached for this race`);
+    if (this.maxBetsPerRace && this.existingBetsCurrentRace.length >= this.maxBetsPerRace) {
+      alert(`Maximum ${this.maxBetsPerRace} bets reached for this race`);
       return;
     }
     if (this.betForm.valid && this.champId && this.raceId) {
@@ -92,10 +94,10 @@ export abstract class BaseBetComponent implements OnInit {
     }
   }
 
-  protected loadBets(endpoint: string) {
-    this.httpService.genericGet<BetResult[]>(`championship/${this.champId}/${endpoint}/${this.raceId}`).subscribe({
+  protected loadRaceBetsAndUpdateValidations() {
+    this.httpService.genericGet<BetResult[]>(`championship/${this.champId}/${this.betEndpoint}/${this.raceId}?allCalendar=false`).subscribe({
       next: (existingBets) => {
-        this.existingBets = existingBets;
+        this.existingBetsCurrentRace = existingBets;
         this.existingBetsPointsSum = existingBets.reduce((acc, bet) => acc + bet.points, 0);
         this.updatePointsValidation();
         this.betType === 'race' && this.updateMaxBetsValidation();
@@ -104,16 +106,35 @@ export abstract class BaseBetComponent implements OnInit {
     });
   }
 
-  loadExistingRaceBet() {
-    this.httpService.genericGet<BetResult[]>(`championship/${this.champId}/race_bet/${this.raceId}`).subscribe({
+  protected loadAllCalendarBetsAndUpdateRiders() {
+    this.httpService.genericGet<BetResult[]>(`championship/${this.champId}/${this.betEndpoint}/0?allCalendar=true`).subscribe({
       next: (existingBets) => {
-        this.existingBets = existingBets;
-        this.existingBetsPointsSum = existingBets.reduce((acc, bet) => acc + bet.points, 0);
-        this.updatePointsValidation();
-        this.updateMaxBetsValidation();
+        this.existingBetsAllCalendar = existingBets;
+        this.updateRiders();
       },
-      error: (err) => console.error('Error loading existing bet', err)
+      error: (err) => console.error('Error loading existing bets', err)
     });
+  }
+
+  private updateRiders() {
+    const ridersToRemove: number[] = [];
+
+    this.riders.forEach(rider => {
+      // Count bets for current rider
+      const countBetsPerRider = this.existingBetsAllCalendar.reduce((acc, bet) => {
+        return (bet.rider_id == rider.rider_id.id) ? acc + 1 : acc;
+      }, 0);
+
+      // Check if exceeds max bets per pilot
+      if (countBetsPerRider > this.maxBetsPerPilot) {
+        ridersToRemove.push(rider.rider_id.id);
+      }
+    });
+
+    // Filter out riders that reached max bets using Array.filter
+    this.riders = this.riders.filter(rider =>
+      !ridersToRemove.includes(rider.rider_id.id)
+    );
   }
 
   loadLineupRace(): void {
@@ -129,7 +150,8 @@ export abstract class BaseBetComponent implements OnInit {
     this.dashboardService.getAllRiders(championshipId).subscribe({
       next: (riders) => {
         this.riders = riders;
-        this.loadExistingRaceBet();
+        this.loadRaceBetsAndUpdateValidations();
+        this.loadAllCalendarBetsAndUpdateRiders();
         this.loadLineupRace();
         const positionControl = this.betForm.get('position');
         if (positionControl) {
@@ -167,8 +189,8 @@ export abstract class BaseBetComponent implements OnInit {
 
   private updatePointsValidation(): void {
     const pointsControl = this.betForm.get('points');
-    if (pointsControl && this.pointsLimit) {
-      const maxPoints = this.pointsLimit - this.existingBetsPointsSum;
+    if (pointsControl && this.maxPointsPerBet) {
+      const maxPoints = this.maxPointsPerBet - this.existingBetsPointsSum;
       pointsControl.setValidators([
         Validators.required,
         Validators.max(maxPoints)
@@ -178,8 +200,8 @@ export abstract class BaseBetComponent implements OnInit {
   }
 
   private updateMaxBetsValidation(): void {
-    if (this.maxBets) {
-      const maxReached = this.existingBets.length >= this.maxBets;
+    if (this.maxBetsPerRace) {
+      const maxReached = this.existingBetsCurrentRace.length >= this.maxBetsPerRace;
       const currentErrors = this.betForm.errors || {};
 
       if (maxReached) {
@@ -196,7 +218,7 @@ export abstract class BaseBetComponent implements OnInit {
   openExistingBetsModal(): void {
     this.dialog?.open(ExistingBetsModalComponent, {
       width: '500px',
-      data: { bets: this.existingBets, riders: this.riders }
+      data: { bets: this.existingBetsCurrentRace, riders: this.riders }
     });
   }
 

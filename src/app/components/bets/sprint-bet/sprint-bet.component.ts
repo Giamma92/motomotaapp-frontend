@@ -38,8 +38,9 @@ export class SprintBetComponent extends BaseBetComponent implements OnInit {
   override get formTitle() {return 'Sprint race Bet Configuration';}
   override get formSubtitle() { return 'Configure your bets for the sprint race'; }
   override get betEndpoint() { return 'sprint_bet'; }
-  override get pointsLimit() { return this.championshipConfig?.bets_limit_sprint_points || 0; }
-  override get maxBets() { return this.championshipConfig?.bets_limit_sprint_race || 0; } // Sprint typically allows only 1 bet
+  override get maxPointsPerBet() { return this.championshipConfig?.bets_limit_sprint_points || 0; }
+  override get maxBetsPerRace() { return this.championshipConfig?.bets_limit_sprint_race || 0; }
+  override get maxBetsPerPilot() { return this.championshipConfig?.bets_limit_sprint_driver || 0; }
 
   // Keep only sprint-specific overrides
 }

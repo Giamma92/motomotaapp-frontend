@@ -16,13 +16,13 @@ export interface ChampionshipConfig {
   id: number;
   championship_id: number;
   session_timeout: number;
-  bets_limit_points: number;
-  bets_limit_sprint_points: number;
-  bets_limit_driver: number;
-  bets_limit_sprint_driver: number;
-  bets_limit_race: number;
-  bets_limit_sprint_race: number;
-  formation_limit_driver: number;
+  bets_limit_points: number; // max points per race
+  bets_limit_sprint_points: number; // max points per sprint race
+  bets_limit_driver: number; // max bets per pilot
+  bets_limit_sprint_driver: number; // max sprint bets per pilot
+  bets_limit_race: number; // max bets per race
+  bets_limit_sprint_race: number; // max bets per sprint race
+  formation_limit_driver: number; // max lineups per pilot
 }
 
 @Injectable({

@@ -161,6 +161,8 @@ export class LineupsComponent implements OnInit {
   lineupsForm: FormGroup;
   loading: boolean = false;
   riders: Rider[] = [];
+  existingLineupsAllCalendar: LineupsResult[] = [];
+  maxLineupsPerPilot: number = 9999;
   private champId: number = 0;
   private raceId: string|null = '';
   raceTitle: string = '';
@@ -171,7 +173,8 @@ export class LineupsComponent implements OnInit {
     private route: ActivatedRoute,
     private dashboardService: DashboardService,
     private championshipService: ChampionshipService,
-    private raceDetailService: RaceDetailService
+    private raceDetailService: RaceDetailService,
+    private httpService: HttpService
 ) {
     this.lineupsForm = this.fb.group({
       race_rider_id: ['', Validators.required],
@@ -210,13 +213,14 @@ export class LineupsComponent implements OnInit {
           team.official_rider_2,
           team.reserve_rider
         ];
-        this.loadExistingLineup(championshipId);
+        this.loadExistingLineupAndUpdateForm(championshipId);
+        this.loadAllLineupsAndUpdateRiders();
       },
       error: (err) => console.error('Failed to load riders', err)
     });
   }
 
-  loadExistingLineup(champId: number) {
+  loadExistingLineupAndUpdateForm(champId: number) {
     this.raceDetailService.getLineupRace(champId, this.raceId ?? '0').subscribe({
       next: (existingLineup: LineupsResult) => {
         this.lineupsForm.patchValue({
@@ -226,6 +230,37 @@ export class LineupsComponent implements OnInit {
       },
       error: (err) => console.error('Error loading existing lineup', err)
     });
+  }
+
+  protected loadAllLineupsAndUpdateRiders() {
+    this.httpService.genericGet<LineupsResult[]>(`championship/${this.champId}/lineups/0?allCalendar=true`).subscribe({
+      next: (existingBets) => {
+        this.existingLineupsAllCalendar = existingBets;
+        this.updateRiders();
+      },
+      error: (err) => console.error('Error loading existing bets', err)
+    });
+  }
+
+  private updateRiders() {
+    const ridersToRemove: number[] = [];
+
+    this.riders.forEach(rider => {
+      // Count bets for current rider
+      const countLineupsPerRider = this.existingLineupsAllCalendar.reduce((acc, bet) => {
+        return (bet.qualifying_rider_id?.id == rider.id || bet.race_rider_id?.id == rider.id) ? acc + 1 : acc;
+      }, 0);
+
+      // Check if exceeds max bets per pilot
+      if (countLineupsPerRider > this.maxLineupsPerPilot) {
+        ridersToRemove.push(rider.id);
+      }
+    });
+
+    // Filter out riders that reached max bets using Array.filter
+    this.riders = this.riders.filter(rider =>
+      !ridersToRemove.includes(rider.id)
+    );
   }
 
   onSubmit(): void {

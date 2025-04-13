@@ -39,9 +39,9 @@
         </mat-form-field>
         <mat-form-field appearance="fill" class="full-width">
           <mat-label>Points</mat-label>
-          <input matInput type="number" formControlName="points" required [max]="(pointsLimit || 0) - existingBetsPointsSum">
+          <input matInput type="number" formControlName="points" required [max]="(maxPointsPerBet || 0) - existingBetsPointsSum">
           <mat-error *ngIf="betForm.get('points')?.hasError('max')">
-            Remaining points available: {{ (pointsLimit || 0) - existingBetsPointsSum }}
+            Remaining points available: {{ (maxPointsPerBet || 0) - existingBetsPointsSum }}
           </mat-error>
           <mat-error *ngIf="betForm.get('points')?.hasError('required')">
             Points are required
@@ -49,7 +49,7 @@
         </mat-form-field>
         <div *ngIf="betForm.hasError('maxBetsReached')" class="form-level-error">
           <mat-icon>error</mat-icon>
-          Maximum {{ maxBets }} bets reached for this race
+          Maximum {{ maxBetsPerRace }} bets reached for this race
         </div>
       </form>
     </mat-card-content>
@@ -74,7 +74,7 @@
               color="primary"
               class="action-button"
               (click)="openExistingBetsModal()"
-              [disabled]="existingBets.length === 0"
+              [disabled]="existingBetsCurrentRace.length === 0"
               matTooltip="View existing bets">
         <mat-icon>history</mat-icon>
         View bets
