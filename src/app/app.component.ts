@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { InstallPromptComponent } from "./components/intall-prompt/install-prompt.component";
 import { UpdateNotificationComponent } from './components/update-notification/update-notification.component';
 import { UpdateService } from './services/update.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -12,5 +13,11 @@ import { UpdateService } from './services/update.service';
             <router-outlet></router-outlet>`,
 })
 export class AppComponent {
-  constructor(private updateService: UpdateService) {}
+  constructor(private updateService: UpdateService, private router: Router) {
+    this.router.events
+      .pipe(filter((event: any) => event instanceof NavigationEnd))
+      .subscribe(() => {
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      });
+  }
 }

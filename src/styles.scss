@@ -79,7 +79,7 @@ mat-card.mat-mdc-card.mdc-card.calendar-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 70px 20px 20px; /* 60px header + 10px extra */
+  padding: 0;
 }
 span.mat-mdc-menu-item-text {
   display: flex;
@@ -121,6 +121,12 @@ button.mat-raised-button {
 mat-card.mat-mdc-card.mdc-card.calendar-card {
   color: var(--secondary-color);
   border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+mat-card.race-section-card,
+mat-mdc-card.mdc-card.race-section-card {
+  border-radius: 18px !important;
+  overflow: hidden;
 }
 
 

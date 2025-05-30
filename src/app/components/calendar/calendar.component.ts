@@ -54,9 +54,9 @@ import { AuthService } from '../../services/auth.service';
                     {{ getEventDateRange(race.event_date).end | date:'MMM d, y' }}
                   </span>
                 </td>
-                <td>{{ race.qualifications_time ?? '10:00:00' | timeFormat }}</td>
-                <td>{{ race.sprint_time ?? '15:00:00' | timeFormat }}</td>
-                <td>{{ race.event_time ?? '14:00:00' | timeFormat }}</td>
+                <td>{{ getDayBefore(race.event_date) | date:'EEE' }} {{ race.qualifications_time ?? '10:00:00' | timeFormat }}</td>
+                <td>{{ getDayBefore(race.event_date) | date:'EEE' }} {{ race.sprint_time ?? '15:00:00' | timeFormat }}</td>
+                <td>{{ getEventDateRange(race.event_date).end | date:'EEE' }} {{ race.event_time ?? '14:00:00' | timeFormat }}</td>
                 <td>
                   <button mat-icon-button color="primary" (click)="goToRaceDetail(race)">
                     <mat-icon>chevron_right</mat-icon>
@@ -77,8 +77,8 @@ import { AuthService } from '../../services/auth.service';
       </mat-card>
 
       <!-- Modified Mobile Cards - Remove CDK directives -->
-      <div class="mobile-view">
-        <mat-card #raceCards class="race-card" *ngFor="let race of calendar">
+      <div class="calendar-mobile-list">
+        <mat-card #raceCards class="calendar-race-card" *ngFor="let race of calendar">
           <mat-card-header>
             <mat-card-title-group class="card-header">
               <div class="header-content">
@@ -105,14 +105,16 @@ import { AuthService } from '../../services/auth.service';
 
           <mat-card-content>
             <div class="race-content">
-              <div class="race-details-grid">
+              <div class="race-details-vertical">
                 <div class="time-detail-container">
                   <div class="time-icon-container">
-                    <mat-icon class="time-icon">sports_motorsports</mat-icon>
+                    <mat-icon class="time-icon">timer</mat-icon>
                   </div>
                   <div class="time-info">
-                    <span class="time-label">Race</span>
-                    <span class="time-value">{{ race.event_time ?? '14:00:00' | timeFormat }}</span>
+                    <span class="time-label">Qualifying</span>
+                    <span class="time-value">
+                      {{ getDayBefore(race.event_date) | date:'EEE' }} {{ race.qualifications_time ?? '10:00:00' | timeFormat }}
+                    </span>
                   </div>
                 </div>
                 <div class="time-detail-container">
@@ -121,16 +123,20 @@ import { AuthService } from '../../services/auth.service';
                   </div>
                   <div class="time-info">
                     <span class="time-label">Sprint</span>
-                    <span class="time-value">{{ race.sprint_time ?? '15:00:00' | timeFormat }}</span>
+                    <span class="time-value">
+                      {{ getDayBefore(race.event_date) | date:'EEE' }} {{ race.sprint_time ?? '15:00:00' | timeFormat }}
+                    </span>
                   </div>
                 </div>
                 <div class="time-detail-container">
                   <div class="time-icon-container">
-                    <mat-icon class="time-icon">timer</mat-icon>
+                    <mat-icon class="time-icon">sports_motorsports</mat-icon>
                   </div>
                   <div class="time-info">
-                    <span class="time-label">Qualifying</span>
-                    <span class="time-value">{{ race.qualifications_time ?? '10:00:00' | timeFormat }}</span>
+                    <span class="time-label">Race</span>
+                    <span class="time-value">
+                      {{ getEventDateRange(race.event_date).end | date:'EEE' }} {{ race.event_time ?? '14:00:00' | timeFormat }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -156,8 +162,7 @@ import { AuthService } from '../../services/auth.service';
   styles: [`
     .main-content {
       color: black;
-      padding: 70px 0px 0px 0px;
-
+      padding: 0;
       .mat-mdc-card-header {
         padding: 0px;
       }
@@ -165,7 +170,7 @@ import { AuthService } from '../../services/auth.service';
 
     @media(max-width: 768px) {
       .main-content {
-        padding: 140px 0px 0px 0px;
+        padding: 0px 0px 0px 0px;
       }
     }
 
@@ -196,6 +201,7 @@ import { AuthService } from '../../services/auth.service';
       overflow: hidden;
       box-shadow: 0 4px 24px rgba(var(--primary-color), 0.1);
       width: 90%;
+      margin-top: 3rem;
     }
 
     .card-header {
@@ -238,7 +244,6 @@ import { AuthService } from '../../services/auth.service';
     .desktop-view {
       display: block;
       padding: 1.5rem;
-
       @media (max-width: 768px) {
         display: none;  // Hide table on mobile
       }
@@ -286,171 +291,168 @@ import { AuthService } from '../../services/auth.service';
     }
 
     /* Updated Mobile Card Styling */
-    .mobile-view {
+    .calendar-mobile-list {
       display: none;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      padding: 1rem 0;
+      padding: 0;
       width: 100%;
-      -webkit-overflow-scrolling: auto;
-      overscroll-behavior: contain;
-      touch-action: pan-x pan-y;
-      overflow-y: hidden;
-
-      &::-webkit-scrollbar {
-        display: none;
-      }
-
+      background: transparent;
       @media (max-width: 768px) {
-        display: flex;
+        display: block;
       }
+    }
 
-      .race-card {
-        scroll-snap-align: start;
-        flex: 0 0 85%;
-        margin: 0 1rem;
-        box-sizing: border-box;
-        transition: transform 0.3s ease;
-        background: white;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow:
-          0 0 0 1.5px rgba(0, 0, 0, 0.08),
-          0 8px 24px rgba(0, 0, 0, 0.1);
-        position: relative;
+    .calendar-race-card {
+      width: 100%;
+      margin: 1.5rem 0;
+      box-sizing: border-box;
+      border-radius: 18px;
+      box-shadow: 0 4px 16px rgba(74, 20, 140, 0.10), 0 1.5px 4px rgba(74, 20, 140, 0.06);
+      overflow: visible;
+      background: transparent;
+      transition: box-shadow 0.2s, transform 0.2s;
+      position: relative;
+      padding-bottom: 0.5rem;
+      border: 1px solid #2a003f;
+      color: #fff;
+    }
 
-        &::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          border-radius: 20px;
-          box-shadow:
-            0 4px 12px rgba(0, 0, 0, 0.08),
-            0 6px 20px rgba(0, 0, 0, 0.04);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          z-index: -1;
-        }
+    .calendar-race-card .card-header {
+      background: linear-gradient(90deg, var(--primary-color), #006db3 80%);
+      color: #fff;
+      padding: 1.2rem 1.5rem 1rem 1.5rem;
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+      box-shadow: none;
+      text-align: center;
+    }
 
-        &:hover {
-          transform: translateY(-4px) scale(1.02);
-          box-shadow:
-            0 0 0 2px rgba(var(--primary-color), 0.15),
-            0 12px 32px rgba(0, 0, 0, 0.15);
+    .calendar-race-card .header-content {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
 
-          &::after {
-            opacity: 1;
-          }
-        }
+    .calendar-race-card mat-card-content,
+    .calendar-race-card .race-content,
+    .calendar-race-card .action-buttons {
+      background: #fff;
+      color: #222;
+    }
 
-        &:active {
-          transform: translateY(-2px) scale(1.01);
-        }
+    .calendar-race-card .round-badge {
+      background: rgba(255,255,255,0.18);
+      padding: 4px 16px;
+      border-radius: 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: inline-block;
+      letter-spacing: 0.5px;
+      color: #fff;
+    }
 
-        &:first-child {
-          margin-left: 2rem;
-        }
+    .calendar-race-card mat-card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+      letter-spacing: 0.5px;
+      color: #fff;
+    }
 
-        &:last-child {
-          margin-right: 2rem;
-        }
+    .calendar-race-card mat-card-subtitle {
+      color: rgba(255,255,255,0.92);
+      font-size: 0.98rem;
+      margin-top: 0.2rem;
+    }
 
-        .card-header {
-          padding: 1rem;
-          background: linear-gradient(45deg, var(--primary-color), #006db3);
-          color: white;
+    .calendar-race-card .event-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
 
-          .header-content {
-            width: 100%;
+    .calendar-race-card .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.98rem;
+      color: #fff;
+    }
 
-            .round-badge {
-              background: rgba(255, 255, 255, 0.2);
-              padding: 4px 12px;
-              border-radius: 20px;
-              font-size: 0.9rem;
-              margin-bottom: 8px;
-              display: inline-block;
-            }
+    .calendar-race-card .location-text {
+      font-weight: 500;
+      color: #fff;
+    }
 
-            mat-card-title {
-              font-size: 1.4rem;
-              margin: 8px 0;
-              font-weight: 600;
-            }
+    .calendar-race-card .race-details-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      flex-wrap: nowrap;
+    }
 
-            mat-card-subtitle {
-              color: rgba(255, 255, 255, 0.9);
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              font-size: 0.9rem;
-            }
-          }
-        }
+    .calendar-race-card .race-details-vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
 
-        .race-content {
-          padding: 1rem;
+    .calendar-race-card .time-detail-container {
+      background: #f7f9fa;
+      border-radius: 8px;
+      padding: 0.3rem 0.7rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 0;
+      flex: 1 1 65px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      color: #222;
+    }
 
-          .race-details-grid {
-            display: grid;
-            gap: 1rem;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            padding: 1rem 0;
+    .calendar-race-card .time-icon-container {
+      background: rgba(74, 20, 140, 0.12);
+      border-radius: 50%;
+      padding: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-            .time-detail-container {
-              display: flex;
-              align-items: center;
-              gap: 1rem;
-              padding: 1rem;
-              background: white;
-              border-radius: 8px;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            }
+    .calendar-race-card .time-icon {
+      color: var(--primary-color);
+      width: 22px;
+      height: 22px;
+      font-size: 22px;
+    }
 
-            .time-icon-container {
-              background: rgba(var(--primary-color), 0.1);
-              border-radius: 50%;
-              padding: 8px;
-              display: flex;
+    .calendar-race-card .time-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      color: #222;
+    }
 
-              .time-icon {
-                color: var(--primary-color);
-                width: 24px;
-                height: 24px;
-                font-size: 24px;
-              }
-            }
+    .calendar-race-card .time-label {
+      color: #666;
+      font-size: 0.92rem;
+      font-weight: 500;
+    }
 
-            .time-info {
-              display: flex;
-              flex-direction: column;
+    .calendar-race-card .time-value {
+      color: var(--primary-color);
+      font-size: 1.08rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
 
-              .time-label {
-                color: #666;
-                font-size: 0.9rem;
-                font-weight: 500;
-              }
-
-              .time-value {
-                color: var(--primary-color);
-                font-size: 1.1rem;
-                font-weight: 600;
-                letter-spacing: 0.5px;
-              }
-            }
-          }
-        }
-
-        .action-buttons {
-          padding: 10px 30px !important;
-          display: flex;
-          justify-content: end;
-          gap: 10px;
-        }
-      }
+    .calendar-race-card mat-card-content {
+      padding: 0.5rem 1rem;
     }
 
     .current-race {
@@ -464,10 +466,6 @@ import { AuthService } from '../../services/auth.service';
         right: 1rem;
         font-size: 2rem;
       }
-    }
-
-    .mobile-view {
-      scroll-behavior: smooth;
     }
 
     .calendar-container {
@@ -662,6 +660,11 @@ import { AuthService } from '../../services/auth.service';
         grid-template-columns: repeat(3, 1fr);
       }
     }
+
+    .calendar-race-card .action-buttons {
+      border-bottom-left-radius: 18px;
+      border-bottom-right-radius: 18px;
+    }
   `]
 })
 export class CalendarComponent implements OnInit, AfterViewInit {
@@ -696,7 +699,6 @@ export class CalendarComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.findCurrentRace();
-    setTimeout(() => this.scrollToCurrentRace(), 100); // Allow DOM update
   }
 
   private findCurrentRace() {
@@ -706,19 +708,6 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     );
     if (this.currentRaceIndex === -1) {
       this.currentRaceIndex = this.calendar.length - 1; // Show last race if all past
-    }
-  }
-
-  private scrollToCurrentRace() {
-    if (this.raceCards && this.raceCards.length > 0) {
-      const mobileView = document.querySelector('.mobile-view') as HTMLElement;
-      const raceCard = this.raceCards.toArray()[this.currentRaceIndex].nativeElement;
-      const scrollPos = raceCard.offsetLeft - mobileView.offsetWidth / 2 + raceCard.offsetWidth / 2;
-
-      mobileView.scrollTo({
-        left: scrollPos,
-        behavior: 'smooth'
-      });
     }
   }
 
@@ -773,5 +762,13 @@ export class CalendarComponent implements OnInit, AfterViewInit {
 
   isAdmin() {
     return this.authService.isCurrentUserAdmin();
+  }
+
+  getDayBefore(eventDateString: string): Date {
+    if (!eventDateString) return new Date();
+    const eventDate = new Date(eventDateString);
+    const dayBefore = new Date(eventDate);
+    dayBefore.setDate(eventDate.getDate() - 1);
+    return dayBefore;
   }
 }
