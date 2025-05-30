@@ -22,14 +22,15 @@ import { ChampionshipService } from '../../services/championship.service';
         </button>
         <h1>Race Details - {{ raceName }}</h1>
       </header>
-
       <main class="main-content">
         <!-- Lineups Section -->
-        <mat-card>
-          <mat-card-title>
+        <mat-card class="race-section-card">
+          <div class="card-header">
             <mat-icon>group</mat-icon>
-            Rider Lineups ({{ lineups.length }})
-          </mat-card-title>
+            <span>Rider Lineups</span>
+            <span class="section-count">({{ lineups.length }})</span>
+          </div>
+          <div class="section-subtitle">Lineups for this race</div>
           <mat-card-content>
             <table mat-table [dataSource]="lineups" class="result-table">
               <ng-container matColumnDef="user">
@@ -39,13 +40,13 @@ import { ChampionshipService } from '../../services/championship.service';
               <ng-container matColumnDef="qualifying_rider">
                 <th mat-header-cell *matHeaderCellDef>Qualifying Rider</th>
                 <td mat-cell *matCellDef="let element">
-                  {{ element.qualifying_rider_id?.first_name + ' ' + element.qualifying_rider_id.last_name + ' ' + '#' + element.qualifying_rider_id.number || 'N/A' }}
+                  {{ element.qualifying_rider_id?.first_name + ' ' + element.qualifying_rider_id.last_name + ' #' + element.qualifying_rider_id.number || 'N/A' }}
                 </td>
               </ng-container>
               <ng-container matColumnDef="race_rider">
                 <th mat-header-cell *matHeaderCellDef>Race Rider</th>
                 <td mat-cell *matCellDef="let element">
-                  {{ element.race_rider_id?.first_name + ' ' + element.race_rider_id.last_name + ' ' + '#' + element.race_rider_id.number || 'N/A' }}
+                  {{ element.race_rider_id?.first_name + ' ' + element.race_rider_id.last_name + ' #' + element.race_rider_id.number || 'N/A' }}
                 </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="lineupColumns"></tr>
@@ -55,11 +56,13 @@ import { ChampionshipService } from '../../services/championship.service';
         </mat-card>
 
         <!-- Sprint Results Section -->
-        <mat-card>
-          <mat-card-title>
+        <mat-card class="race-section-card">
+          <div class="card-header sprint">
             <mat-icon>speed</mat-icon>
-            Sprint Bets ({{ sprints.length }})
-          </mat-card-title>
+            <span>Sprint Bets</span>
+            <span class="section-count">({{ sprints.length }})</span>
+          </div>
+          <div class="section-subtitle">Sprint results and points</div>
           <mat-card-content>
             <table mat-table [dataSource]="sprints" class="result-table">
               <ng-container matColumnDef="user">
@@ -72,11 +75,11 @@ import { ChampionshipService } from '../../services/championship.service';
               </ng-container>
               <ng-container matColumnDef="position">
                 <th mat-header-cell *matHeaderCellDef>Position</th>
-                <td mat-cell *matCellDef="let element">{{ element.position }}</td>
+                <td mat-cell *matCellDef="let element"><span class="badge position">{{ element.position }}</span></td>
               </ng-container>
               <ng-container matColumnDef="points">
                 <th mat-header-cell *matHeaderCellDef>Points</th>
-                <td mat-cell *matCellDef="let element">{{ element.points }}</td>
+                <td mat-cell *matCellDef="let element"><span class="badge points">{{ element.points }}</span></td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="sprintColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: sprintColumns;"></tr>
@@ -85,11 +88,13 @@ import { ChampionshipService } from '../../services/championship.service';
         </mat-card>
 
         <!-- Race Bets Section -->
-        <mat-card>
-          <mat-card-title>
+        <mat-card class="race-section-card">
+          <div class="card-header race">
             <mat-icon>flag</mat-icon>
-            Race Bets ({{ bets.length }})
-          </mat-card-title>
+            <span>Race Bets</span>
+            <span class="section-count">({{ bets.length }})</span>
+          </div>
+          <div class="section-subtitle">Main race results and points</div>
           <mat-card-content>
             <table mat-table [dataSource]="bets" class="result-table">
               <ng-container matColumnDef="user">
@@ -102,11 +107,11 @@ import { ChampionshipService } from '../../services/championship.service';
               </ng-container>
               <ng-container matColumnDef="position">
                 <th mat-header-cell *matHeaderCellDef>Position</th>
-                <td mat-cell *matCellDef="let element">{{ element.position }}</td>
+                <td mat-cell *matCellDef="let element"><span class="badge position">{{ element.position }}</span></td>
               </ng-container>
               <ng-container matColumnDef="points">
                 <th mat-header-cell *matHeaderCellDef>Points</th>
-                <td mat-cell *matCellDef="let element">{{ element.points }}</td>
+                <td mat-cell *matCellDef="let element"><span class="badge points">{{ element.points }}</span></td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="betColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: betColumns;"></tr>
@@ -117,69 +122,121 @@ import { ChampionshipService } from '../../services/championship.service';
     </div>
   `,
   styles: [`
-      .main-content {
-        color: black;
-        padding: 70px 0px 0px 0px;
-      }
-
+    .main-content {
+      color: black;
+      padding: 70px 0px 0px 0px;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+      align-items: center;
+    }
+    .race-section-card {
+      width: 100%;
+      max-width: 900px;
+      margin-bottom: 1.5rem;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(76, 0, 130, 0.10);
+      overflow: hidden;
+      background: white;
+    }
+    .card-header {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 1.2rem 1rem;
+      border-radius: 18px 18px 0 0;
+      font-family: 'MotoGP Bold', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 1.3rem;
+      letter-spacing: 1px;
+    }
+    .card-header.sprint {
+      background: linear-gradient(135deg, #d81b60, #4a148c);
+    }
+    .card-header.race {
+      background: linear-gradient(135deg, #4a148c, #d81b60);
+    }
+    .section-count {
+      font-size: 1rem;
+      opacity: 0.85;
+      margin-left: auto;
+      font-family: 'MotoGP Regular', sans-serif;
+    }
+    .section-subtitle {
+      color: var(--secondary-color);
+      font-size: 1rem;
+      margin: 0.5rem 1.5rem 0.5rem 1.5rem;
+      font-family: 'MotoGP Regular', sans-serif;
+    }
     .result-table {
       width: 100%;
       margin: 1rem 0;
-
-      th, td {
-        padding: 1rem;
-        text-align: left;
-        color: #333;
-      }
-
-      th {
-        background: rgba(var(--primary-color), 0.1);
-        color: var(--primary-color);
-      }
-
-      tr:hover {
-        background: #f5f5f5;
-      }
-    }
-
-    mat-card {
-      margin-bottom: 2rem;
-      border-left: 4px solid var(--primary-color);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       border-radius: 12px;
       overflow: hidden;
-
-      mat-card-title {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1.5rem;
-        margin: 0;
-        background: rgba(var(--primary-color), 0.05);
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #faf8fc;
+      box-shadow: 0 2px 8px rgba(76, 0, 130, 0.04);
+    }
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      color: #333;
+      font-size: 1rem;
+    }
+    th {
+      background: rgba(76, 0, 130, 0.08);
+      color: var(--primary-color);
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 1.05rem;
+      letter-spacing: 0.5px;
+    }
+    tr:nth-child(even) td {
+      background: #f3eafd;
+    }
+    tr:hover td {
+      background: #ede7f6;
+      transition: background 0.2s;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.3em 0.8em;
+      border-radius: 12px;
+      font-size: 0.95em;
+      font-weight: 600;
+      color: white;
+      background: var(--primary-color);
+      margin-right: 0.2em;
+    }
+    .badge.points {
+      background: var(--secondary-color);
+    }
+    .badge.position {
+      background: #d81b60;
+    }
+    @media (max-width: 1000px) {
+      .race-section-card {
+        max-width: 98vw;
       }
     }
-
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 2rem;
-      max-width: 1440px;
-      margin: 0 auto;
-      padding: 2rem;
-
-      @media (max-width: 1200px) {
-        grid-template-columns: 1fr;
+    @media (max-width: 600px) {
+      .main-content {
+        padding: 80px 0 0 0;
+        gap: 1.2rem;
       }
-    }
-
-    @media (min-width: 1200px) {
-      mat-card {
-        height: 600px;
-
-        mat-card-content {
-          overflow: auto;
-          height: calc(100% - 80px);
-        }
+      .race-section-card {
+        max-width: 100vw;
+        border-radius: 0;
+      }
+      .card-header {
+        border-radius: 0;
+        font-size: 1.1rem;
+        padding: 1rem 0.5rem;
+      }
+      th, td {
+        padding: 0.6rem;
+        font-size: 0.95rem;
       }
     }
   `]
