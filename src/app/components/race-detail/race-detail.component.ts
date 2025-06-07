@@ -411,18 +411,33 @@ export class RaceDetailComponent implements OnInit {
           this.calendarRace = race;
           this.raceName = race.race_id.name;
 
-          // Check if race date is before today
+          const now = new Date();
           const raceDate = new Date(race.event_date);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0); // Reset time to start of day
+          const dayBeforeRace = new Date(raceDate);
+          dayBeforeRace.setDate(dayBeforeRace.getDate() - 1);
 
-          if (raceDate < today) {
-            // If race is in the past, show all tables
+          // If today is after race date, show all tables
+          if (now > raceDate) {
             this.showLineups = true;
             this.showSprintBet = true;
             this.showRaceBet = true;
+          }
+          // Check if we're on or after the day before the race
+          else if (now >= dayBeforeRace) {
+            // Show lineups if we're past qualifying time
+            const qualifyingTime = new Date(`${dayBeforeRace.toISOString().split('T')[0]}T${race.qualifications_time || '14:00:00'}`);
+            this.showLineups = now > qualifyingTime;
+
+            // Show sprint bet if we're past sprint time
+            const sprintTime = new Date(`${dayBeforeRace.toISOString().split('T')[0]}T${race.sprint_time || '14:00:00'}`);
+            this.showSprintBet = now > sprintTime;
+
+            // Show race bet if we're on race day and past event time
+            const isRaceDay = now.toDateString() === raceDate.toDateString();
+            const eventTime = new Date(`${race.event_date}T${race.event_time || '14:00:00'}`);
+            this.showRaceBet = isRaceDay && now > eventTime;
           } else {
-            // Otherwise use the normal schedule logic
+            // If we're before the day before the race, use the normal schedule logic
             this.showLineups = this.raceScheduleService.canShowLineups(race);
             this.showSprintBet = this.raceScheduleService.canShowSprintBet(race);
             this.showRaceBet = this.raceScheduleService.canShowRaceBet(race);
