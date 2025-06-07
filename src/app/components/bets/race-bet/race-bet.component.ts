@@ -37,7 +37,7 @@ export class RaceBetComponent extends BaseBetComponent implements OnInit {
 
   override get removeRaceRider() {return true;}
   override get formTitle() {return 'Race Bet Configuration';}
-  override get formSubtitle() { return 'Configure your bets for the sprint race'; }
+  override get formSubtitle() { return 'Configure your bets for the race'; }
   override get betEndpoint() { return 'race_bet'; }
   override get maxPointsPerBet() { return this.championshipConfig?.bets_limit_points || 0; }
   override get maxBetsPerRace() { return this.championshipConfig?.bets_limit_race || 0; }
