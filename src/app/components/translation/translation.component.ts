@@ -63,9 +63,9 @@ interface TranslationValue {
                 <mat-form-field appearance="outline">
                   <mat-label>{{ 'translation.key' | t }}</mat-label>
                   <input matInput formControlName="key" placeholder="e.g., common.save">
-                  <!--<mat-error *ngIf="translationForm.get('key')?.hasError('required')">
+                  <mat-error *ngIf="translationForm.get('key')?.hasError('required')">
                     {{ 'translation.keyRequired' | t }}
-                  </mat-error>-->
+                  </mat-error>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
@@ -324,7 +324,7 @@ export class TranslationComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {
     this.translationForm = this.fb.group({
-      key: ['', [Validators.required, Validators.pattern(/^[a-z]+\.[a-zA-Z]+(\.[a-zA-Z]+)*$/)]],
+      key: ['', [Validators.required]],
       namespace: ['common', Validators.required],
       description: ['', Validators.required],
       englishValue: ['', Validators.required],
@@ -361,15 +361,26 @@ export class TranslationComponent implements OnInit {
       { key: formValue.key, language: 'it', value: formValue.italianValue }
     ];
 
-    // This would be your API call to add the translation
-    // For now, we'll simulate it
-    setTimeout(() => {
+    let promises: Promise<any>[] = [];
+    translations.forEach(t => {
+      const payload = {
+        code: t.language,
+        namespace: keyData.namespace,
+        key: keyData.key,
+        value: t.value,
+        description: keyData.description
+      };
+      promises.push(this.httpService.genericPut(`i18n/new`, payload).toPromise());
+    });
+
+    Promise.all(promises).then(results => {
       this.loading = false;
-      this.translationForm.reset({ namespace: 'common' });
+      this.translationForm.reset({ namespace: keyData.namespace });
       this.showSuccess('Translation added successfully!');
       this.loadRecentTranslations();
       this.i18n.clearCache(); // Clear cache to force refresh
-    }, 1000);
+    });
+
   }
 
   clearCache(): void {
