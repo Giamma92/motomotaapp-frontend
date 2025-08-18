@@ -63,9 +63,9 @@ interface TranslationValue {
                 <mat-form-field appearance="outline">
                   <mat-label>{{ 'translation.key' | t }}</mat-label>
                   <input matInput formControlName="key" placeholder="e.g., common.save">
-                  <mat-error *ngIf="translationForm.get('key')?.hasError('required')">
+                  <!--<mat-error *ngIf="translationForm.get('key')?.hasError('required')">
                     {{ 'translation.keyRequired' | t }}
-                  </mat-error>
+                  </mat-error>-->
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">

@@ -52,6 +52,10 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                       {{ getRiderDisplay(element.race_rider_id) }}
                     </td>
                   </ng-container>
+                  <ng-container matColumnDef="modified_at">
+                    <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.modifiedAt' | t }}</th>
+                    <td mat-cell *matCellDef="let element">{{ element.modified_at | date: 'MM/dd HH:mm' }}</td>
+                  </ng-container>
                   <tr mat-header-row *matHeaderRowDef="lineupColumns"></tr>
                   <tr mat-row *matRowDef="let row; columns: lineupColumns;"></tr>
                 </table>
@@ -62,6 +66,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                     <div class="bet-row"><span class="bet-label">{{ 'raceDetail.mobile.user' | t }}</span> {{ element.user_id.first_name + ' ' + element.user_id.last_name || 'Unknown User' }}</div>
                     <div class="bet-row"><span class="bet-label">{{ 'raceDetail.mobile.qualifyingRider' | t }}</span> {{ getRiderDisplay(element.qualifying_rider_id) }}</div>
                     <div class="bet-row"><span class="bet-label">{{ 'raceDetail.mobile.raceRider' | t }}</span> {{ getRiderDisplay(element.race_rider_id) }}</div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.mobile.modifiedAt' | t }}</span> {{ element.modified_at | date: 'MM/dd HH:mm' }}</div>
                   </div>
                 </div>
               </ng-container>
@@ -99,6 +104,10 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                       <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.result' | t }}</th>
                       <td mat-cell *matCellDef="let element">{{ element.outcome || 'N/A' }}</td>
                     </ng-container>
+                    <ng-container matColumnDef="modified_at">
+                      <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.modifiedAt' | t }}</th>
+                      <td mat-cell *matCellDef="let element">{{ element.modified_at | date: 'MM/dd HH:mm' }}</td>
+                    </ng-container>
                     <tr mat-header-row *matHeaderRowDef="sprintColumns"></tr>
                     <tr mat-row *matRowDef="let row; columns: sprintColumns;"></tr>
                   </table>
@@ -112,6 +121,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                     <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.position' | t }}</span> <span class="badge position">{{ getPositionDisplay(element.position) }}</span></div>
                     <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.points' | t }}</span> <span class="badge points">{{ element.points }}</span></div>
                     <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.result' | t }}</span> {{ element.outcome || ('common.na' | t) }}</div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.mobile.modifiedAt' | t }}</span> {{ element.modified_at | date: 'MM/dd HH:mm' }}</div>
                   </div>
                 </div>
               </ng-container>
@@ -149,6 +159,10 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                       <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.result' | t }}</th>
                       <td mat-cell *matCellDef="let element">{{ element.outcome || 'N/A' }}</td>
                     </ng-container>
+                    <ng-container matColumnDef="modified_at">
+                      <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.modifiedAt' | t }}</th>
+                      <td mat-cell *matCellDef="let element">{{ element.modified_at | date: 'MM/dd HH:mm' }}</td>
+                    </ng-container>
                     <tr mat-header-row *matHeaderRowDef="betColumns"></tr>
                     <tr mat-row *matRowDef="let row; columns: betColumns;"></tr>
                   </table>
@@ -162,6 +176,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                     <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.position' | t }}</span> <span class="badge position">{{ getPositionDisplay(element.position) }}</span></div>
                     <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.points' | t }}</span> <span class="badge points">{{ element.points }}</span></div>
                     <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.result' | t }}</span> {{ element.outcome || ('common.na' | t) }}</div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.mobile.modifiedAt' | t }}</span> {{ element.modified_at | date: 'MM/dd HH:mm' }}</div>
                   </div>
                 </div>
               </ng-container>
@@ -365,9 +380,9 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 export class RaceDetailComponent implements OnInit {
   raceId: string | null = null;
   raceName: string = '';
-  lineupColumns: string[] = ['user', 'qualifying_rider','race_rider'];
-  sprintColumns: string[] = ['user', 'rider', 'position', 'points', 'outcome'];
-  betColumns: string[] = ['user', 'rider', 'position', 'points', 'outcome'];
+  lineupColumns: string[] = ['user', 'qualifying_rider','race_rider', 'modified_at'];
+  sprintColumns: string[] = ['user', 'rider', 'position', 'points', 'outcome', 'modified_at'];
+  betColumns: string[] = ['user', 'rider', 'position', 'points', 'outcome', 'modified_at'];
 
   lineups: LineupsResult[] = [];
   sprints: BetResult[] = [];

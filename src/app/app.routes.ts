@@ -8,6 +8,7 @@ import { CalendarComponent } from './components/calendar/calendar.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { AllTeamsComponent } from './components/all-teams/all-teams.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
+import { AdminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   // The login route shows the login form.
@@ -19,7 +20,7 @@ export const routes: Routes = [
   // The settings route shows the settings page.
   { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
   // Translation management route (admin only)
-  { path: 'translation', loadComponent: () => import('./components/translation/translation.component').then(m => m.TranslationComponent), canActivate: [AuthGuard] },
+  { path: 'translation', loadComponent: () => import('./components/translation/translation.component').then(m => m.TranslationComponent), canActivate: [AuthGuard, AdminGuard] },
   // The root route shows the dashboard.
   { path: '', component: DashboardComponent, canActivate: [AuthGuard] },
   // A route for a bet race page.

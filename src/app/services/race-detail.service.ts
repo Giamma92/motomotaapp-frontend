@@ -13,6 +13,7 @@ export interface LineupsResult {
   race_rider_id?: Rider;        // Rider ID for qualification
   qualifying_rider_id?: Rider;  // Rider ID for race
   inserted_at?: string;
+  modified_at?: string;
 }
 
 // Define the interface for bet results
@@ -24,6 +25,7 @@ export interface BetResult {
   position: number;
   points: number;
   inserted_at?: string;
+  modified_at?: string;
   outcome?: string;
 }
 

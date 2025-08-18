@@ -265,12 +265,13 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
       padding: 20px;
 
       @media (min-width: 768px) {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         gap: 30px;
         padding: 30px;
       }
 
       @media (min-width: 1200px) {
+        grid-template-columns: 1fr 1fr;
         gap: 40px;
 
         .fantasy-team-card {
@@ -281,8 +282,28 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
     }
 
     .next-race-card {
-      @media (min-width: 768px) {
+      @media (min-width: 1200px) {
         grid-column: 1;
+      }
+    }
+
+    /* Tablet layout: standings full width, others below */
+    @media (min-width: 768px) and (max-width: 1199px) {
+      .grid-content {
+        .standings-card {
+          grid-column: 1;
+          grid-row: 1;
+        }
+
+        .next-race-card {
+          grid-column: 1;
+          grid-row: 2;
+        }
+
+        .fantasy-team-card {
+          grid-column: 1;
+          grid-row: 3;
+        }
       }
     }
 
