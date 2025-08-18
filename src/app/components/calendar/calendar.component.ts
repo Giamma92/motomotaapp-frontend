@@ -9,18 +9,19 @@ import { DashboardService, CalendarRace } from '../../services/dashboard.service
 import { ChampionshipService } from '../../services/championship.service';
 import { TimeFormatPipe } from '../../pipes/time-format.pipe';
 import { AuthService } from '../../services/auth.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, TimeFormatPipe],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, TimeFormatPipe, TranslatePipe],
   template: `
     <div class="page-container">
       <header class="header">
         <button mat-icon-button (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1>Championship Calendar</h1>
+        <h1>{{ 'calendar.title' | t }}</h1>
       </header>
       <main class="main-content">
       <mat-card class="dashboard-card">
@@ -30,12 +31,12 @@ import { AuthService } from '../../services/auth.service';
           <table class="dashboard-table">
             <thead>
               <tr>
-                <th>Round</th>
-                <th>Event</th>
-                <th>Date</th>
-                <th>Qualifying time</th>
-                <th>Sprint time</th>
-                <th>Race time</th>
+                <th>{{ 'calendar.table.round' | t }}</th>
+                <th>{{ 'calendar.table.event' | t }}</th>
+                <th>{{ 'calendar.table.date' | t }}</th>
+                <th>{{ 'calendar.table.qualifying' | t }}</th>
+                <th>{{ 'calendar.table.sprint' | t }}</th>
+                <th>{{ 'calendar.table.race' | t }}</th>
                 <th></th>
               </tr>
             </thead>
@@ -82,7 +83,7 @@ import { AuthService } from '../../services/auth.service';
           <mat-card-header>
             <mat-card-title-group class="card-header">
               <div class="header-content">
-                <div class="round-badge">Race #{{ race.race_order }}</div>
+                <div class="round-badge">{{ 'calendar.raceNum' | t:{num: race.race_order} }}</div>
                 <mat-card-title>{{ race.race_id.name }}</mat-card-title>
                 <mat-card-subtitle>
                   <div class="event-details">
@@ -111,7 +112,7 @@ import { AuthService } from '../../services/auth.service';
                     <mat-icon class="time-icon">timer</mat-icon>
                   </div>
                   <div class="time-info">
-                    <span class="time-label">Qualifying</span>
+                    <span class="time-label">{{ 'common.qualifying' | t }}</span>
                     <span class="time-value">
                       {{ getDayBefore(race.event_date) | date:'EEE' }} {{ race.qualifications_time ?? '10:00:00' | timeFormat }}
                     </span>
@@ -122,7 +123,7 @@ import { AuthService } from '../../services/auth.service';
                     <mat-icon class="time-icon">flag</mat-icon>
                   </div>
                   <div class="time-info">
-                    <span class="time-label">Sprint</span>
+                    <span class="time-label">{{ 'common.sprint' | t }}</span>
                     <span class="time-value">
                       {{ getDayBefore(race.event_date) | date:'EEE' }} {{ race.sprint_time ?? '15:00:00' | timeFormat }}
                     </span>
@@ -133,7 +134,7 @@ import { AuthService } from '../../services/auth.service';
                     <mat-icon class="time-icon">sports_motorsports</mat-icon>
                   </div>
                   <div class="time-info">
-                    <span class="time-label">Race</span>
+                    <span class="time-label">{{ 'common.race' | t }}</span>
                     <span class="time-value">
                       {{ getEventDateRange(race.event_date).end | date:'EEE' }} {{ race.event_time ?? '14:00:00' | timeFormat }}
                     </span>

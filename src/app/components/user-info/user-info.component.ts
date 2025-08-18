@@ -6,18 +6,19 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-user-info',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, TranslatePipe],
   template: `
     <div class="profile-container">
       <header class="header">
         <button mat-icon-button (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1>User profile</h1>
+        <h1>{{ 'profile.title' | t }}</h1>
       </header>
       <main class="profile-main">
         <mat-card *ngIf="userInfo; else notLoggedIn" class="profile-card">
@@ -30,24 +31,23 @@ import { MatIconModule } from '@angular/material/icon';
           </mat-card-header>
           <mat-card-content>
             <div class="profile-details">
-              <p><strong>User ID:</strong> {{ userInfo.profile_id }}</p>
-              <p><strong>Email:</strong> {{ userInfo.email }}</p>
-              <p><strong>Last Access:</strong> {{ userInfo.last_access | date:'short' }}</p>
-              <p><strong>First Change:</strong> {{ userInfo.first_change | date:'short' }}</p>
+              <p><strong>{{ 'profile.userId' | t }}</strong> {{ userInfo.profile_id }}</p>
+              <p><strong>{{ 'profile.email' | t }}</strong> {{ userInfo.email }}</p>
+              <p><strong>{{ 'profile.lastAccess' | t }}</strong> {{ userInfo.last_access | date:'short' }}</p>
             </div>
           </mat-card-content>
           <mat-card-actions>
-            <button mat-raised-button color="primary" (click)="logout()">Logout</button>
+            <button mat-raised-button color="primary" (click)="logout()">{{ 'common.logout' | t }}</button>
           </mat-card-actions>
         </mat-card>
         <ng-template #notLoggedIn>
           <mat-card class="profile-card">
-            <mat-card-title>No User Info Available</mat-card-title>
+            <mat-card-title>{{ 'profile.noInfoTitle' | t }}</mat-card-title>
             <mat-card-content>
-              <p>You are not logged in.</p>
+              <p>{{ 'profile.noInfoDesc' | t }}</p>
             </mat-card-content>
             <mat-card-actions>
-              <button mat-raised-button color="accent" (click)="goToLogin()">Login</button>
+              <button mat-raised-button color="accent" (click)="goToLogin()">{{ 'common.login' | t }}</button>
             </mat-card-actions>
           </mat-card>
         </ng-template>

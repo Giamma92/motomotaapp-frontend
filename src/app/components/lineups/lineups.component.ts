@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { HttpService } from '../../services/http.service';
 import { LineupsResult, RaceDetailService } from '../../services/race-detail.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-lineups',
@@ -24,6 +25,7 @@ import { LineupsResult, RaceDetailService } from '../../services/race-detail.ser
     MatCardModule,
     MatButtonModule,
     MatIconModule,
+    TranslatePipe
   ],
   template: `
     <div class="settings-container">
@@ -31,14 +33,14 @@ import { LineupsResult, RaceDetailService } from '../../services/race-detail.ser
         <button mat-icon-button (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1>Race Lineup Configuration</h1>
+        <h1>{{ 'lineups.title' | t }}</h1>
       </header>
       <mat-card class="settings-card">
         <mat-card-header>
           <div class="header-content">
             <mat-card-title class="race-title"><h3>{{ raceTitle }}</h3></mat-card-title>
             <mat-card-subtitle class="session-info">
-              Configure your riders for Race & Qualifying sessions
+              {{ 'lineups.subtitle' | t }}
             </mat-card-subtitle>
           </div>
         </mat-card-header>
@@ -46,22 +48,22 @@ import { LineupsResult, RaceDetailService } from '../../services/race-detail.ser
           <form [formGroup]="lineupsForm" (ngSubmit)="onSubmit()">
 
             <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Qualifying Rider</mat-label>
+              <mat-label>{{ 'lineups.qualifyingRider' | t }}</mat-label>
               <mat-select formControlName="qualifying_rider_id" required (selectionChange)="lineupsForm.updateValueAndValidity()">
-                <mat-option [value]="" disabled>Please select a rider</mat-option>
+                <mat-option [value]="" disabled>{{ 'lineups.selectRider' | t }}</mat-option>
                 <mat-option *ngFor="let rider of riders" [value]="rider.id">
                   {{ rider.first_name }} {{ rider.last_name }} (#{{ rider.number }})
                 </mat-option>
               </mat-select>
               <mat-error *ngIf="lineupsForm.get('qualifying_rider_id')?.hasError('duplicateRider')">
-                Qualifying and Race riders must be different
+                {{ 'lineups.error.duplicate' | t }}
               </mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Race Rider</mat-label>
+              <mat-label>{{ 'lineups.raceRider' | t }}</mat-label>
               <mat-select formControlName="race_rider_id" required (selectionChange)="lineupsForm.updateValueAndValidity()">
-                <mat-option [value]="" disabled>Please select a rider</mat-option>
+                <mat-option [value]="" disabled>{{ 'lineups.selectRider' | t }}</mat-option>
                 <mat-option *ngFor="let rider of riders" [value]="rider.id">
                   {{ rider.first_name }} {{ rider.last_name }} (#{{ rider.number }})
                 </mat-option>
@@ -74,7 +76,7 @@ import { LineupsResult, RaceDetailService } from '../../services/race-detail.ser
                   color="primary"
                   [disabled]="lineupsForm.invalid || loading"
                   (click)="onSubmit()">
-            {{ loading ? 'Submitting...' : 'Save Lineup' }}
+            {{ loading ? ('lineups.submitting' | t) : ('lineups.save' | t) }}
           </button>
         </mat-card-actions>
       </mat-card>

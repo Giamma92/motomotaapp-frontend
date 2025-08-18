@@ -9,6 +9,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import * as CryptoJS from 'crypto-js';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { I18nService } from '../../services/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-login',
@@ -20,7 +23,9 @@ import { MatIconModule } from '@angular/material/icon';
     MatInputModule,
     MatButtonModule,
     MatProgressSpinnerModule,
-    MatIconModule
+    MatIconModule,
+    MatSelectModule,
+    TranslatePipe
   ],
   template: `
     <div class="login-container">
@@ -29,28 +34,38 @@ import { MatIconModule } from '@angular/material/icon';
           <mat-card-title>
             <img src="assets/images/motomotaGPLogo512x512.png" alt="MotoMota Logo">
             <div class="header-content">
-              Welcome to Fanta MotoGP
-              <div class="subtitle">Manage your championship</div>
+              {{ 'login.title' | t }}
+              <div class="subtitle">{{ 'login.subtitle' | t }}</div>
             </div>
           </mat-card-title>
         </mat-card-header>
 
         <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Username</mat-label>
+            <mat-label>{{ 'login.language' | t }}</mat-label>
+            <mat-select [value]="currentLang" (selectionChange)="onLanguageChange($event.value)">
+              <mat-option *ngFor="let l of languages" [value]="l.code">
+                {{ l.label }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>language</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'login.username' | t }}</mat-label>
             <input matInput formControlName="username" required>
             <mat-icon matPrefix>person</mat-icon>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Password</mat-label>
+            <mat-label>{{ 'login.password' | t }}</mat-label>
             <input matInput type="password" formControlName="password" required>
             <mat-icon matPrefix>lock</mat-icon>
           </mat-form-field>
 
           <button mat-raised-button color="primary" class="login-button" type="submit"
                   [disabled]="loginForm.invalid || loading">
-            <span *ngIf="!loading">Sign In</span>
+            <span *ngIf="!loading">{{ 'login.signIn' | t }}</span>
             <mat-spinner *ngIf="loading" diameter="24"></mat-spinner>
           </button>
         </form>
@@ -195,12 +210,20 @@ export class LoginComponent {
   loginForm: FormGroup;
   errorMessage: string | null = null;
   loading: boolean = false;
+  languages = [
+    { code: 'en', label: 'English' },
+    { code: 'it', label: 'Italiano' },
+    { code: 'es', label: 'Español' },
+    { code: 'fr', label: 'Français' }
+  ];
+  currentLang: string = 'en';
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
+  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router, private i18n: I18nService) {
     this.loginForm = this.fb.group({
       username: ['', Validators.required],
       password: ['', Validators.required],
     });
+    this.currentLang = localStorage.getItem('lang') || this.i18n.currentLanguage || 'en';
   }
 
   onSubmit(): void {
@@ -213,16 +236,33 @@ export class LoginComponent {
 
       this.authService.login(username, hashedPassword).subscribe({
         next: (res) => {
-          this.loading = false;
           this.authService.setToken(res.token);
-          this.router.navigate(['/']);
+          this.authService.getUserInfo().subscribe({
+            next: (user) => {
+              this.loading = false;
+              if (user?.pwd_reset === 1) {
+                this.router.navigate(['/reset-password']);
+              } else {
+                this.router.navigate(['/']);
+              }
+            },
+            error: () => {
+              this.loading = false;
+              this.router.navigate(['/']);
+            }
+          })
         },
         error: (err) => {
           this.loading = false;
           console.error('Login error:', err);
-          this.errorMessage = 'Invalid username or password';
+          this.errorMessage = this.i18n.translate('login.invalid');
         },
       });
     }
+  }
+
+  onLanguageChange(code: string) {
+    this.currentLang = code;
+    this.i18n.setLanguage(code).subscribe();
   }
 }

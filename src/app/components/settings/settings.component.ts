@@ -9,6 +9,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { UserSettingsService } from '../../services/user-settings.service';
+import { I18nService } from '../../services/i18n.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-settings',
@@ -21,6 +23,7 @@ import { UserSettingsService } from '../../services/user-settings.service';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
+    TranslatePipe,
   ],
   template: `
     <div class="settings-container">
@@ -28,13 +31,13 @@ import { UserSettingsService } from '../../services/user-settings.service';
         <button mat-icon-button (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1>User settings</h1>
+        <h1>{{ 'settings.title' | t }}</h1>
       </header>
       <mat-card class="settings-card">
         <mat-card-content>
           <form [formGroup]="settingsForm" (ngSubmit)="save()">
             <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Select Championship</mat-label>
+              <mat-label>{{ 'settings.selectChampionship' | t }}</mat-label>
               <mat-select formControlName="championship_id">
                 <mat-option *ngFor="let champ of championships" [value]="champ.id">
                   {{ champ.description }} ({{ champ.year }})
@@ -42,11 +45,20 @@ import { UserSettingsService } from '../../services/user-settings.service';
               </mat-select>
             </mat-form-field>
 
+            <mat-form-field appearance="fill" class="full-width">
+              <mat-label>{{ 'settings.language' | t }}</mat-label>
+              <mat-select formControlName="language">
+                <mat-option *ngFor="let l of languages" [value]="l.code">
+                  {{ l.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
           </form>
-          <p *ngIf="successMessage" class="success-message">{{ successMessage }}</p>
+          <p *ngIf="successMessageKey" class="success-message">{{ successMessageKey | t }}</p>
         </mat-card-content>
         <mat-card-actions>
-          <button mat-raised-button color="primary" (click)="save()" [disabled]="settingsForm.invalid || loading">Save</button>
+          <button mat-raised-button color="primary" (click)="save()" [disabled]="settingsForm.invalid || loading">{{ 'settings.save' | t }}</button>
         </mat-card-actions>
       </mat-card>
     </div>
@@ -85,16 +97,26 @@ export class SettingsComponent implements OnInit {
   championships: Championship[] = [];
   settingsForm: FormGroup;
   loading = false;
-  successMessage = '';
+  successMessageKey = '';
+  languages = [
+    { code: 'en', label: 'English' },
+    { code: 'it', label: 'Italiano' },
+    { code: 'es', label: 'Español' },
+    { code: 'fr', label: 'Français' }
+  ];
+  private originalChampionshipId: number | null = null;
+  private originalLanguage: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private championshipService: ChampionshipService,
     private userSettingsService: UserSettingsService,
-    private router: Router
+    private router: Router,
+    private i18n: I18nService
   ) {
     this.settingsForm = this.fb.group({
       championship_id: ['', Validators.required],
+      language: ['', Validators.required],
     });
   }
 
@@ -119,7 +141,11 @@ export class SettingsComponent implements OnInit {
       next: (userSettings) => {
         if (userSettings?.championship_id) {
           this.settingsForm.patchValue({ championship_id: userSettings.championship_id });
+          this.originalChampionshipId = userSettings.championship_id as unknown as number;
         }
+        const lang = userSettings?.language || localStorage.getItem('lang') || this.i18n.currentLanguage || 'en';
+        this.settingsForm.patchValue({ language: lang });
+        this.originalLanguage = lang;
       },
       error: (err) => console.error('Error fetching user settings', err),
     });
@@ -130,20 +156,53 @@ export class SettingsComponent implements OnInit {
     if (this.settingsForm.invalid) return;
 
     this.loading = true;
-    this.successMessage = '';
+    this.successMessageKey = '';
 
-    const championshipId = this.settingsForm.value.championship_id;
-    this.championshipService.selectedChampionshipId = championshipId;
+    const championshipId = this.settingsForm.get('championship_id')?.value;
+    const language = this.settingsForm.get('language')?.value;
+    const updates: Promise<any>[] = [];
 
-    this.userSettingsService.updateUserSettings(championshipId).subscribe({
-      next: () => {
-        this.successMessage = 'Settings updated successfully!';
+    if (this.originalChampionshipId !== championshipId) {
+      updates.push(
+        this.userSettingsService.updateUserSettings(championshipId).toPromise()
+      );
+    }
+
+    if (this.originalLanguage !== language) {
+      updates.push(
+        this.i18n.setLanguage(language).toPromise()
+      );
+    }
+
+    if (updates.length === 0) {
+      this.loading = false;
+      this.successMessageKey = 'settings.noChanges';
+      return;
+    }
+
+    Promise.all(updates)
+      .then(() => {
+        this.successMessageKey = 'settings.success';
         this.loading = false;
-      },
-      error: (err) => {
+      })
+      .catch((err) => {
         console.error('Error updating settings:', err);
         this.loading = false;
-      },
+      });
+  }
+
+  // Development helper: Clear translation cache
+  clearTranslationCache(): void {
+    this.i18n.clearCache();
+    alert('Translation cache cleared!');
+  }
+
+  // Development helper: Refresh translations
+  refreshTranslations(): void {
+    const language = this.settingsForm.get('language')?.value || 'en';
+    this.i18n.refreshTranslations(language).subscribe({
+      next: () => alert('Translations refreshed!'),
+      error: () => alert('Failed to refresh translations')
     });
   }
 

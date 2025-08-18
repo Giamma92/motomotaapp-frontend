@@ -12,11 +12,12 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
 import { ChampionshipService } from '../../services/championship.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
 import { TimeFormatPipe } from '../../pipes/time-format.pipe';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule, TimeFormatPipe],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule, TimeFormatPipe, TranslatePipe],
   animations: [
     trigger('cardAnimation', [
       transition(':enter', [
@@ -33,20 +34,23 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
   template: `
     <div class="dashboard-container" @cardAnimation>
       <header class="header">
-        <h1>MotoMota - Dashboard</h1>
+        <h1>{{ 'dashboard.title' | t }}</h1>
 
         <button mat-icon-button [matMenuTriggerFor]="menu">
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #menu="matMenu">
           <button mat-menu-item (click)="goTo('profile')">
-            <i class="fa-solid fa-user"></i> Profile
+            <i class="fa-solid fa-user"></i> {{ 'dashboard.menu.profile' | t }}
           </button>
           <button mat-menu-item (click)="goTo('settings')">
-            <i class="fa-solid fa-gear"></i> Settings
+            <i class="fa-solid fa-gear"></i> {{ 'dashboard.menu.settings' | t }}
+          </button>
+          <button mat-menu-item *ngIf="isAdmin()" (click)="goTo('translation')">
+            <i class="fa-solid fa-language"></i> {{ 'dashboard.menu.translation' | t }}
           </button>
           <button mat-menu-item (click)="logout()">
-            <i class="fa-solid fa-right-from-bracket"></i> Logout
+            <i class="fa-solid fa-right-from-bracket"></i> {{ 'dashboard.menu.logout' | t }}
           </button>
         </mat-menu>
 
@@ -57,7 +61,7 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
             <mat-card-header class="standings-header">
               <mat-card-title>
                 <mat-icon>leaderboard</mat-icon>
-                Championship Standings
+                {{ 'dashboard.standings.title' | t }}
               </mat-card-title>
             </mat-card-header>
             <mat-card-content>
@@ -65,10 +69,10 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
                 <table class="standings-table">
                   <thead>
                     <tr>
-                      <th class="rank-col">Rank</th>
-                      <th class="user-col">User</th>
-                      <th class="score-col">Score</th>
-                      <th class="gap-col">Gap</th>
+                      <th class="rank-col">{{ 'dashboard.standings.rank' | t }}</th>
+                      <th class="user-col">{{ 'dashboard.standings.user' | t }}</th>
+                      <th class="score-col">{{ 'dashboard.standings.score' | t }}</th>
+                      <th class="gap-col">{{ 'dashboard.standings.gap' | t }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -79,7 +83,7 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
                       </td>
                       <td class="user-col">
                         <div class="user-info">
-                          <span class="username">{{ row.user_id.first_name+ ' '+row.user_id.last_name || 'Anonymous Rider' }}</span>
+                          <span class="username">{{ row.user_id.first_name+ ' '+row.user_id.last_name || ('dashboard.anonymousRider' | t) }}</span>
                         </div>
                       </td>
                       <td class="score-col">{{ row.score | number:'1.0-0' }}</td>
@@ -92,7 +96,7 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
                 </table>
                 <div class="no-standings" *ngIf="!classificationData?.length">
                   <mat-icon>emoji_events</mat-icon>
-                  <p>No standings available yet</p>
+                  <p>{{ 'dashboard.standings.empty' | t }}</p>
                 </div>
               </div>
             </mat-card-content>
@@ -102,14 +106,14 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
             <mat-card-header class="next-race-header">
               <mat-card-title>
                 <mat-icon>flag</mat-icon>
-                {{isCurrentRace ? 'Current Race' : 'Next Race'}}
+                {{ isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t) }}
               </mat-card-title>
             </mat-card-header>
             <mat-card-content>
               <div class="race-content">
                 <div class="race-header">
                   <div class="header-main">
-                    <span class="race-round">Round {{ nextCalendarRace.race_order }}</span>
+                    <span class="race-round">{{ 'dashboard.nextRace.round' | t:{num: nextCalendarRace.race_order} }}</span>
                     <h2 class="race-name">{{ nextCalendarRace.race_id.name }}</h2>
                   </div>
 
@@ -135,7 +139,7 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
                       <mat-icon class="time-icon">timer</mat-icon>
                     </div>
                     <div class="time-info">
-                      <div class="time-label">Qualifying</div>
+                      <div class="time-label">{{ 'common.qualifying' | t }}</div>
                       <div class="time-value">
                         {{ nextCalendarRace.qualifications_time ?? '10:00:00' | timeFormat }}
                       </div>
@@ -147,7 +151,7 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
                       <mat-icon class="time-icon">flag</mat-icon>
                     </div>
                     <div class="time-info">
-                      <div class="time-label">Sprint</div>
+                      <div class="time-label">{{ 'common.sprint' | t }}</div>
                       <div class="time-value">
                         {{ nextCalendarRace.sprint_time ?? '15:00:00' | timeFormat }}
                       </div>
@@ -159,7 +163,7 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
                       <mat-icon class="time-icon">sports_motorsports</mat-icon>
                     </div>
                     <div class="time-info">
-                      <div class="time-label">Race</div>
+                      <div class="time-label">{{ 'common.race' | t }}</div>
                       <div class="time-value">
                         {{ nextCalendarRace.event_time ?? '14:00:00' | timeFormat }}
                       </div>
@@ -170,18 +174,18 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
             </mat-card-content>
             <mat-card-actions>
               <div class="button-row first-row">
-                <button mat-raised-button color="primary" (click)="goTo('calendar')">View all races</button>
-                <button mat-raised-button color="primary" (click)="goTo('race-detail', nextCalendarRace.id)">View race detail</button>
+                <button mat-raised-button color="primary" (click)="goTo('calendar')">{{ 'dashboard.actions.viewAllRaces' | t }}</button>
+                <button mat-raised-button color="primary" (click)="goTo('race-detail', nextCalendarRace.id)">{{ 'dashboard.actions.viewRaceDetail' | t }}</button>
               </div>
               <div class="button-row second-row" *ngIf="showLineupsButton || showSprintBetButton || showPlaceBetButton">
                 <button mat-raised-button color="accent" *ngIf="showLineupsButton" (click)="goTo('lineups', nextCalendarRace.id)">
-                  Place Lineups
+                  {{ 'dashboard.actions.placeLineups' | t }}
                 </button>
                 <button mat-raised-button color="accent" *ngIf="showSprintBetButton" (click)="goTo('sprint-bet', nextCalendarRace.id)">
-                  Place Sprint Bet
+                  {{ 'dashboard.actions.placeSprintBet' | t }}
                 </button>
                 <button mat-raised-button color="accent" *ngIf="showPlaceBetButton" (click)="goTo('race-bet', nextCalendarRace.id)">
-                  Place Race Bet
+                  {{ 'dashboard.actions.placeRaceBet' | t }}
                 </button>
               </div>
             </mat-card-actions>
@@ -201,7 +205,7 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
 
               <div class="rider-grid">
                 <div class="rider official-1">
-                  <h3><mat-icon>sports_motorsports</mat-icon> Primary Rider</h3>
+                  <h3><mat-icon>sports_motorsports</mat-icon> {{ 'dashboard.team.primaryRider' | t }}</h3>
                   <div class="rider-details">
                     <span class="rider-name">{{ fantasyTeam.official_rider_1.first_name }} {{ fantasyTeam.official_rider_1.last_name }}</span>
                     <span class="rider-number">#{{ fantasyTeam.official_rider_1.number }}</span>
@@ -209,7 +213,7 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
                 </div>
 
                 <div class="rider official-2">
-                  <h3><mat-icon>two_wheeler</mat-icon> Secondary Rider</h3>
+                  <h3><mat-icon>two_wheeler</mat-icon> {{ 'dashboard.team.secondaryRider' | t }}</h3>
                   <div class="rider-details">
                     <span class="rider-name">{{ fantasyTeam.official_rider_2.first_name }} {{ fantasyTeam.official_rider_2.last_name }}</span>
                     <span class="rider-number">#{{ fantasyTeam.official_rider_2.number }}</span>
@@ -217,7 +221,7 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
                 </div>
 
                 <div class="rider reserve">
-                  <h3><mat-icon>engineering</mat-icon> Reserve Rider</h3>
+                  <h3><mat-icon>engineering</mat-icon> {{ 'dashboard.team.reserveRider' | t }}</h3>
                   <div class="rider-details">
                     <span class="rider-name">{{ fantasyTeam.reserve_rider.first_name }} {{ fantasyTeam.reserve_rider.last_name }}</span>
                     <span class="rider-number">#{{ fantasyTeam.reserve_rider.number }}</span>
@@ -227,18 +231,18 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
 
               <div class="team-stats">
                 <div class="stat-item">
-                  <span class="stat-label">Total Points</span>
+                  <span class="stat-label">{{ 'common.totalPoints' | t }}</span>
                   <span class="stat-value">1,450</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-label">Remaining Budget</span>
+                  <span class="stat-label">{{ 'dashboard.team.remainingBudget' | t }}</span>
                   <span class="stat-value">€2.5M</span>
                 </div>
               </div>
             </mat-card-content>
             <mat-card-actions>
               <button mat-raised-button color="primary" (click)="goTo('teams')">
-                <mat-icon>list_alt</mat-icon> View all Teams
+                <mat-icon>list_alt</mat-icon> {{ 'dashboard.actions.viewAllTeams' | t }}
               </button>
             </mat-card-actions>
           </mat-card>
@@ -582,6 +586,38 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
       }
       .header-center h1 {
         font-size: 18px;
+      }
+
+      /* Mobile improvements for standings table */
+      .standings-table {
+        .rank-col {
+          width: 10% !important; /* Make rank column narrower on mobile */
+          min-width: 40px;
+          font-size: 0.9rem;
+        }
+
+        .user-col {
+          width: 45%; /* Give more space to user names */
+        }
+
+        .score-col {
+          width: 25%;
+          font-size: 0.9rem;
+        }
+
+        .gap-col {
+          width: 20%;
+          font-size: 0.85rem;
+        }
+
+        th, td {
+          padding: 8px 4px; /* Reduce padding on mobile */
+        }
+
+        .user-info .username {
+          font-size: 0.9rem; /* Slightly smaller font for usernames */
+          line-height: 1.2;
+        }
       }
     }
     .fantasy-team-card {
@@ -1036,5 +1072,9 @@ export class DashboardComponent implements OnInit {
       start: startDate,
       end: eventDate
     };
+  }
+
+  isAdmin(): boolean {
+    return this.authService.isCurrentUserAdmin();
   }
 }

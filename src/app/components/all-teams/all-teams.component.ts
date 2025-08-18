@@ -7,18 +7,19 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ChampionshipService } from '../../services/championship.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-all-teams',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, TranslatePipe],
   template: `
     <div class="page-container">
       <header class="header">
         <button mat-icon-button (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1>All Teams</h1>
+        <h1>{{ 'teams.title' | t }}</h1>
       </header>
       <main class="main-content">
         <div class="teams-grid">
@@ -43,7 +44,7 @@ import { ChampionshipService } from '../../services/championship.service';
               <div class="content-grid">
                 <div class="riders-section">
                   <div class="rider official-1">
-                    <h3>Primary Riders</h3>
+                    <h3>{{ 'teams.primaryRiders' | t }}</h3>
                     <div class="rider-details">
                       <div class="rider">
                         <span class="number">#{{ team.official_rider_1.number }}</span>
@@ -56,7 +57,7 @@ import { ChampionshipService } from '../../services/championship.service';
                     </div>
                   </div>
                   <div class="rider reserve">
-                    <h3>Reserve Rider</h3>
+                    <h3>{{ 'teams.reserveRider' | t }}</h3>
                     <div class="rider-details">
                       <div class="rider">
                         <span class="number">#{{ team.reserve_rider.number }}</span>
@@ -69,14 +70,14 @@ import { ChampionshipService } from '../../services/championship.service';
                   <div class="stat-item">
                     <mat-icon>emoji_events</mat-icon>
                     <div>
-                      <div class="stat-label">Total Points</div>
+                      <div class="stat-label">{{ 'common.totalPoints' | t }}</div>
                       <div class="stat-value">1,450</div>
                     </div>
                   </div>
                   <div class="stat-item">
                     <mat-icon>euro_symbol</mat-icon>
                     <div>
-                      <div class="stat-label">Remaining Budget</div>
+                      <div class="stat-label">{{ 'teams.remainingBudget' | t }}</div>
                       <div class="stat-value">€2.5M</div>
                     </div>
                   </div>
@@ -86,13 +87,13 @@ import { ChampionshipService } from '../../services/championship.service';
             <mat-card-actions>
               <button mat-button color="primary" class="view-button">
                 <mat-icon>visibility</mat-icon>
-                View Team
+                {{ 'teams.viewTeam' | t }}
               </button>
             </mat-card-actions>
           </mat-card>
         </div>
         <div *ngIf="teams.length === 0" class="no-teams">
-          <p>No teams found.</p>
+          <p>{{ 'teams.empty' | t }}</p>
         </div>
       </main>
     </div>

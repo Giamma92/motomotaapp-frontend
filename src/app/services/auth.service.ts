@@ -14,9 +14,9 @@ export interface UserInfo {
   profile_image: string,
   email: string,
   last_access: string,
-  first_change: number,
   first_name: string,
-  last_name: string
+  last_name: string,
+  pwd_reset?: number
 }
 
 @Injectable({
@@ -85,5 +85,10 @@ export class AuthService {
   isCurrentUserAdmin(): boolean {
     const roles = this.getUserRoles();
     return roles?.includes('Administrator') || false;
+  }
+
+  resetPassword(newPasswordHash: string): Observable<any> {
+    const headers = this.getAuthHeader();
+    return this.http.put(`${this.apiUrl}/user/password`, { password: newPasswordHash }, { headers });
   }
 }

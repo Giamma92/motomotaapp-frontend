@@ -3,23 +3,23 @@
     <button mat-icon-button (click)="goBack()">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <h1>{{ formTitle }}</h1>
+    <h1>{{ formTitle | t }}</h1>
   </header>
   <mat-card class="settings-card">
     <mat-card-header>
       <div class="header-content">
         <mat-card-title class="race-title"><h3>{{ raceTitle }}</h3></mat-card-title>
         <mat-card-subtitle class="session-info">
-          {{ formSubtitle }}
+          {{ formSubtitle | t }}
         </mat-card-subtitle>
       </div>
     </mat-card-header>
     <mat-card-content>
       <form [formGroup]="betForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Rider</mat-label>
+          <mat-label>{{ 'bets.rider' | t }}</mat-label>
           <mat-select formControlName="rider_id" required>
-            <mat-option [value]="" disabled>Select a rider</mat-option>
+            <mat-option [value]="" disabled>{{ 'bets.selectRider' | t }}</mat-option>
             <ng-container *ngFor="let rider of riders">
               <mat-option *ngIf="!removeRaceRider || rider.rider_id.id !== existingLineup?.race_rider_id?.id" [value]="rider.rider_id.id">
                 {{ rider.rider_id.first_name }} {{ rider.rider_id.last_name }} (#{{ rider.rider_id.number }})
@@ -28,28 +28,28 @@
           </mat-select>
         </mat-form-field>
         <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Position</mat-label>
+          <mat-label>{{ 'bets.position' | t }}</mat-label>
           <input matInput type="number" formControlName="position" required [max]="riders.length">
           <mat-error *ngIf="betForm.get('position')?.hasError('max')">
-            Max allowed position: {{ riders.length }}
+            {{ 'bets.maxPosition' | t:{max: riders.length} }}
           </mat-error>
           <mat-error *ngIf="betForm.get('position')?.hasError('required')">
-            Position is required
+            {{ 'bets.positionRequired' | t }}
           </mat-error>
         </mat-form-field>
         <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Points</mat-label>
+          <mat-label>{{ 'bets.points' | t }}</mat-label>
           <input matInput type="number" formControlName="points" required [max]="(maxPointsPerBet || 0) - existingBetsPointsSum">
           <mat-error *ngIf="betForm.get('points')?.hasError('max')">
-            Remaining points available: {{ (maxPointsPerBet || 0) - existingBetsPointsSum }}
+            {{ 'bets.remainingPoints' | t:{remaining: (maxPointsPerBet || 0) - existingBetsPointsSum} }}
           </mat-error>
           <mat-error *ngIf="betForm.get('points')?.hasError('required')">
-            Points are required
+            {{ 'bets.pointsRequired' | t }}
           </mat-error>
         </mat-form-field>
         <div *ngIf="betForm.hasError('maxBetsReached')" class="form-level-error">
           <mat-icon>error</mat-icon>
-          Maximum {{ maxBetsPerRace }} bets reached for this race
+          {{ 'bets.maxBetsReached' | t:{max: maxBetsPerRace} }}
         </div>
       </form>
     </mat-card-content>
@@ -59,25 +59,25 @@
               class="action-button"
               [disabled]="betForm.invalid || loading"
               (click)="onSubmit()">
-        {{ loading ? 'Submitting...' : 'Save Race Bet' }}
+        {{ loading ? ('bets.submitting' | t) : (('bets.save.' + betType) | t) }}
       </button>
       <button mat-stroked-button
               color="primary"
               class="action-button"
               (click)="openLineupModal()"
               [disabled]="!existingLineup"
-              matTooltip="View lineup">
+              matTooltip="{{ 'bets.viewLineupTooltip' | t }}">
         <mat-icon>history</mat-icon>
-        View your lineup for this race
+        {{ 'bets.viewLineup' | t }}
       </button>
       <button mat-stroked-button
               color="primary"
               class="action-button"
               (click)="openExistingBetsModal()"
               [disabled]="existingBetsCurrentRace.length === 0"
-              matTooltip="View existing bets">
+              matTooltip="{{ 'bets.viewExistingBetsTooltip' | t }}">
         <mat-icon>history</mat-icon>
-        View your bets for this race
+        {{ 'bets.viewExistingBets' | t }}
       </button>
     </mat-card-actions>
   </mat-card>

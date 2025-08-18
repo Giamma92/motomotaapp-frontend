@@ -10,11 +10,12 @@ import { BetResult, LineupsResult, RaceDetailService } from '../../services/race
 import { CalendarRace, Race } from '../../services/dashboard.service';
 import { ChampionshipService } from '../../services/championship.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-race-detail',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatTableModule, MatButtonModule, MatIconModule, MatExpansionModule],
+  imports: [CommonModule, MatCardModule, MatTableModule, MatButtonModule, MatIconModule, MatExpansionModule, TranslatePipe],
   template: `
     <div class="page-container">
       <header class="header">
@@ -28,25 +29,25 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
           <mat-card class="race-section-card" *ngIf="showLineups">
             <div class="card-header">
               <mat-icon>group</mat-icon>
-              <span>Rider Lineups</span>
+              <span>{{ 'raceDetail.lineups.title' | t }}</span>
               <span class="section-count">({{ lineups.length }})</span>
             </div>
-            <div class="section-subtitle">Lineups for this race</div>
+            <div class="section-subtitle">{{ 'raceDetail.lineups.subtitle' | t }}</div>
             <mat-card-content>
               <ng-container *ngIf="!isMobile">
                 <table mat-table [dataSource]="lineups" class="result-table">
                   <ng-container matColumnDef="user">
-                    <th mat-header-cell *matHeaderCellDef>User</th>
+                    <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.user' | t }}</th>
                     <td mat-cell *matCellDef="let element">{{ element.user_id.first_name + ' ' + element.user_id.last_name || 'Unknown User' }}</td>
                   </ng-container>
                   <ng-container matColumnDef="qualifying_rider">
-                    <th mat-header-cell *matHeaderCellDef>Qualifying Rider</th>
+                    <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.qualifyingRider' | t }}</th>
                     <td mat-cell *matCellDef="let element">
                       {{ getRiderDisplay(element.qualifying_rider_id) }}
                     </td>
                   </ng-container>
                   <ng-container matColumnDef="race_rider">
-                    <th mat-header-cell *matHeaderCellDef>Race Rider</th>
+                    <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.raceRider' | t }}</th>
                     <td mat-cell *matCellDef="let element">
                       {{ getRiderDisplay(element.race_rider_id) }}
                     </td>
@@ -58,9 +59,9 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
               <ng-container *ngIf="isMobile">
                 <div class="card-list-vertical">
                   <div class="bet-card" *ngFor="let element of lineups">
-                    <div class="bet-row"><span class="bet-label">User:</span> {{ element.user_id.first_name + ' ' + element.user_id.last_name || 'Unknown User' }}</div>
-                    <div class="bet-row"><span class="bet-label">Qualifying Rider:</span> {{ getRiderDisplay(element.qualifying_rider_id) }}</div>
-                    <div class="bet-row"><span class="bet-label">Race Rider:</span> {{ getRiderDisplay(element.race_rider_id) }}</div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.mobile.user' | t }}</span> {{ element.user_id.first_name + ' ' + element.user_id.last_name || 'Unknown User' }}</div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.mobile.qualifyingRider' | t }}</span> {{ getRiderDisplay(element.qualifying_rider_id) }}</div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.mobile.raceRider' | t }}</span> {{ getRiderDisplay(element.race_rider_id) }}</div>
                   </div>
                 </div>
               </ng-container>
@@ -70,32 +71,32 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
           <mat-card class="race-section-card" *ngIf="showSprintBet">
             <div class="card-header sprint">
               <mat-icon>speed</mat-icon>
-              <span>Sprint Bets</span>
+              <span>{{ 'raceDetail.sprint.title' | t }}</span>
               <span class="section-count">({{ sprints.length }})</span>
             </div>
-            <div class="section-subtitle">Sprint results and points</div>
+            <div class="section-subtitle">{{ 'raceDetail.sprint.subtitle' | t }}</div>
             <mat-card-content>
               <ng-container *ngIf="!isMobile">
                 <div class="table-responsive">
                   <table mat-table [dataSource]="sprints" class="result-table">
                     <ng-container matColumnDef="user">
-                      <th mat-header-cell *matHeaderCellDef>User</th>
+                      <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.user' | t }}</th>
                       <td mat-cell *matCellDef="let element">{{ element.user_id.first_name + ' ' + element.user_id.last_name }}</td>
                     </ng-container>
                     <ng-container matColumnDef="rider">
-                      <th mat-header-cell *matHeaderCellDef>Rider</th>
+                      <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.rider' | t }}</th>
                       <td mat-cell *matCellDef="let element">{{ element.rider_id.first_name + ' ' + element.rider_id.last_name }}</td>
                     </ng-container>
                     <ng-container matColumnDef="position">
-                      <th mat-header-cell *matHeaderCellDef>Position</th>
+                      <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.position' | t }}</th>
                       <td mat-cell *matCellDef="let element"><span class="badge position">{{ getPositionDisplay(element.position) }}</span></td>
                     </ng-container>
                     <ng-container matColumnDef="points">
-                      <th mat-header-cell *matHeaderCellDef>Points</th>
+                      <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.points' | t }}</th>
                       <td mat-cell *matCellDef="let element"><span class="badge points">{{ element.points }}</span></td>
                     </ng-container>
                     <ng-container matColumnDef="outcome">
-                      <th mat-header-cell *matHeaderCellDef>Result</th>
+                      <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.result' | t }}</th>
                       <td mat-cell *matCellDef="let element">{{ element.outcome || 'N/A' }}</td>
                     </ng-container>
                     <tr mat-header-row *matHeaderRowDef="sprintColumns"></tr>
@@ -106,11 +107,11 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
               <ng-container *ngIf="isMobile">
                 <div class="card-list-horizontal">
                   <div class="bet-card" *ngFor="let element of sprints">
-                    <div class="bet-row"><span class="bet-label">User:</span> {{ element.user_id.first_name + ' ' + element.user_id.last_name }}</div>
-                    <div class="bet-row"><span class="bet-label">Rider:</span> {{ element.rider_id.first_name + ' ' + element.rider_id.last_name }}</div>
-                    <div class="bet-row"><span class="bet-label">Position:</span> <span class="badge position">{{ getPositionDisplay(element.position) }}</span></div>
-                    <div class="bet-row"><span class="bet-label">Points:</span> <span class="badge points">{{ element.points }}</span></div>
-                    <div class="bet-row"><span class="bet-label">Result:</span> {{ element.outcome || 'N/A' }}</div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.user' | t }}</span> {{ element.user_id.first_name + ' ' + element.user_id.last_name }}</div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.rider' | t }}</span> {{ element.rider_id.first_name + ' ' + element.rider_id.last_name }}</div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.position' | t }}</span> <span class="badge position">{{ getPositionDisplay(element.position) }}</span></div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.points' | t }}</span> <span class="badge points">{{ element.points }}</span></div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.result' | t }}</span> {{ element.outcome || ('common.na' | t) }}</div>
                   </div>
                 </div>
               </ng-container>
@@ -120,32 +121,32 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
           <mat-card class="race-section-card" *ngIf="showRaceBet">
             <div class="card-header race">
               <mat-icon>flag</mat-icon>
-              <span>Race Bets</span>
+              <span>{{ 'raceDetail.race.title' | t }}</span>
               <span class="section-count">({{ bets.length }})</span>
             </div>
-            <div class="section-subtitle">Main race results and points</div>
+            <div class="section-subtitle">{{ 'raceDetail.race.subtitle' | t }}</div>
             <mat-card-content>
               <ng-container *ngIf="!isMobile">
                 <div class="table-responsive">
                   <table mat-table [dataSource]="bets" class="result-table">
                     <ng-container matColumnDef="user">
-                      <th mat-header-cell *matHeaderCellDef>User</th>
+                      <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.user' | t }}</th>
                       <td mat-cell *matCellDef="let element">{{ element.user_id.first_name + ' ' + element.user_id.last_name }}</td>
                     </ng-container>
                     <ng-container matColumnDef="rider">
-                      <th mat-header-cell *matHeaderCellDef>Rider</th>
+                      <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.rider' | t }}</th>
                       <td mat-cell *matCellDef="let element">{{ element.rider_id.first_name + ' ' + element.rider_id.last_name }}</td>
                     </ng-container>
                     <ng-container matColumnDef="position">
-                      <th mat-header-cell *matHeaderCellDef>Position</th>
+                      <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.position' | t }}</th>
                       <td mat-cell *matCellDef="let element"><span class="badge position">{{ getPositionDisplay(element.position) }}</span></td>
                     </ng-container>
                     <ng-container matColumnDef="points">
-                      <th mat-header-cell *matHeaderCellDef>Points</th>
+                      <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.points' | t }}</th>
                       <td mat-cell *matCellDef="let element"><span class="badge points">{{ element.points }}</span></td>
                     </ng-container>
                     <ng-container matColumnDef="outcome">
-                      <th mat-header-cell *matHeaderCellDef>Result</th>
+                      <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.result' | t }}</th>
                       <td mat-cell *matCellDef="let element">{{ element.outcome || 'N/A' }}</td>
                     </ng-container>
                     <tr mat-header-row *matHeaderRowDef="betColumns"></tr>
@@ -156,11 +157,11 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
               <ng-container *ngIf="isMobile">
                 <div class="card-list-horizontal">
                   <div class="bet-card" *ngFor="let element of bets">
-                    <div class="bet-row"><span class="bet-label">User:</span> {{ element.user_id.first_name + ' ' + element.user_id.last_name }}</div>
-                    <div class="bet-row"><span class="bet-label">Rider:</span> {{ element.rider_id.first_name + ' ' + element.rider_id.last_name }}</div>
-                    <div class="bet-row"><span class="bet-label">Position:</span> <span class="badge position">{{ getPositionDisplay(element.position) }}</span></div>
-                    <div class="bet-row"><span class="bet-label">Points:</span> <span class="badge points">{{ element.points }}</span></div>
-                    <div class="bet-row"><span class="bet-label">Result:</span> {{ element.outcome || 'N/A' }}</div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.user' | t }}</span> {{ element.user_id.first_name + ' ' + element.user_id.last_name }}</div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.rider' | t }}</span> {{ element.rider_id.first_name + ' ' + element.rider_id.last_name }}</div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.position' | t }}</span> <span class="badge position">{{ getPositionDisplay(element.position) }}</span></div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.points' | t }}</span> <span class="badge points">{{ element.points }}</span></div>
+                    <div class="bet-row"><span class="bet-label">{{ 'raceDetail.table.result' | t }}</span> {{ element.outcome || ('common.na' | t) }}</div>
                   </div>
                 </div>
               </ng-container>
@@ -169,7 +170,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
         </ng-container>
         <ng-template #notStarted>
           <div class="not-started-label" style="text-align:center; margin-top:2rem; font-size:1.2rem; color:#888;">
-            The race is not started yet
+            {{ 'raceDetail.notStarted' | t }}
           </div>
         </ng-template>
       </main>

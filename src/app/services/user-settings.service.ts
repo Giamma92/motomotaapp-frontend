@@ -6,6 +6,7 @@ export interface UserSettings {
   id: string;
   championship_id: string;
   user_id: string;
+  language?: string;
 }
 
 @Injectable({
@@ -23,5 +24,10 @@ export class UserSettingsService {
   /** Update user settings */
   updateUserSettings(championshipId: number): Observable<any> {
     return this.httpService.genericPut('user/settings', { championship_id: championshipId });
+  }
+
+  /** Update only preferred language */
+  updateUserLanguage(languageCode: string): Observable<any> {
+    return this.httpService.genericPut('user/settings', { language: languageCode });
   }
 }
