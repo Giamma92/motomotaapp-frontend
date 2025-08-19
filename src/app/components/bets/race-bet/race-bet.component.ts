@@ -9,6 +9,7 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { BaseBetComponent } from '../base-bet.component';
 
@@ -25,6 +26,7 @@ import { BaseBetComponent } from '../base-bet.component';
     MatButtonModule,
     MatIconModule,
     TranslatePipe,
+    MatTooltipModule
   ],
   templateUrl: '../bets.component.html',
   styleUrl: '../bets.component.scss'
