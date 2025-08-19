@@ -1,16 +1,21 @@
 import { Component } from '@angular/core';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { UpdateService } from '../../services/update.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-update-notification',
+  standalone: true,
+  imports: [TranslatePipe],
   template: `
     @if (updateAvailable) {
       <div @fadeInOut class="update-popup">
         <div class="popup-content">
           <span class="icon">⚡</span>
-          <p class="message">A new version is available!</p>
-          <button (click)="reload()" class="reload-button">Update Now</button>
+          <p class="message">{{ 'updateAvailable.message' | t }}</p>
+          <button (click)="reload()" class="reload-button">
+            {{ 'updateAvailable.updateNow' | t }}
+          </button>
         </div>
       </div>
     }

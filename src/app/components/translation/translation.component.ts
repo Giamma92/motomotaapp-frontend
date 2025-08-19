@@ -9,11 +9,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../services/auth.service';
 import { I18nService } from '../../services/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { HttpService } from '../../services/http.service';
+import { NotificationServiceService } from '../../services/notification.service';
 
 interface TranslationKey {
   key: string;
@@ -321,7 +321,7 @@ export class TranslationComponent implements OnInit {
     private authService: AuthService,
     private i18n: I18nService,
     private httpService: HttpService,
-    private snackBar: MatSnackBar
+    private notificationService: NotificationServiceService
   ) {
     this.translationForm = this.fb.group({
       key: ['', [Validators.required]],
@@ -376,7 +376,7 @@ export class TranslationComponent implements OnInit {
     Promise.all(promises).then(results => {
       this.loading = false;
       this.translationForm.reset({ namespace: keyData.namespace });
-      this.showSuccess('Translation added successfully!');
+      this.notificationService.showSuccess('translation.addSuccess');
       this.loadRecentTranslations();
       this.i18n.clearCache(); // Clear cache to force refresh
     });
@@ -389,7 +389,7 @@ export class TranslationComponent implements OnInit {
 
     setTimeout(() => {
       this.cacheLoading = false;
-      this.showSuccess('Translation cache cleared!');
+      this.notificationService.showSuccess('translation.clearCacheSuccess');
     }, 500);
   }
 
@@ -400,11 +400,11 @@ export class TranslationComponent implements OnInit {
     this.i18n.refreshTranslations(this.i18n.currentLanguage).subscribe({
       next: () => {
         this.cacheLoading = false;
-        this.showSuccess('Translation cache refreshed!');
+        this.notificationService.showSuccess('translation.refreshCacheSuccess');
       },
       error: () => {
         this.cacheLoading = false;
-        this.showError('Failed to refresh cache');
+        this.notificationService.showError('translation.refreshCacheFail');
       }
     });
   }
@@ -422,19 +422,5 @@ export class TranslationComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/']);
-  }
-
-  private showSuccess(message: string): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 3000,
-      panelClass: ['success-snackbar']
-    });
-  }
-
-  private showError(message: string): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 3000,
-      panelClass: ['error-snackbar']
-    });
   }
 }

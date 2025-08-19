@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { UserSettingsService } from '../../services/user-settings.service';
 import { I18nService } from '../../services/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { NotificationServiceService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-settings',
@@ -112,7 +113,8 @@ export class SettingsComponent implements OnInit {
     private championshipService: ChampionshipService,
     private userSettingsService: UserSettingsService,
     private router: Router,
-    private i18n: I18nService
+    private i18n: I18nService,
+    private notificationService: NotificationServiceService
   ) {
     this.settingsForm = this.fb.group({
       championship_id: ['', Validators.required],
@@ -194,15 +196,15 @@ export class SettingsComponent implements OnInit {
   // Development helper: Clear translation cache
   clearTranslationCache(): void {
     this.i18n.clearCache();
-    alert('Translation cache cleared!');
+    this.notificationService.showSuccess('settings.clearTranslationCacheSuccess');
   }
 
   // Development helper: Refresh translations
   refreshTranslations(): void {
     const language = this.settingsForm.get('language')?.value || 'en';
     this.i18n.refreshTranslations(language).subscribe({
-      next: () => alert('Translations refreshed!'),
-      error: () => alert('Failed to refresh translations')
+      next: () => this.notificationService.showSuccess('settings.refreshTranslationsSuccess'),
+      error: () => this.notificationService.showError('settings.refreshTranslationsFail')
     });
   }
 

@@ -3,29 +3,29 @@ import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { LineupsResult } from '../../../services/race-detail.service';
-import { Rider } from '../../../services/dashboard.service';
 import { MatButtonModule } from '@angular/material/button';
-
+import { ChampionshipRider } from '../../../services/dashboard.service';
+import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-lineup-modal',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatTableModule, MatButtonModule],
+  imports: [CommonModule, MatDialogModule, MatTableModule, MatButtonModule, TranslatePipe],
   template: `
-    <h2 mat-dialog-title>Your Lineup</h2>
+    <h2 mat-dialog-title>{{ 'lineupModal.title' | t }}</h2>
     <mat-dialog-content>
       <table mat-table [dataSource]="data.lineups" class="mat-elevation-z4">
         <ng-container matColumnDef="race_rider">
-          <th mat-header-cell *matHeaderCellDef> Race rider </th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'lineupModal.raceRider' | t }}</th>
           <td mat-cell *matCellDef="let lineup">
-            {{ getRiderName(lineup.race_rider_id) }}
+            {{ getRiderName(lineup.race_rider_id) || ('lineupModal.unknownRider' | t) }}
           </td>
         </ng-container>
 
         <ng-container matColumnDef="qualifying_rider">
-          <th mat-header-cell *matHeaderCellDef> Qualifying rider </th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'lineupModal.qualifyingRider' | t }}</th>
           <td mat-cell *matCellDef="let lineup">
-            {{ getRiderName(lineup.qualifying_rider_id) }}
+            {{ getRiderName(lineup.qualifying_rider_id) || ('lineupModal.unknownRider' | t) }}
           </td>
         </ng-container>
 
@@ -40,7 +40,7 @@ import { MatButtonModule } from '@angular/material/button';
         color="primary"
         class="close-button"
       >
-        Close
+        {{ 'lineupModal.close' | t }}
       </button>
     </mat-dialog-actions>
   `,
@@ -64,9 +64,10 @@ import { MatButtonModule } from '@angular/material/button';
 export class LineupModalComponent {
   displayedColumns: string[] = ['race_rider', 'qualifying_rider'];
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: {lineups: LineupsResult[]}) {}
+  constructor(@Inject(MAT_DIALOG_DATA) public data: {lineups: LineupsResult[], riders: ChampionshipRider[]}) {}
 
-  getRiderName(rider: Rider): string {
+  getRiderName(riderId: number): string {
+    const rider = this.data.riders.find(r => r.rider_id.id === riderId)?.rider_id;
     return rider ? `${rider.first_name} ${rider.last_name}` : 'Unknown Rider';
   }
 }

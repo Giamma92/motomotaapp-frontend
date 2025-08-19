@@ -13,6 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { HttpService } from '../../services/http.service';
 import { LineupsResult, RaceDetailService } from '../../services/race-detail.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { NotificationServiceService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-lineups',
@@ -176,7 +177,8 @@ export class LineupsComponent implements OnInit {
     private dashboardService: DashboardService,
     private championshipService: ChampionshipService,
     private raceDetailService: RaceDetailService,
-    private httpService: HttpService
+    private httpService: HttpService,
+    private notificationService: NotificationServiceService
 ) {
     this.lineupsForm = this.fb.group({
       race_rider_id: ['', Validators.required],
@@ -276,13 +278,13 @@ export class LineupsComponent implements OnInit {
       this.raceDetailService.upsertLineup(this.champId, payload).subscribe({
         next: () => {
           this.loading = false;
-          alert('Lineup submitted successfully!');
+          this.notificationService.showSuccess('lineups.submitSuccess');
           this.goToRaceDetail();
         },
         error: (err) => {
           this.loading = false;
           console.error('Submission failed', err);
-          alert('Submission failed. Please try again.');
+          this.notificationService.showError('lineups.submitFail');
         }
       });
     }

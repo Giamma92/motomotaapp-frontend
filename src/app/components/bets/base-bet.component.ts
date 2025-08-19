@@ -8,6 +8,7 @@ import { HttpService } from "../../services/http.service";
 import { BetResult, LineupsResult, RaceDetailService } from "../../services/race-detail.service";
 import { ExistingBetsModalComponent } from "./existing-bets-modal/existing-bets-modal.component";
 import { LineupModalComponent } from "./lineup-modal/lineup-modal.component";
+import { NotificationServiceService } from "../../services/notification.service";
 
 @Component({
   template: ''
@@ -42,7 +43,8 @@ export abstract class BaseBetComponent implements OnInit {
     protected httpService: HttpService,
     protected route: ActivatedRoute,
     protected raceDetailService: RaceDetailService,
-    protected dialog?: MatDialog
+    protected notificationService: NotificationServiceService,
+    protected dialog: MatDialog
   ) {
     this.initForm();
   }
@@ -69,7 +71,7 @@ export abstract class BaseBetComponent implements OnInit {
 
   onSubmit(): void {
     if (this.maxBetsPerRace && this.existingBetsCurrentRace.length >= this.maxBetsPerRace) {
-      alert(`Maximum ${this.maxBetsPerRace} bets reached for this race`);
+      this.notificationService.showError('bets.maxBetsReached', { count: this.maxBetsPerRace });
       return;
     }
     if (this.betForm.valid && this.champId && this.raceId) {
@@ -82,13 +84,15 @@ export abstract class BaseBetComponent implements OnInit {
       this.httpService.genericPut(`championship/${this.champId}/${this.betEndpoint}`, payload).subscribe({
         next: () => {
           this.loading = false;
-          alert('race bet submitted successfully!');
-          this.router.navigate(['/race-detail', this.raceId]);
+          this.notificationService.showSuccess('bets.submitSuccess');
+          this.loadRaceBetsAndUpdateValidations();
+          this.loadAllCalendarBetsAndUpdateRiders();
+          //this.router.navigate(['/race-detail', this.raceId]);
         },
         error: (err) => {
           this.loading = false;
           console.error('Submission failed', err);
-          alert('Submission failed. Please try again.');
+          this.notificationService.showError('bets.submitFail');
         }
       });
     }
@@ -216,16 +220,28 @@ export abstract class BaseBetComponent implements OnInit {
   }
 
   openExistingBetsModal(): void {
-    this.dialog?.open(ExistingBetsModalComponent, {
+    const dialogRef = this.dialog?.open(ExistingBetsModalComponent, {
       width: '500px',
-      data: { bets: this.existingBetsCurrentRace, riders: this.riders }
+      data: {
+        bets: this.existingBetsCurrentRace,
+        riders: this.riders,
+        champId: this.champId,
+        raceId: this.raceId,
+        betEndpoint: this.betEndpoint   // 'race_bet' or 'sprint_bet'
+      }
+    });
+
+    dialogRef?.afterClosed().subscribe(() => {
+      this.loadRaceBetsAndUpdateValidations();
+      this.loadAllCalendarBetsAndUpdateRiders();
     });
   }
+
 
   openLineupModal(): void {
     this.dialog?.open(LineupModalComponent, {
       width: '500px',
-      data: { lineups: [this.existingLineup] }
+      data: { lineups: [this.existingLineup], riders: this.riders }
     });
   }
 }

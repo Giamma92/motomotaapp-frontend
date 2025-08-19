@@ -10,6 +10,7 @@ import { ChampionshipService } from '../../services/championship.service';
 import { TimeFormatPipe } from '../../pipes/time-format.pipe';
 import { AuthService } from '../../services/auth.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { NotificationServiceService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-calendar',
@@ -679,7 +680,8 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     private dashboardService: DashboardService,
     private championshipService: ChampionshipService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationServiceService
   ) {}
 
   ngOnInit(): void {
@@ -726,27 +728,27 @@ export class CalendarComponent implements OnInit, AfterViewInit {
   }
 
   updateStandings(raceId: number) {
-    alert('Starting to update Standings!');
+    this.notificationService.showSuccess('calendar.updateStandings');
     this.dashboardService.updateStandings(this.championshipId, raceId).subscribe({
       next: () => {
-        alert('Standings updated successfully!');
+        this.notificationService.showSuccess('calendar.updateStandingsSuccess');
       },
       error: (err: any) => {
         console.error('Error updating standings:', err);
-        alert('Error updating standings. Please try again.');
+        this.notificationService.showError('calendar.updateStandingsFail');
       }
     });
   }
 
   fetchMotoGPResults(calendarId: number) {
-    alert('Starting to fetch MotoGP Results! It takes few minutes, please wait');
+    this.notificationService.showSuccess('calendar.fetchMotoGPResults');
     this.dashboardService.fetchMotoGPResults(this.championshipId, calendarId).subscribe({
       next: () => {
-        alert('Fetching MotoGP results completed! The results could be not loaded if the race is not completed yet.');
+        this.notificationService.showSuccess('calendar.fetchMotoGPResultsSuccess');
       },
       error: (err: any) => {
         console.error('Error fetching MotoGP results:', err);
-        alert('Error fetching MotoGP results. Please try again.');
+        this.notificationService.showError('calendar.fetchMotoGPResultsFail');
       }
     });
   }
