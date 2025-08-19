@@ -84,7 +84,7 @@ export class AuthService {
 
   isCurrentUserAdmin(): boolean {
     const roles = this.getUserRoles();
-    return roles?.includes('Administrator') || false;
+    return roles?.includes('Admin') || false;
   }
 
   resetPassword(newPasswordHash: string): Observable<any> {

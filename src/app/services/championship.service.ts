@@ -1,8 +1,6 @@
 // src/app/services/championship.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Router } from '@angular/router';
 import { HttpService } from './http.service';
 
 export interface Championship {
@@ -68,5 +66,20 @@ export class ChampionshipService {
 
   getChampionshipConfig(championshipId: number): Observable<ChampionshipConfig> {
     return this.httpService.genericGet<ChampionshipConfig>(`championship/${championshipId}/config`);
+  }
+
+  /** Create a new championship */
+  addChampionship(champ: Omit<Championship, 'id'>): Observable<Championship> {
+    return this.httpService.genericPost<Championship>('championships', champ);
+  }
+
+  /** Update an existing championship */
+  updateChampionship(id: number, champ: Partial<Championship>): Observable<Championship> {
+    return this.httpService.genericPut<Championship>(`championships/${id}`, champ);
+  }
+
+  /** Delete a championship */
+  deleteChampionship(id: number): Observable<void> {
+    return this.httpService.genericDelete<void>(`championships/${id}`);
   }
 }

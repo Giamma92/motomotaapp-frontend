@@ -82,6 +82,7 @@ interface TranslationValue {
                     <mat-option value="bets">Bets</mat-option>
                     <mat-option value="profile">Profile</mat-option>
                     <mat-option value="reset">Reset Password</mat-option>
+                    <mat-option value="reset">Admin</mat-option>
                   </mat-select>
                 </mat-form-field>
               </div>

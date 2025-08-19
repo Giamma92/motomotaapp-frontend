@@ -49,6 +49,10 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
           <button mat-menu-item *ngIf="isAdmin()" (click)="goTo('translation')">
             <i class="fa-solid fa-language"></i> {{ 'dashboard.menu.translation' | t }}
           </button>
+          <button *ngIf="isAdmin()" mat-menu-item (click)="goTo('admin')">
+            <i class="fa-solid fa-shield-halved"></i> {{ 'dashboard.menu.admin' | t }}
+          </button>
+
           <button mat-menu-item (click)="logout()">
             <i class="fa-solid fa-right-from-bracket"></i> {{ 'dashboard.menu.logout' | t }}
           </button>
@@ -232,7 +236,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               <div class="team-stats">
                 <div class="stat-item">
                   <span class="stat-label">{{ 'common.totalPoints' | t }}</span>
-                  <span class="stat-value">1,450</span>
+                  <span class="stat-value">{{ currentUserPoints }}</span>
                 </div>
                 <div class="stat-item">
                   <span class="stat-label">{{ 'dashboard.team.remainingBudget' | t }}</span>
@@ -1052,6 +1056,10 @@ export class DashboardComponent implements OnInit {
       error: (error: any) =>
         console.error('Error fetching fantasy team:', error)
     });
+  }
+
+  public get currentUserPoints() {
+    return this.classificationData?.find(row => row.user_id.id === this.loggedUserId)?.score || 0;
   }
 
   public get isCurrentRace() {

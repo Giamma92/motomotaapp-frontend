@@ -55,6 +55,7 @@ export class I18nService {
   translate(key: string, params?: Record<string, string | number>): string {
     if (!key) return '';
     const value = this.translations[key] ?? key;
+    if (value === key) console.warn('key not found', key);
     if (!params) return value;
     return Object.keys(params).reduce((acc, p) => acc.replace(new RegExp(`{${p}}`, 'g'), String(params[p])), value);
   }

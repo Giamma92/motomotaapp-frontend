@@ -21,6 +21,8 @@ export const routes: Routes = [
   { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
   // Translation management route (admin only)
   { path: 'translation', loadComponent: () => import('./components/translation/translation.component').then(m => m.TranslationComponent), canActivate: [AuthGuard, AdminGuard] },
+  // Admin dashboard route (admin only)
+  { path: 'admin', loadComponent: () => import('./components/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent ), canActivate: [AuthGuard, AdminGuard] },
   // The root route shows the dashboard.
   { path: '', component: DashboardComponent, canActivate: [AuthGuard] },
   // A route for a bet race page.

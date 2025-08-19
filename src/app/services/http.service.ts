@@ -31,9 +31,20 @@ export class HttpService {
    * @param payload - The payload to send with the request
    * @returns An Observable of the response
    */
-  genericPut(url: string, payload: any): Observable<object>{
+  genericPut<T>(url: string, payload: any): Observable<T>{
     const headers = this.authService.getAuthHeader();
-    return this.http.put(`${this.apiUrl}/${url}`, payload, { headers });
+    return this.http.put<T>(`${this.apiUrl}/${url}`, payload, { headers });
+  }
+
+  /**
+   * Generic POST request
+   * @param url - The URL to make the request to
+   * @param payload - The payload to send with the request
+   * @returns An Observable of the response
+   */
+  genericPost<T>(url: string, payload: any): Observable<T> {
+    const headers = this.authService.getAuthHeader();
+    return this.http.post<T>(`${this.apiUrl}/${url}`, payload, { headers });
   }
 
   /**
@@ -41,9 +52,9 @@ export class HttpService {
    * @param url - The URL to make the request to
    * @returns An Observable of the response
    */
-  genericDelete(url: string): Observable<any> {
+  genericDelete<T>(url: string): Observable<T> {
     const headers = this.authService.getAuthHeader();
-    return this.http.delete(`${this.apiUrl}/${url}`, { headers });
+    return this.http.delete<T>(`${this.apiUrl}/${url}`, { headers });
   }
 
 }
