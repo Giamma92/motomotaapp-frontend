@@ -53,7 +53,7 @@ export abstract class BaseBetComponent implements OnInit {
     this.betForm = this.fb.group({
       rider_id: ['', Validators.required],
       position: ['', Validators.required],
-      points: ['', Validators.required]
+      points: ['', [Validators.required, Validators.min(1)]]
     });
   }
 
@@ -135,6 +135,15 @@ export abstract class BaseBetComponent implements OnInit {
       }
     });
 
+    /**Remove the race rider setted in the current lineup */
+    if (this.removeRaceRider && this.existingLineup) {
+      const raceRider: any = (this.existingLineup as any).race_rider_id;
+      if (raceRider !== undefined && raceRider !== null) {
+        const raceRiderId: number = typeof raceRider === 'object' ? raceRider.id : raceRider;
+        ridersToRemove.push(raceRiderId);
+      }
+    }
+
     // Filter out riders that reached max bets using Array.filter
     this.riders = this.riders.filter(rider =>
       !ridersToRemove.includes(rider.rider_id.id)
@@ -145,6 +154,10 @@ export abstract class BaseBetComponent implements OnInit {
     this.raceDetailService.getLineupRace(this.champId, this.raceId ?? '0').subscribe({
       next: (existingLineup: LineupsResult) => {
         this.existingLineup = existingLineup;
+        // update the riders list once lineup is loaded
+        if (this.removeRaceRider) {
+          this.updateRiders();
+        }
       },
       error: (err) => console.error('Error loading existing lineup', err)
     });
@@ -197,7 +210,8 @@ export abstract class BaseBetComponent implements OnInit {
       const maxPoints = this.maxPointsPerBet - this.existingBetsPointsSum;
       pointsControl.setValidators([
         Validators.required,
-        Validators.max(maxPoints)
+        Validators.max(maxPoints),
+        Validators.min(1) // minimum of 1 point required
       ]);
       pointsControl.updateValueAndValidity();
     }

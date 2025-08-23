@@ -35,7 +35,7 @@ export class RaceBetComponent extends BaseBetComponent implements OnInit {
   betForm = this.fb.group({
     rider_id: ['', Validators.required],
     position: ['', Validators.required],
-    points: ['', Validators.required]
+    points: ['', [Validators.required, Validators.min(1)]]
   });
   betType = 'race' as const;
 
