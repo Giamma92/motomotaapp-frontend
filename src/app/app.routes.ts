@@ -35,6 +35,8 @@ export const routes: Routes = [
   { path: 'calendar', component: CalendarComponent },
   // A route for Race details page.
   { path: 'race-detail/:id', loadComponent: () => import('./components/race-detail/race-detail.component').then(m => m.RaceDetailComponent) },
+  // A route for MotoGP results page.
+  { path: 'motogp-results/:championshipId/:calendarId', loadComponent: () => import('./components/motogp-results/motogp-results.component').then(m => m.MotoGPResultsComponent) },
   // A route for a teams page.
   { path: 'teams', component: AllTeamsComponent, canActivate: [AuthGuard] },
 ];

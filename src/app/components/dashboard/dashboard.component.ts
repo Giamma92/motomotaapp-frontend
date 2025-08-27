@@ -180,6 +180,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               <div class="button-row first-row">
                 <button mat-raised-button color="primary" (click)="goTo('calendar')">{{ 'dashboard.actions.viewAllRaces' | t }}</button>
                 <button mat-raised-button color="primary" (click)="goTo('race-detail', nextCalendarRace.id)">{{ 'dashboard.actions.viewRaceDetail' | t }}</button>
+                <button mat-raised-button color="accent" (click)="goTo('motogp-results', nextCalendarRace.id)">{{ 'dashboard.actions.viewMotoGPResults' | t }}</button>
               </div>
               <div class="button-row second-row" *ngIf="showLineupsButton || showSprintBetButton || showPlaceBetButton">
                 <button mat-raised-button color="accent" *ngIf="showLineupsButton" (click)="goTo('lineups', nextCalendarRace.id)">
@@ -1007,6 +1008,7 @@ export class DashboardComponent implements OnInit {
   nextCalendarRace?: CalendarRace;
   fantasyTeam?: FantasyTeam;
   loggedUserId: string | null;
+  championshipId: number = 0;
 
   // New boolean flags for button visibility
   showLineupsButton: boolean = false;
@@ -1032,6 +1034,7 @@ export class DashboardComponent implements OnInit {
   }
 
   private loadDashboardData(champId: number): void {
+    this.championshipId = champId;
     this.dashboardService.getClassification(champId).subscribe({
       next: (data: StandingsRow[]) => {
         this.classificationData = data;
@@ -1082,7 +1085,11 @@ export class DashboardComponent implements OnInit {
   }
 
   goTo(path: string, extras: any = {}): void {
-    this.router.navigate([`/${path}`, extras]);
+    if (path === 'motogp-results') {
+      this.router.navigate(['/motogp-results', this.championshipId, extras]);
+    } else {
+      this.router.navigate([`/${path}`, extras]);
+    }
   }
 
   logout(): void {

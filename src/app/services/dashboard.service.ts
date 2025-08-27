@@ -95,8 +95,8 @@ export class DashboardService {
     return this.httpService.genericGet<ChampionshipRider[]>(`championship/${championshipId}/calendar/${calendarId}/calc-scores`);
   }
 
-  fetchMotoGPResults(championshipId: number, calendarId: number): Observable<any> {
-    return this.httpService.genericGet<any>(`championship/${championshipId}/calendar/${calendarId}/motogp-results`);
+  fetchMotoGPResults(championshipId: number, calendarId: number, upsert: boolean): Observable<any> {
+    return this.httpService.genericGet<any>(`championship/${championshipId}/calendar/${calendarId}/motogp-results?upsert=${upsert}`);
   }
 }
 

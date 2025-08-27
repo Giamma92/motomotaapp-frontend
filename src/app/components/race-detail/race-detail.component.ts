@@ -465,7 +465,11 @@ export class RaceDetailComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/calendar']);
+    let prevNavUrl = this.router.lastSuccessfulNavigation?.previousNavigation?.initialUrl;
+    if(!!prevNavUrl)
+      this.router.navigateByUrl(prevNavUrl);
+    else
+      this.router.navigate(['/calendar']);
   }
 
   getRiderDisplay(rider: any): string {

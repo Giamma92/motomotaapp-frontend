@@ -63,14 +63,9 @@ import { NotificationServiceService } from '../../services/notification.service'
                   <button mat-icon-button color="primary" (click)="goToRaceDetail(race)">
                     <mat-icon>chevron_right</mat-icon>
                   </button>
-                </td>
-                <td *ngIf="isAdmin()" class="admin-actions">
-                    <button mat-icon-button color="primary" (click)="fetchMotoGPResults(race.id)" aria-label="Fetch MotoGP Results">
-                      <mat-icon>get_app</mat-icon>
-                    </button>
-                    <button mat-icon-button color="accent" (click)="updateStandings(race.id)" aria-label="Update standings">
-                      <mat-icon>sync</mat-icon>
-                    </button>
+                  <button mat-icon-button color="accent" (click)="goToMotoGPResults(race)" aria-label="View MotoGP Results">
+                    <mat-icon>emoji_events</mat-icon>
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -146,11 +141,8 @@ import { NotificationServiceService } from '../../services/notification.service'
           </mat-card-content>
 
           <mat-card-actions class="action-buttons">
-            <button mat-mini-fab color="accent" *ngIf="isAdmin()" (click)="updateStandings(race.id)" aria-label="Update Standings">
-                <mat-icon>sync</mat-icon>
-            </button>
-            <button mat-mini-fab color="primary" *ngIf="isAdmin()" (click)="fetchMotoGPResults(race.id)" aria-label="Fetch MotoGP Results">
-              <mat-icon>get_app</mat-icon>
+            <button mat-mini-fab color="accent" (click)="goToMotoGPResults(race)" aria-label="View MotoGP Results">
+              <mat-icon>emoji_events</mat-icon>
             </button>
             <button mat-mini-fab color="primary" (click)="goToRaceDetail(race)">
               <mat-icon>arrow_forward</mat-icon>
@@ -727,31 +719,7 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     };
   }
 
-  updateStandings(raceId: number) {
-    this.notificationService.showSuccess('calendar.updateStandings');
-    this.dashboardService.updateStandings(this.championshipId, raceId).subscribe({
-      next: () => {
-        this.notificationService.showSuccess('calendar.updateStandingsSuccess');
-      },
-      error: (err: any) => {
-        console.error('Error updating standings:', err);
-        this.notificationService.showError('calendar.updateStandingsFail');
-      }
-    });
-  }
 
-  fetchMotoGPResults(calendarId: number) {
-    this.notificationService.showSuccess('calendar.fetchMotoGPResults');
-    this.dashboardService.fetchMotoGPResults(this.championshipId, calendarId).subscribe({
-      next: () => {
-        this.notificationService.showSuccess('calendar.fetchMotoGPResultsSuccess');
-      },
-      error: (err: any) => {
-        console.error('Error fetching MotoGP results:', err);
-        this.notificationService.showError('calendar.fetchMotoGPResultsFail');
-      }
-    });
-  }
 
   goBack(): void {
     this.router.navigate(['/']);  // Navigates back to the dashboard
@@ -761,6 +729,10 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     // Assumes that race.race_id has an 'id' property.
     const calendarRaceId = race.id;
     this.router.navigate(['/race-detail', calendarRaceId]);
+  }
+
+  goToMotoGPResults(race: CalendarRace): void {
+    this.router.navigate(['/motogp-results', this.championshipId, race.id]);
   }
 
   isAdmin() {
