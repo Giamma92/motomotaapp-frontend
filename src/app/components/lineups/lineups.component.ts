@@ -7,7 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CalendarRace, DashboardService, Rider } from '../../services/dashboard.service';
-import { ChampionshipService } from '../../services/championship.service';
+import { ChampionshipService, ChampionshipConfig } from '../../services/championship.service';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { HttpService } from '../../services/http.service';
@@ -59,6 +59,9 @@ import { NotificationServiceService } from '../../services/notification.service'
               <mat-error *ngIf="lineupsForm.get('qualifying_rider_id')?.hasError('duplicateRider')">
                 {{ 'lineups.error.duplicate' | t }}
               </mat-error>
+              <mat-error *ngIf="lineupsForm.get('qualifying_rider_id')?.hasError('riderLimitExceeded')">
+                {{ getRiderLimitErrorMessage() }}
+              </mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="fill" class="full-width">
@@ -69,6 +72,9 @@ import { NotificationServiceService } from '../../services/notification.service'
                   {{ rider.first_name }} {{ rider.last_name }} (#{{ rider.number }})
                 </mat-option>
               </mat-select>
+              <mat-error *ngIf="lineupsForm.get('race_rider_id')?.hasError('riderLimitExceeded')">
+                {{ getRiderLimitErrorMessage() }}
+              </mat-error>
             </mat-form-field>
           </form>
         </mat-card-content>
@@ -166,6 +172,7 @@ export class LineupsComponent implements OnInit {
   riders: Rider[] = [];
   existingLineupsAllCalendar: LineupsResult[] = [];
   maxLineupsPerPilot: number = 9999;
+  championshipConfig: ChampionshipConfig | null = null;
   private champId: number = 0;
   private raceId: string|null = '';
   raceTitle: string = '';
@@ -178,7 +185,8 @@ export class LineupsComponent implements OnInit {
     private championshipService: ChampionshipService,
     private raceDetailService: RaceDetailService,
     private httpService: HttpService,
-    private notificationService: NotificationServiceService
+    private notificationService: NotificationServiceService,
+    private translatePipe: TranslatePipe
 ) {
     this.lineupsForm = this.fb.group({
       race_rider_id: ['', Validators.required],
@@ -193,12 +201,26 @@ export class LineupsComponent implements OnInit {
     this.championshipService.getChampIdObs().subscribe((champId: number) => {
       if (champId > 0) {
         this.champId = champId;
+        this.loadChampionshipConfig(champId);
         this.loadRiders(champId);
         this.loadCalendarRace(champId);
       }
     });
   }
 
+  /**
+   * Loads the championship configuration to get the formation_limit_driver value
+   * This determines the maximum number of lineups allowed per rider
+   */
+  loadChampionshipConfig(championshipId: number): void {
+    this.championshipService.getChampionshipConfig(championshipId).subscribe({
+      next: (config) => {
+        this.championshipConfig = config;
+        this.maxLineupsPerPilot = config.formation_limit_driver;
+      },
+      error: (err) => console.error('Failed to load championship config', err)
+    });
+  }
 
   loadCalendarRace(championshipId: number) {
     this.raceDetailService.getCalendarRace(championshipId, this.raceId ?? '0').subscribe({
@@ -250,18 +272,18 @@ export class LineupsComponent implements OnInit {
     const ridersToRemove: number[] = [];
 
     this.riders.forEach(rider => {
-      // Count bets for current rider
-      const countLineupsPerRider = this.existingLineupsAllCalendar.reduce((acc, bet) => {
-        return (bet.qualifying_rider_id?.id == rider.id || bet.race_rider_id?.id == rider.id) ? acc + 1 : acc;
+      // Count lineups for current rider
+      const countLineupsPerRider = this.existingLineupsAllCalendar.reduce((acc, lineup) => {
+        return (lineup.qualifying_rider_id?.id == rider.id || lineup.race_rider_id?.id == rider.id) ? acc + 1 : acc;
       }, 0);
 
-      // Check if exceeds max bets per pilot
-      if (countLineupsPerRider > this.maxLineupsPerPilot) {
+      // Check if exceeds max lineups per pilot
+      if (countLineupsPerRider >= this.maxLineupsPerPilot) {
         ridersToRemove.push(rider.id);
       }
     });
 
-    // Filter out riders that reached max bets using Array.filter
+    // Filter out riders that reached max lineups using Array.filter
     this.riders = this.riders.filter(rider =>
       !ridersToRemove.includes(rider.id)
     );
@@ -305,6 +327,7 @@ export class LineupsComponent implements OnInit {
     const qualId = form.get('qualifying_rider_id')?.value;
     const isDuplicate = raceId && qualId && raceId === qualId;
 
+    // Check for duplicate riders
     const qualControl = form.get('qualifying_rider_id');
     if (isDuplicate) {
       qualControl?.setErrors({ ...qualControl?.errors, duplicateRider: true });
@@ -314,6 +337,64 @@ export class LineupsComponent implements OnInit {
         qualControl.setErrors(Object.keys(remainingErrors).length ? remainingErrors : null);
       }
     }
+
+    // Check for rider limit exceeded
+    if (this.championshipConfig && this.existingLineupsAllCalendar.length > 0) {
+      this.checkRiderLimit(form, raceId, qualId);
+    }
+
     return null;
+  }
+
+  /**
+   * Validates that selected riders don't exceed the maximum number of lineups allowed per rider
+   * This checks against the formation_limit_driver configuration from the championship
+   */
+  private checkRiderLimit(form: FormGroup, raceId: number, qualId: number): void {
+    const raceControl = form.get('race_rider_id');
+    const qualControl = form.get('qualifying_rider_id');
+
+    // Count existing lineups for each selected rider
+    const raceRiderCount = this.countRiderInLineups(raceId);
+    const qualRiderCount = this.countRiderInLineups(qualId);
+
+    // Check if adding this lineup would exceed the limit
+    if (raceId && raceRiderCount >= this.maxLineupsPerPilot) {
+      raceControl?.setErrors({ ...raceControl?.errors, riderLimitExceeded: true });
+    } else {
+      if (raceControl?.errors?.['riderLimitExceeded']) {
+        const { riderLimitExceeded, ...remainingErrors } = raceControl.errors;
+        raceControl.setErrors(Object.keys(remainingErrors).length ? remainingErrors : null);
+      }
+    }
+
+    if (qualId && qualRiderCount >= this.maxLineupsPerPilot) {
+      qualControl?.setErrors({ ...qualControl?.errors, riderLimitExceeded: true });
+    } else {
+      if (qualControl?.errors?.['riderLimitExceeded']) {
+        const { riderLimitExceeded, ...remainingErrors } = qualControl.errors;
+        qualControl.setErrors(Object.keys(remainingErrors).length ? remainingErrors : null);
+      }
+    }
+  }
+
+  /**
+   * Counts how many times a rider appears in all lineups (both qualifying and race positions)
+   * @param riderId The ID of the rider to count
+   * @returns The number of lineups where this rider appears
+   */
+  private countRiderInLineups(riderId: number): number {
+    if (!riderId) return 0;
+
+    return this.existingLineupsAllCalendar.reduce((count, lineup) => {
+      const isQualifyingRider = lineup.qualifying_rider_id?.id === riderId;
+      const isRaceRider = lineup.race_rider_id?.id === riderId;
+      return (isQualifyingRider || isRaceRider) ? count + 1 : count;
+    }, 0);
+  }
+
+  getRiderLimitErrorMessage(): string {
+    const translation = this.translatePipe.transform('lineups.error.riderLimitExceeded');
+    return translation !== 'lineups.error.riderLimitExceeded' ? translation : 'This rider has reached the maximum number of lineups allowed';
   }
 }
