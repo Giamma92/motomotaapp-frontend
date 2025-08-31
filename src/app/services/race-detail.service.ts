@@ -45,9 +45,8 @@ export class RaceDetailService {
 
 
   getRaceDetails(championshipId: number, raceId: string): Observable<RaceDetails> {
-    // Calls the backend API using the generic GET method, providing the championship ID and race ID
     return this.httpService.genericGet<RaceDetails>(
-      `championship/${championshipId}/race-details/${raceId}`
+      `championship/${championshipId}/race-details/${raceId}?allCalendar=false&allUsers=true`
     );
   }
 

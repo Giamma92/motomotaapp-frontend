@@ -6,6 +6,18 @@ import { UserSettingsService } from './user-settings.service';
 
 export type TranslationsMap = Record<string, string>;
 
+export interface Translation {
+  value: string;
+  i18n_keys: {
+    key: string,
+    namespace: string,
+    description: string
+  };
+  language_id: {
+    code: string,
+    name: string
+  }
+}
 @Injectable({ providedIn: 'root' })
 export class I18nService {
   private translations: TranslationsMap = {};
@@ -88,6 +100,10 @@ export class I18nService {
         localStorage.setItem(`${cacheKey}_timestamp`, now.toString());
       })
     );
+  }
+
+  fetchRecentTranslations(): Observable<Translation[]> {
+    return this.httpService.genericGet<Translation[]>(`i18n/translations/recent`);
   }
 
   // Method to clear cache (useful for development or when translations are updated)

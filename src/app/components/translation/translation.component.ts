@@ -10,7 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { AuthService } from '../../services/auth.service';
-import { I18nService } from '../../services/i18n.service';
+import { I18nService, Translation } from '../../services/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { HttpService } from '../../services/http.service';
 import { NotificationServiceService } from '../../services/notification.service';
@@ -19,6 +19,8 @@ interface TranslationKey {
   key: string;
   description: string;
   namespace: string;
+  languageName: string;
+  value: string;
 }
 
 interface TranslationValue {
@@ -143,11 +145,16 @@ interface TranslationValue {
             <mat-card-title>{{ 'translation.recentTranslations' | t }}</mat-card-title>
           </mat-card-header>
           <mat-card-content>
-            <div class="table-container">
+            <div class="table-container" *ngIf="!!recentTranslations && recentTranslations.length > 0">
               <table mat-table [dataSource]="recentTranslations" class="translations-table">
                 <ng-container matColumnDef="key">
                   <th mat-header-cell *matHeaderCellDef>{{ 'translation.key' | t }}</th>
                   <td mat-cell *matCellDef="let element">{{ element.key }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="description">
+                  <th mat-header-cell *matHeaderCellDef>{{ 'translation.description' | t }}</th>
+                  <td mat-cell *matCellDef="let element">{{ element.description }}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="namespace">
@@ -155,9 +162,14 @@ interface TranslationValue {
                   <td mat-cell *matCellDef="let element">{{ element.namespace }}</td>
                 </ng-container>
 
-                <ng-container matColumnDef="description">
-                  <th mat-header-cell *matHeaderCellDef>{{ 'translation.description' | t }}</th>
-                  <td mat-cell *matCellDef="let element">{{ element.description }}</td>
+                <ng-container matColumnDef="languageName">
+                  <th mat-header-cell *matHeaderCellDef>{{ 'translation.languageName' | t }}</th>
+                  <td mat-cell *matCellDef="let element">{{ element.languageName }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="value">
+                  <th mat-header-cell *matHeaderCellDef>{{ 'translation.value' | t }}</th>
+                  <td mat-cell *matCellDef="let element">{{ element.value }}</td>
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
@@ -314,7 +326,7 @@ export class TranslationComponent implements OnInit {
   loading = false;
   cacheLoading = false;
   recentTranslations: TranslationKey[] = [];
-  displayedColumns: string[] = ['key', 'namespace', 'description'];
+  displayedColumns: string[] = ['key', 'description', 'namespace', 'languageName', 'value'];
 
   constructor(
     private fb: FormBuilder,
@@ -410,15 +422,20 @@ export class TranslationComponent implements OnInit {
     });
   }
 
-  loadRecentTranslations(): void {
-    // This would load recent translations from your API
-    // For now, we'll use mock data
-    this.recentTranslations = [
-      { key: 'common.save', description: 'Save button text', namespace: 'common' },
-      { key: 'common.cancel', description: 'Cancel button text', namespace: 'common' },
-      { key: 'login.title', description: 'Login page title', namespace: 'login' },
-      { key: 'dashboard.title', description: 'Dashboard page title', namespace: 'dashboard' }
-    ];
+  private loadRecentTranslations(): void {
+    this.recentTranslations = [];
+    this.i18n.fetchRecentTranslations().subscribe((translations: Translation[]) => {
+      translations.forEach((t: Translation) => {
+        const tKey: TranslationKey = {
+          key: t.i18n_keys.key,
+          namespace: t.i18n_keys.namespace,
+          description: t.i18n_keys.description,
+          languageName: t.language_id.name,
+          value: t.value
+        };
+        this.recentTranslations.push(tKey);
+      });
+    });
   }
 
   goBack(): void {

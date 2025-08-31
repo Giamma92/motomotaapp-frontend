@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { HttpService } from './http.service';
 import { UserInfo } from './auth.service';
+import { RaceDetailService, RaceDetails } from './race-detail.service';
 
 export interface StandingsRow {
   Id: number;
@@ -64,7 +65,8 @@ export interface ChampionshipRider {
 export class DashboardService {
 
   constructor(
-    private httpService: HttpService
+    private httpService: HttpService,
+    private raceDetailService: RaceDetailService
   ) {}
 
   getClassification(championshipId: number): Observable<StandingsRow[]> {
@@ -98,6 +100,13 @@ export class DashboardService {
   fetchMotoGPResults(championshipId: number, calendarId: number, upsert: boolean): Observable<any> {
     return this.httpService.genericGet<any>(`championship/${championshipId}/calendar/${calendarId}/motogp-results?upsert=${upsert}`);
   }
+
+  getRaceDetails(championshipId: number): Observable<RaceDetails> {
+    return this.httpService.genericGet<RaceDetails>(
+      `championship/${championshipId}/race-details/0?allCalendar=true&allUsers=false`
+    );
+  }
+
 }
 
 
