@@ -15,6 +15,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
 import { TimeFormatPipe } from '../../pipes/time-format.pipe';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detail.service';
+import { I18nService } from '../../services/i18n.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -216,7 +217,7 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
             </mat-card-content>
           </mat-card>
 
-                     <mat-card class="next-race-card" *ngIf="nextCalendarRace">
+          <mat-card class="next-race-card" *ngIf="nextCalendarRace">
              <mat-card-header class="next-race-header">
                <mat-card-title>
                  <i class="fa-solid fa-flag-checkered"></i>
@@ -225,26 +226,43 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
              </mat-card-header>
              <mat-card-content>
                <div class="race-content">
-                                   <!-- Race Information Section -->
+                 <!-- Race Information Section -->
                   <div class="race-info-section">
                     <div class="race-basic-info">
+
                       <div class="race-round-badge">
-                        {{ 'dashboard.nextRace.round' | t:{num: nextCalendarRace.race_order} }}
+                        <i class="fa-solid fa-hashtag"></i>
+                        <span>
+                          {{ 'dashboard.nextRace.roundShort' | t }}
+                          {{ nextCalendarRace.race_order }}
+                          <ng-container *ngIf="totalRaces as tot">
+                            / {{ tot }}
+                          </ng-container>
+                        </span>
                       </div>
+
                       <h2 class="grand-prix-name">{{ nextCalendarRace.race_id.name }}</h2>
-                      <div class="circuit-location">
+
+                      <div class="location-chip">
                         <i class="fa-solid fa-location-dot"></i>
                         <span>{{ nextCalendarRace.race_id.location }}</span>
                       </div>
                     </div>
 
                     <div class="race-dates">
-                      <div class="date-range">
+                      <div class="date-pill" [attr.aria-label]="'Event dates'">
                         <i class="fa-solid fa-calendar-days"></i>
-                        <span>
-                          {{ getEventDateRange(nextCalendarRace.event_date).start | date:'MMM d' }} -
-                          {{ getEventDateRange(nextCalendarRace.event_date).end | date:'MMM d, y' }}
-                        </span>
+                        <div class="date-lines">
+                          <span class="date-strong">
+                            {{ formatEventRange(nextCalendarRace.event_date) }}
+                          </span>
+                          <!--<span class="date-sub">
+                            {{ 'dashboard.nextRace.weekend' | t }} •
+                            {{ getQualifyingDay(nextCalendarRace.event_date) | t | titlecase }}
+                            / {{ getSprintDay(nextCalendarRace.event_date) | t | titlecase }}
+                            / {{ getRaceDay(nextCalendarRace.event_date)   | t | titlecase }}
+                          </span>-->
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -726,17 +744,38 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
              gap: 0.5rem;
 
              .race-round-badge {
-               display: inline-block;
-               background: linear-gradient(135deg, #d32f2f, #b71c1c);
-               color: white;
-               padding: 0.5rem 1rem;
-               border-radius: 20px;
-               font-size: 0.9rem;
-               font-weight: 600;
-               text-align: center;
-               width: fit-content;
-               box-shadow: 0 2px 8px rgba(211, 47, 47, 0.3);
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              background: linear-gradient(135deg, #d32f2f, #b71c1c);
+              color: #fff;
+              padding: 0.45rem 0.9rem;
+              border-radius: 999px;
+              font-size: 0.95rem;
+              font-weight: 800;
+              letter-spacing: .2px;
+              box-shadow: 0 2px 10px rgba(211,47,47,.35);
+              max-width: 150px;
+
+              i { font-size: 1rem; }
              }
+
+             .location-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                margin-top: .25rem;
+                background: #fff;
+                color: #222;
+                border: 1px solid #e5e7eb;
+                border-left: 4px solid #d32f2f;
+                padding: 0.4rem 0.7rem 0.4rem 0.6rem;
+                border-radius: 10px;
+                font-weight: 600;
+                box-shadow: 0 2px 8px rgba(0,0,0,.06);
+
+                i { color: #d32f2f; }
+              }
 
              .grand-prix-name {
                font-family: 'MotoGP Bold', sans-serif;
@@ -776,6 +815,37 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
                  font-size: 1.2rem;
                }
              }
+
+             .date-pill {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                background: linear-gradient(135deg, #fff8e1, #ffe3b3);
+                border: 1px solid #ffd27a;
+                border-left: 6px solid #ff9800;
+                padding: 0.75rem 1rem;
+                border-radius: 14px;
+                box-shadow: 0 6px 16px rgba(255,152,0,.2);
+
+                i { font-size: 1.2rem; color: #ff9800; }
+
+                .date-lines {
+                  display: grid;
+                  gap: 2px;
+                }
+                .date-strong {
+                  font-size: clamp(1rem, 2.6vw, 1.2rem);
+                  font-weight: 800;
+                  color: #543b00;
+                  letter-spacing: .2px;
+                }
+                .date-sub {
+                  font-size: .85rem;
+                  font-weight: 600;
+                  color: #6b4e00;
+                  opacity: .9;
+                }
+              }
            }
          }
 
@@ -1026,7 +1096,7 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
            }
 
            .race-info-section {
-             gap: 0.75rem;
+             gap: 0.8rem;
              padding: 0.75rem 0;
 
              .race-basic-info {
@@ -1040,6 +1110,8 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
                .grand-prix-name {
                  font-size: clamp(1.5rem, 6vw, 2rem);
                  line-height: 1.1;
+                 margin-top: .2rem;
+                 margin-bottom: .3rem;
                }
 
                .circuit-location {
@@ -1127,6 +1199,18 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
               }
             }
           }
+
+          @media (max-width: 600px) {
+          .location-chip {
+            font-size: .95rem;
+            padding: 0.35rem 0.6rem;
+          }
+          .date-pill {
+            padding: 0.65rem 0.8rem;
+            .date-strong { font-size: 1rem; }
+            .date-sub    { font-size: .8rem; }
+          }
+        }
 
         @media (min-width: 768px) {
           .detail-row.date-location .detail-icon {
@@ -2823,6 +2907,7 @@ export class DashboardComponent implements OnInit {
   championshipConfig?: any;
   loggedUserId: string | null;
   championshipId: number = 0;
+  totalRaces?: number
 
   // New boolean flags for button visibility
   showLineupsButton: boolean = false;
@@ -2841,7 +2926,8 @@ export class DashboardComponent implements OnInit {
     private dashboardService: DashboardService,
     private championshipService: ChampionshipService,
     private authService: AuthService,
-    private raceScheduleService: RaceScheduleService
+    private raceScheduleService: RaceScheduleService,
+    private i18nService: I18nService
   ) {
     this.loggedUserId = this.authService.getUserId();
   }
@@ -2870,6 +2956,10 @@ export class DashboardComponent implements OnInit {
         console.error('Error fetching next race:', error);
         this.nextCalendarRace = undefined;
       }
+    });
+    this.dashboardService.getCalendar(champId).subscribe({
+      next: (races) => this.totalRaces = Array.isArray(races) ? races.length : undefined,
+      error: (e) => console.warn('Could not fetch calendar to compute total races:', e)
     });
     this.dashboardService.getFantasyTeam(champId).subscribe({
       next: (team: FantasyTeam) => {
@@ -3057,8 +3147,25 @@ export class DashboardComponent implements OnInit {
   }
 
   private getDayName(date: Date): string {
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    return days[date.getDay()];
+    return date.toLocaleDateString(this.locale, { weekday: 'long' });
+  }
+
+  get locale(): string {
+    return this.i18nService.locale;
+  }
+
+  formatEventRange(eventDateString: string): string {
+    if (!eventDateString) return '';
+    const end = new Date(eventDateString);
+    const start = new Date(end);
+    start.setDate(end.getDate() - 2);
+
+    // Use browser's Intl with the current locale
+    const fmt = new Intl.DateTimeFormat(this.locale, { day: 'numeric', month: 'long', year: 'numeric' });
+    // @ts-ignore: formatRange is supported in modern browsers
+    return typeof fmt.formatRange === 'function'
+      ? fmt.formatRange(start, end)
+      : `${fmt.format(start)} – ${fmt.format(end)}`;
   }
 
   // Circuit image methods

@@ -43,6 +43,18 @@ export class I18nService {
     return this.languageSubject.getValue();
   }
 
+  get locale(): string {
+    const lang = this.currentLanguage;
+    switch (lang) {
+      case 'it': return 'it-IT';
+      case 'es': return 'es-ES';
+      case 'fr': return 'fr-FR';
+      case 'de': return 'de-DE';
+      case 'en-gb': return 'en-GB';
+      default: return 'en-US';
+    }
+  }
+
   setLanguage(langCode: string): Observable<TranslationsMap> {
     const normalized = (langCode || 'en').toLowerCase();
     if (this.currentLanguage === normalized && Object.keys(this.translations).length > 0) {
