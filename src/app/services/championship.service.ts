@@ -12,7 +12,12 @@ export interface Championship {
 
 export interface ChampionshipConfig {
   id: number;
-  championship_id: number;
+  championship_id: {
+    description: string;
+    start_date: string;
+    year: number;
+    is_active: boolean;
+  };
   session_timeout: number;
   bets_limit_points: number; // max points per race
   bets_limit_sprint_points: number; // max points per sprint race
@@ -29,7 +34,7 @@ export interface ChampionshipConfig {
 export class ChampionshipService {
 
   private subjChampObs: Observable<number> = new Observable<number>();
-  private subjChampId: BehaviorSubject<number>;
+  public subjChampId: BehaviorSubject<number>;
 
   private _selectedChampionshipId: number;
   public set selectedChampionshipId(champId: number) {

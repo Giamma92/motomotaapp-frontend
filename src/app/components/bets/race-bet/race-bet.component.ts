@@ -43,9 +43,9 @@ export class RaceBetComponent extends BaseBetComponent implements OnInit {
   override get formTitle() {return 'bets.title.race';}
   override get formSubtitle() { return 'bets.subtitle.race'; }
   override get betEndpoint() { return 'race_bet'; }
-  override get maxPointsPerBet() { return this.championshipConfig?.bets_limit_points || 0; }
-  override get maxBetsPerRace() { return this.championshipConfig?.bets_limit_race || 0; }
-  override get maxBetsPerPilot() { return this.championshipConfig?.bets_limit_driver || 0; }
+  override get maxPointsPerBet() { return this.championshipConfig?.bets_limit_points || 999999; }
+  override get maxBetsPerRace() { return this.championshipConfig?.bets_limit_race || 999999; }
+  override get maxBetsPerPilot() { return this.championshipConfig?.bets_limit_driver || 999999; }
 
 
 }

@@ -10,7 +10,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { DashboardService, StandingsRow, CalendarRace, FantasyTeam } from '../../services/dashboard.service';
 import { AuthService } from '../../services/auth.service';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
-import { ChampionshipService } from '../../services/championship.service';
+import { ChampionshipConfig, ChampionshipService } from '../../services/championship.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
 import { TimeFormatPipe } from '../../pipes/time-format.pipe';
 import { TranslatePipe } from '../../pipes/translate.pipe';
@@ -530,7 +530,7 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
                         </div>
                         <div class="config-info">
                           <span class="config-label">{{ 'dashboard.championship.status' | t }}</span>
-                          <span class="config-value" [class.active]="championshipConfig.is_active">
+                          <span class="config-value" [class.active]="championshipConfig.is_active" [class.inactive]="!championshipConfig.is_active">
                             {{ championshipConfig.is_active ? ('dashboard.championship.active' | t) : ('dashboard.championship.inactive' | t) }}
                           </span>
                         </div>
@@ -579,29 +579,65 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
                     <div class="rules-grid">
                       <div class="rule-item">
                         <div class="rule-icon">
-                          <i class="fa-solid fa-users"></i>
+                        <i class="fa-solid fa-circle-exclamation"></i>
                         </div>
                         <div class="rule-info">
-                          <span class="rule-label">{{ 'dashboard.championship.maxTeams' | t }}</span>
-                          <span class="rule-value">{{ championshipConfig.max_teams || 'Unlimited' }}</span>
+                          <span class="rule-label">{{ 'dashboard.championship.betsLimitRace' | t }}</span>
+                          <span class="rule-value">{{ championshipConfig.bets_limit_race || 'Unlimited' }}</span>
                         </div>
                       </div>
                       <div class="rule-item">
                         <div class="rule-icon">
-                          <i class="fa-solid fa-user"></i>
+                          <i class="fa-solid fa-circle-exclamation"></i>
                         </div>
                         <div class="rule-info">
-                          <span class="rule-label">{{ 'dashboard.championship.maxRidersPerTeam' | t }}</span>
-                          <span class="rule-value">{{ championshipConfig.max_riders_per_team || 3 }}</span>
+                          <span class="rule-label">{{ 'dashboard.championship.betsLimitSprintRace' | t }}</span>
+                          <span class="rule-value">{{ championshipConfig.bets_limit_sprint_race || 'Unlimited' }}</span>
                         </div>
                       </div>
                       <div class="rule-item">
                         <div class="rule-icon">
-                          <i class="fa-solid fa-clock"></i>
+                        <i class="fa-solid fa-circle-exclamation"></i>
                         </div>
                         <div class="rule-info">
-                          <span class="rule-label">{{ 'dashboard.championship.deadlineHours' | t }}</span>
-                          <span class="rule-value">{{ championshipConfig.deadline_hours || 2 }}h</span>
+                          <span class="rule-label">{{ 'dashboard.championship.betsLimitPoints' | t }}</span>
+                          <span class="rule-value">{{ championshipConfig.bets_limit_points || 'Unlimited' }}</span>
+                        </div>
+                      </div>
+                      <div class="rule-item">
+                        <div class="rule-icon">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        </div>
+                        <div class="rule-info">
+                          <span class="rule-label">{{ 'dashboard.championship.betsLimitSprintPoints' | t }}</span>
+                          <span class="rule-value">{{ championshipConfig.bets_limit_sprint_points || 'Unlimited' }}</span>
+                        </div>
+                      </div>
+                      <div class="rule-item">
+                        <div class="rule-icon">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        </div>
+                        <div class="rule-info">
+                          <span class="rule-label">{{ 'dashboard.championship.betsLimitDriver' | t }}</span>
+                          <span class="rule-value">{{ championshipConfig.bets_limit_driver || 'Unlimited' }}</span>
+                        </div>
+                      </div>
+                      <div class="rule-item">
+                        <div class="rule-icon">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        </div>
+                        <div class="rule-info">
+                          <span class="rule-label">{{ 'dashboard.championship.betsLimitSprintDriver' | t }}</span>
+                          <span class="rule-value">{{ championshipConfig.bets_limit_sprint_driver || 'Unlimited' }}</span>
+                        </div>
+                      </div>
+                      <div class="rule-item">
+                        <div class="rule-icon">
+                          <i class="fa-solid fa-circle-exclamation"></i>
+                        </div>
+                        <div class="rule-info">
+                          <span class="rule-label">{{ 'dashboard.championship.formationLimitDriver' | t }}</span>
+                          <span class="rule-value">{{ championshipConfig.formation_limit_driver || 'Unlimited' }}</span>
                         </div>
                       </div>
                     </div>
@@ -1105,7 +1141,7 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
         }
       }
 
-             mat-card-actions {
+      mat-card-actions {
          display: flex;
          flex-direction: column;
          gap: 20px;
@@ -1142,10 +1178,6 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
                margin-right: 6px;
                font-size: 16px;
              }
-             span.mdc-button__label {
-                  display: flex;
-                  gap: 4px;
-              }
            }
          }
 
@@ -1205,7 +1237,7 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
            }
          }
 
-                 @media (max-width: 600px) {
+        @media (max-width: 600px) {
            padding: 1rem;
            gap: 16px;
 
@@ -1259,9 +1291,14 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
                  }
                }
              }
-                    }
+         }
        }
      }
+
+     span.mdc-button__label {
+          display: flex !important;
+          gap: 5px !important;
+      }
 
      /* Championship Configuration Card */
      .championship-config-card {
@@ -1352,6 +1389,9 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
 
                  &.active {
                    color: #28a745;
+                 }
+                 &.inactive {
+                   color: #dc3545;
                  }
                }
              }
@@ -2748,7 +2788,6 @@ import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detai
 
     /* Button icons */
     button i {
-      display: flex;
       align-items: center;
       justify-content: center;
       margin-right: 0.5rem;
@@ -2781,7 +2820,7 @@ export class DashboardComponent implements OnInit {
   nextCalendarRace?: CalendarRace;
   fantasyTeam?: FantasyTeam;
   racesDetails?: RaceDetails;
-  championshipConfig?: any; // Championship configuration data
+  championshipConfig?: any;
   loggedUserId: string | null;
   championshipId: number = 0;
 
@@ -3095,17 +3134,26 @@ export class DashboardComponent implements OnInit {
   }
 
   private loadChampionshipConfig(champId: number): void {
-    // TODO: Replace with actual service call when available
-    // For now, using mock data
-    this.championshipConfig = {
-      name: 'MotoGP Fantasy Championship 2025',
-      season: '2025',
-      is_active: true,
-      max_teams: 100,
-      max_riders_per_team: 3,
-      deadline_hours: 2,
-      race_scoring: this.getRaceScoringPoints(),
-      sprint_scoring: this.getSprintScoringPoints()
-    };
+
+    this.championshipService.getChampionshipConfig(champId).subscribe({
+      next: (config: ChampionshipConfig) => {
+        this.championshipConfig = {
+          name: config.championship_id.description,
+          season: config.championship_id.year,
+          is_active: config.championship_id.is_active,
+          bets_limit_points: config.bets_limit_points, // max points per race
+          bets_limit_sprint_points: config.bets_limit_sprint_points, // max points per sprint race
+          bets_limit_driver: config.bets_limit_driver, // max bets per pilot
+          bets_limit_sprint_driver: config.bets_limit_sprint_driver, // max sprint bets per pilot
+          bets_limit_race: config.bets_limit_race, // max bets per race
+          bets_limit_sprint_race: config.bets_limit_sprint_race, // max bets per sprint race
+          formation_limit_driver: config.formation_limit_driver, // max lineups per pilot
+          race_scoring: this.getRaceScoringPoints(),
+          sprint_scoring: this.getSprintScoringPoints()
+        };;
+      },
+      error: (err) => console.error('Failed to load championship configuration', err)
+    });
+
   }
 }

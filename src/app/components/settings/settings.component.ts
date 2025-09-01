@@ -184,6 +184,7 @@ export class SettingsComponent implements OnInit {
 
     Promise.all(updates)
       .then(() => {
+        this.championshipService.subjChampId.next(championshipId);
         this.successMessageKey = 'settings.success';
         this.loading = false;
       })
