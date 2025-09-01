@@ -11,6 +11,7 @@ import { TimeFormatPipe } from '../../pipes/time-format.pipe';
 import { AuthService } from '../../services/auth.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationServiceService } from '../../services/notification.service';
+import { I18nService } from '../../services/i18n.service';
 
 @Component({
   selector: 'app-calendar',
@@ -52,13 +53,12 @@ import { NotificationServiceService } from '../../services/notification.service'
                   </div>
                 </td>
                 <td><span class="detail-text">
-                    {{ getEventDateRange(race.event_date).start | date:'MMM d' }} -
-                    {{ getEventDateRange(race.event_date).end | date:'MMM d, y' }}
+                  {{ formatEventRange(race.event_date) }}
                   </span>
                 </td>
-                <td>{{ getDayBefore(race.event_date) | date:'EEE' }} {{ race.qualifications_time ?? '10:00:00' | timeFormat }}</td>
-                <td>{{ getDayBefore(race.event_date) | date:'EEE' }} {{ race.sprint_time ?? '15:00:00' | timeFormat }}</td>
-                <td>{{ getEventDateRange(race.event_date).end | date:'EEE' }} {{ race.event_time ?? '14:00:00' | timeFormat }}</td>
+                <td>{{ getQualifyingDay(race.event_date) | t }} {{ race.qualifications_time ?? '10:00:00' | timeFormat }}</td>
+                <td>{{ getSprintDay(race.event_date) | t }} {{ race.sprint_time ?? '15:00:00' | timeFormat }}</td>
+                <td>{{ getRaceDay(race.event_date) | t }} {{ race.event_time ?? '14:00:00' | timeFormat }}</td>
                 <td>
                   <button mat-icon-button color="primary" (click)="goToRaceDetail(race)">
                     <mat-icon>chevron_right</mat-icon>
@@ -86,8 +86,7 @@ import { NotificationServiceService } from '../../services/notification.service'
                     <div class="detail-item">
                       <mat-icon>event</mat-icon>
                       <span class="detail-text">
-                        {{ getEventDateRange(race.event_date).start | date:'MMM d' }} -
-                        {{ getEventDateRange(race.event_date).end | date:'MMM d, y' }}
+                      {{ formatEventRange(race.event_date) }}
                       </span>
                     </div>
                     <div class="detail-item">
@@ -110,7 +109,7 @@ import { NotificationServiceService } from '../../services/notification.service'
                   <div class="time-info">
                     <span class="time-label">{{ 'common.qualifying' | t }}</span>
                     <span class="time-value">
-                      {{ getDayBefore(race.event_date) | date:'EEE' }} {{ race.qualifications_time ?? '10:00:00' | timeFormat }}
+                      {{ getQualifyingDay(race.event_date) | t }} {{ race.qualifications_time ?? '10:00:00' | timeFormat }}
                     </span>
                   </div>
                 </div>
@@ -121,7 +120,7 @@ import { NotificationServiceService } from '../../services/notification.service'
                   <div class="time-info">
                     <span class="time-label">{{ 'common.sprint' | t }}</span>
                     <span class="time-value">
-                      {{ getDayBefore(race.event_date) | date:'EEE' }} {{ race.sprint_time ?? '15:00:00' | timeFormat }}
+                    {{ getSprintDay(race.event_date) | t }} {{ race.sprint_time ?? '15:00:00' | timeFormat }}
                     </span>
                   </div>
                 </div>
@@ -132,7 +131,7 @@ import { NotificationServiceService } from '../../services/notification.service'
                   <div class="time-info">
                     <span class="time-label">{{ 'common.race' | t }}</span>
                     <span class="time-value">
-                      {{ getEventDateRange(race.event_date).end | date:'EEE' }} {{ race.event_time ?? '14:00:00' | timeFormat }}
+                      {{ getRaceDay(race.event_date) | t }} {{ race.event_time ?? '14:00:00' | timeFormat }}
                     </span>
                   </div>
                 </div>
@@ -673,6 +672,7 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     private championshipService: ChampionshipService,
     private authService: AuthService,
     private router: Router,
+    private i18nService: I18nService,
     private notificationService: NotificationServiceService
   ) {}
 
@@ -746,4 +746,44 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     dayBefore.setDate(eventDate.getDate() - 1);
     return dayBefore;
   }
+
+  get locale(): string {
+    return this.i18nService.locale;
+  }
+
+  formatEventRange(eventDateString: string): string {
+    if (!eventDateString) return '';
+    const end = new Date(eventDateString);
+    const start = new Date(end);
+    start.setDate(end.getDate() - 2);
+
+    // Use browser's Intl with the current locale
+    const fmt = new Intl.DateTimeFormat(this.locale, { day: 'numeric', month: 'short', year: 'numeric' });
+    // @ts-ignore: formatRange is supported in modern browsers
+    return typeof fmt.formatRange === 'function'
+      ? fmt.formatRange(start, end)
+      : `${fmt.format(start)} – ${fmt.format(end)}`;
+  }
+
+    // Day methods for schedule display
+    getQualifyingDay(eventDate: string): string {
+      const date = new Date(eventDate);
+      date.setDate(date.getDate() - 1); // Qualifying is typically on Saturday
+      return this.getDayName(date);
+    }
+
+    getSprintDay(eventDate: string): string {
+      const date = new Date(eventDate);
+      date.setDate(date.getDate() - 1); // Sprint is typically on Saturday
+      return this.getDayName(date);
+    }
+
+    getRaceDay(eventDate: string): string {
+      const date = new Date(eventDate);
+      return this.getDayName(date); // Race is on Sunday
+    }
+
+    private getDayName(date: Date): string {
+      return date.toLocaleDateString(this.locale, { weekday: 'long' });
+    }
 }
