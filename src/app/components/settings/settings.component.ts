@@ -172,7 +172,7 @@ export class SettingsComponent implements OnInit {
 
     if (this.originalLanguage !== language) {
       updates.push(
-        this.i18n.setLanguage(language).toPromise()
+        this.i18n.setLanguage(language, championshipId).toPromise()
       );
     }
 

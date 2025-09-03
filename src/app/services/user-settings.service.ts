@@ -27,7 +27,7 @@ export class UserSettingsService {
   }
 
   /** Update only preferred language */
-  updateUserLanguage(languageCode: string): Observable<any> {
-    return this.httpService.genericPut('user/settings', { language: languageCode });
+  updateUserLanguage(championshipId: number, languageCode: string): Observable<any> {
+    return this.httpService.genericPut('user/settings', { championship_id: championshipId, language: languageCode });
   }
 }

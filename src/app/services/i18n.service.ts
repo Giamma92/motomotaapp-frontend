@@ -55,7 +55,7 @@ export class I18nService {
     }
   }
 
-  setLanguage(langCode: string): Observable<TranslationsMap> {
+  setLanguage(langCode: string, champId?: number): Observable<TranslationsMap> {
     const normalized = (langCode || 'en').toLowerCase();
     if (this.currentLanguage === normalized && Object.keys(this.translations).length > 0) {
       return of(this.translations);
@@ -67,8 +67,9 @@ export class I18nService {
         this.translations = map;
         this.translationsSubject.next(this.translations);
       }),
-      tap(() => this.persistUserPreferenceIfAuthenticated(normalized)),
+      tap(() => { if(champId) {this.persistUserPreferenceIfAuthenticated(champId, normalized)}}),
       catchError(() => {
+        if(champId) { this.persistUserPreferenceIfAuthenticated(champId, normalized); }
         this.translations = {};
         this.translationsSubject.next(this.translations);
         return of(this.translations);
@@ -186,10 +187,10 @@ export class I18nService {
     return null;
   }
 
-  private persistUserPreferenceIfAuthenticated(langCode: string): void {
+  private persistUserPreferenceIfAuthenticated(champId: number, langCode: string): void {
     const token = this.authService.getToken();
     if (!token) return;
-    this.userSettingsService.updateUserLanguage(langCode).subscribe({ next: () => {}, error: () => {} });
+    this.userSettingsService.updateUserLanguage(champId,langCode).subscribe({ next: () => {}, error: () => {} });
   }
 }
 

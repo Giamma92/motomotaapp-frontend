@@ -6,14 +6,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { CalendarRace, DashboardService, Rider } from '../../services/dashboard.service';
+import { DashboardService, Rider } from '../../services/dashboard.service';
 import { ChampionshipService, ChampionshipConfig } from '../../services/championship.service';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { HttpService } from '../../services/http.service';
 import { LineupsResult, RaceDetailService } from '../../services/race-detail.service';
-import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationServiceService } from '../../services/notification.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-lineups',
@@ -60,8 +60,9 @@ import { NotificationServiceService } from '../../services/notification.service'
                 {{ 'lineups.error.duplicate' | t }}
               </mat-error>
               <mat-error *ngIf="lineupsForm.get('qualifying_rider_id')?.hasError('riderLimitExceeded')">
-                {{ getRiderLimitErrorMessage() }}
+                {{ 'lineups.error.riderLimitExceeded' | t }}
               </mat-error>
+
             </mat-form-field>
 
             <mat-form-field appearance="fill" class="full-width">
@@ -73,7 +74,7 @@ import { NotificationServiceService } from '../../services/notification.service'
                 </mat-option>
               </mat-select>
               <mat-error *ngIf="lineupsForm.get('race_rider_id')?.hasError('riderLimitExceeded')">
-                {{ getRiderLimitErrorMessage() }}
+                {{ 'lineups.error.riderLimitExceeded' | t }}
               </mat-error>
             </mat-form-field>
           </form>
@@ -185,8 +186,7 @@ export class LineupsComponent implements OnInit {
     private championshipService: ChampionshipService,
     private raceDetailService: RaceDetailService,
     private httpService: HttpService,
-    private notificationService: NotificationServiceService,
-    private translatePipe: TranslatePipe
+    private notificationService: NotificationServiceService
 ) {
     this.lineupsForm = this.fb.group({
       race_rider_id: ['', Validators.required],
@@ -393,8 +393,4 @@ export class LineupsComponent implements OnInit {
     }, 0);
   }
 
-  getRiderLimitErrorMessage(): string {
-    const translation = this.translatePipe.transform('lineups.error.riderLimitExceeded');
-    return translation !== 'lineups.error.riderLimitExceeded' ? translation : 'This rider has reached the maximum number of lineups allowed';
-  }
 }
