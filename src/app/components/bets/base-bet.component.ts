@@ -152,8 +152,8 @@ export abstract class BaseBetComponent implements OnInit {
 
   loadLineupRace(): void {
     this.raceDetailService.getLineupRace(this.champId, this.raceId ?? '0').subscribe({
-      next: (existingLineup: LineupsResult) => {
-        this.existingLineup = existingLineup;
+      next: (existingLineup: LineupsResult[]) => {
+        this.existingLineup = existingLineup[0];
         // update the riders list once lineup is loaded
         if (this.removeRaceRider) {
           this.updateRiders();

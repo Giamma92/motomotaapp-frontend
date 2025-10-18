@@ -248,7 +248,8 @@ export class LineupsComponent implements OnInit {
 
   loadExistingLineupAndUpdateForm(champId: number) {
     this.raceDetailService.getLineupRace(champId, this.raceId ?? '0').subscribe({
-      next: (existingLineup: LineupsResult) => {
+      next: (existingLineups: LineupsResult[]) => {
+        const existingLineup = existingLineups[0];
         this.lineupsForm.patchValue({
           race_rider_id: existingLineup?.race_rider_id || this.riders[0]?.id,
           qualifying_rider_id: existingLineup?.qualifying_rider_id || this.riders[1]?.id
@@ -387,8 +388,8 @@ export class LineupsComponent implements OnInit {
     if (!riderId) return 0;
 
     return this.existingLineupsAllCalendar.reduce((count, lineup) => {
-      const isQualifyingRider = lineup.qualifying_rider_id?.id === riderId;
-      const isRaceRider = lineup.race_rider_id?.id === riderId;
+      const isQualifyingRider = (lineup.qualifying_rider_id as any) == riderId;
+      const isRaceRider = (lineup.race_rider_id as any) == riderId;
       return (isQualifyingRider || isRaceRider) ? count + 1 : count;
     }, 0);
   }

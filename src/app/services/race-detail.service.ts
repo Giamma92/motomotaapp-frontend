@@ -57,8 +57,8 @@ export class RaceDetailService {
     );
   }
 
-  getLineupRace(championshipId: number, raceId: string): Observable<LineupsResult> {
-    return this.httpService.genericGet<LineupsResult>(`championship/${championshipId}/lineups/${raceId}`)
+  getLineupRace(championshipId: number, raceId: string): Observable<LineupsResult[]> {
+    return this.httpService.genericGet<LineupsResult[]>(`championship/${championshipId}/lineups/${raceId}`)
   }
 
   upsertLineup(championshipId: number, payload: any): Observable<object> {
