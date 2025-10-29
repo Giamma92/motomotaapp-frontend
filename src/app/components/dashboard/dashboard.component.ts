@@ -14,8 +14,11 @@ import { ChampionshipConfig, ChampionshipService } from '../../services/champion
 import { RaceScheduleService } from '../../services/race-schedule.service';
 import { TimeFormatPipe } from '../../pipes/time-format.pipe';
 import { TranslatePipe } from '../../pipes/translate.pipe';
-import { BetResult, LineupsResult, RaceDetails } from '../../services/race-detail.service';
+import { RaceDetails } from '../../services/race-detail.service';
 import { I18nService } from '../../services/i18n.service';
+import { HostListener } from '@angular/core';
+
+type Tab = 'standings' | 'next' | 'team' | 'config';
 
 @Component({
   selector: 'app-dashboard',
@@ -62,9 +65,11 @@ import { I18nService } from '../../services/i18n.service';
         </mat-menu>
 
       </header>
-      <main class="grid-content">
+      <main class="grid-content"(pointerdown)="onSwipeStart($event)" (pointerup)="onSwipeEnd($event)">
         <div class="cards-wrapper">
-          <mat-card class="standings-card" *ngIf="classificationData && classificationData.length">
+          <mat-card class="standings-card fullbleed-panel"
+          *ngIf="classificationData && classificationData.length"
+          [class.mobile-hidden]="!isActive('standings')">
             <mat-card-header class="standings-header">
                <mat-card-title>
                  <i class="fa-solid fa-trophy"></i>
@@ -217,7 +222,9 @@ import { I18nService } from '../../services/i18n.service';
             </mat-card-content>
           </mat-card>
 
-          <mat-card class="next-race-card" *ngIf="nextCalendarRace">
+          <mat-card class="next-race-card fullbleed-panel"
+          *ngIf="nextCalendarRace"
+          [class.mobile-hidden]="!isActive('next')">
              <mat-card-header class="next-race-header">
                <mat-card-title>
                  <i class="fa-solid fa-flag-checkered"></i>
@@ -366,9 +373,11 @@ import { I18nService } from '../../services/i18n.service';
                  </div>
                </div>
              </mat-card-actions>
-           </mat-card>
+          </mat-card>
 
-                     <mat-card class="fantasy-team-card" *ngIf="fantasyTeam">
+          <mat-card class="fantasy-team-card fullbleed-panel"
+          *ngIf="fantasyTeam"
+          [class.mobile-hidden]="!isActive('team')">
              <mat-card-header>
                <mat-card-title class="team-title">
                  <i class="fa-solid fa-users"></i>
@@ -508,164 +517,191 @@ import { I18nService } from '../../services/i18n.service';
                   <i class="fa-solid fa-list"></i> {{ 'dashboard.actions.viewAllTeams' | t }}
                 </button>
               </mat-card-actions>
-            </mat-card>
+          </mat-card>
 
-            <!-- Championship Configuration Card -->
-            <mat-card class="championship-config-card" *ngIf="championshipConfig">
-              <mat-card-header>
-                <mat-card-title class="config-title">
-                  <i class="fa-solid fa-gear"></i>
-                  {{ 'dashboard.championship.configuration' | t }}
-                </mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="config-content">
-                  <!-- Championship Info Section -->
-                  <div class="config-section">
-                    <h3 class="section-title">{{ 'dashboard.championship.info' | t }}</h3>
-                    <div class="config-grid">
-                      <div class="config-item">
-                        <div class="config-icon">
-                          <i class="fa-solid fa-trophy"></i>
-                        </div>
-                        <div class="config-info">
-                          <span class="config-label">{{ 'dashboard.championship.name' | t }}</span>
-                          <span class="config-value">{{ championshipConfig.name }}</span>
-                        </div>
+          <!-- Championship Configuration Card -->
+          <mat-card class="championship-config-card fullbleed-panel"
+          *ngIf="championshipConfig"
+          [class.mobile-hidden]="!isActive('config')">
+            <mat-card-header>
+              <mat-card-title class="config-title">
+                <i class="fa-solid fa-gear"></i>
+                {{ 'dashboard.championship.configuration' | t }}
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="config-content">
+                <!-- Championship Info Section -->
+                <div class="config-section">
+                  <h3 class="section-title">{{ 'dashboard.championship.info' | t }}</h3>
+                  <div class="config-grid">
+                    <div class="config-item">
+                      <div class="config-icon">
+                        <i class="fa-solid fa-trophy"></i>
                       </div>
-                      <div class="config-item">
-                        <div class="config-icon">
-                          <i class="fa-solid fa-calendar-days"></i>
-                        </div>
-                        <div class="config-info">
-                          <span class="config-label">{{ 'dashboard.championship.season' | t }}</span>
-                          <span class="config-value">{{ championshipConfig.season }}</span>
-                        </div>
-                      </div>
-                      <div class="config-item">
-                        <div class="config-icon">
-                          <i class="fa-solid fa-flag-checkered"></i>
-                        </div>
-                        <div class="config-info">
-                          <span class="config-label">{{ 'dashboard.championship.status' | t }}</span>
-                          <span class="config-value" [class.active]="championshipConfig.is_active" [class.inactive]="!championshipConfig.is_active">
-                            {{ championshipConfig.is_active ? ('dashboard.championship.active' | t) : ('dashboard.championship.inactive' | t) }}
-                          </span>
-                        </div>
+                      <div class="config-info">
+                        <span class="config-label">{{ 'dashboard.championship.name' | t }}</span>
+                        <span class="config-value">{{ championshipConfig.name }}</span>
                       </div>
                     </div>
-                  </div>
-
-                                     <!-- Scoring System Section -->
-                   <div class="config-section">
-                     <h3 class="section-title">{{ 'dashboard.championship.scoringSystem' | t }}</h3>
-                     <div class="scoring-grid">
-                       <mat-expansion-panel class="scoring-item">
-                         <mat-expansion-panel-header>
-                           <mat-panel-title>
-                             <i class="fa-solid fa-motorcycle"></i>
-                             <span>{{ 'dashboard.championship.raceScoring' | t }}</span>
-                           </mat-panel-title>
-                         </mat-expansion-panel-header>
-                         <div class="scoring-points">
-                           <div class="point-item" *ngFor="let point of getRaceScoringPoints()">
-                             <span class="position">{{ point.position }}</span>
-                             <span class="points">{{ point.points }} pts</span>
-                           </div>
-                         </div>
-                       </mat-expansion-panel>
-                       <mat-expansion-panel class="scoring-item">
-                         <mat-expansion-panel-header>
-                           <mat-panel-title>
-                             <i class="fa-solid fa-flag-checkered"></i>
-                             <span>{{ 'dashboard.championship.sprintScoring' | t }}</span>
-                           </mat-panel-title>
-                         </mat-expansion-panel-header>
-                         <div class="scoring-points">
-                           <div class="point-item" *ngFor="let point of getSprintScoringPoints()">
-                             <span class="position">{{ point.position }}</span>
-                             <span class="points">{{ point.points }} pts</span>
-                           </div>
-                         </div>
-                       </mat-expansion-panel>
-                     </div>
-                   </div>
-
-                  <!-- Rules Section -->
-                  <div class="config-section">
-                    <h3 class="section-title">{{ 'dashboard.championship.rules' | t }}</h3>
-                    <div class="rules-grid">
-                      <div class="rule-item">
-                        <div class="rule-icon">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        </div>
-                        <div class="rule-info">
-                          <span class="rule-label">{{ 'dashboard.championship.betsLimitRace' | t }}</span>
-                          <span class="rule-value">{{ championshipConfig.bets_limit_race || 'Unlimited' }}</span>
-                        </div>
+                    <div class="config-item">
+                      <div class="config-icon">
+                        <i class="fa-solid fa-calendar-days"></i>
                       </div>
-                      <div class="rule-item">
-                        <div class="rule-icon">
-                          <i class="fa-solid fa-circle-exclamation"></i>
-                        </div>
-                        <div class="rule-info">
-                          <span class="rule-label">{{ 'dashboard.championship.betsLimitSprintRace' | t }}</span>
-                          <span class="rule-value">{{ championshipConfig.bets_limit_sprint_race || 'Unlimited' }}</span>
-                        </div>
+                      <div class="config-info">
+                        <span class="config-label">{{ 'dashboard.championship.season' | t }}</span>
+                        <span class="config-value">{{ championshipConfig.season }}</span>
                       </div>
-                      <div class="rule-item">
-                        <div class="rule-icon">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        </div>
-                        <div class="rule-info">
-                          <span class="rule-label">{{ 'dashboard.championship.betsLimitPoints' | t }}</span>
-                          <span class="rule-value">{{ championshipConfig.bets_limit_points || 'Unlimited' }}</span>
-                        </div>
+                    </div>
+                    <div class="config-item">
+                      <div class="config-icon">
+                        <i class="fa-solid fa-flag-checkered"></i>
                       </div>
-                      <div class="rule-item">
-                        <div class="rule-icon">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        </div>
-                        <div class="rule-info">
-                          <span class="rule-label">{{ 'dashboard.championship.betsLimitSprintPoints' | t }}</span>
-                          <span class="rule-value">{{ championshipConfig.bets_limit_sprint_points || 'Unlimited' }}</span>
-                        </div>
-                      </div>
-                      <div class="rule-item">
-                        <div class="rule-icon">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        </div>
-                        <div class="rule-info">
-                          <span class="rule-label">{{ 'dashboard.championship.betsLimitDriver' | t }}</span>
-                          <span class="rule-value">{{ championshipConfig.bets_limit_driver || 'Unlimited' }}</span>
-                        </div>
-                      </div>
-                      <div class="rule-item">
-                        <div class="rule-icon">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        </div>
-                        <div class="rule-info">
-                          <span class="rule-label">{{ 'dashboard.championship.betsLimitSprintDriver' | t }}</span>
-                          <span class="rule-value">{{ championshipConfig.bets_limit_sprint_driver || 'Unlimited' }}</span>
-                        </div>
-                      </div>
-                      <div class="rule-item">
-                        <div class="rule-icon">
-                          <i class="fa-solid fa-circle-exclamation"></i>
-                        </div>
-                        <div class="rule-info">
-                          <span class="rule-label">{{ 'dashboard.championship.formationLimitDriver' | t }}</span>
-                          <span class="rule-value">{{ championshipConfig.formation_limit_driver || 'Unlimited' }}</span>
-                        </div>
+                      <div class="config-info">
+                        <span class="config-label">{{ 'dashboard.championship.status' | t }}</span>
+                        <span class="config-value" [class.active]="championshipConfig.is_active" [class.inactive]="!championshipConfig.is_active">
+                          {{ championshipConfig.is_active ? ('dashboard.championship.active' | t) : ('dashboard.championship.inactive' | t) }}
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
-              </mat-card-content>
-            </mat-card>
+
+                                    <!-- Scoring System Section -->
+                  <div class="config-section">
+                    <h3 class="section-title">{{ 'dashboard.championship.scoringSystem' | t }}</h3>
+                    <div class="scoring-grid">
+                      <mat-expansion-panel class="scoring-item">
+                        <mat-expansion-panel-header>
+                          <mat-panel-title>
+                            <i class="fa-solid fa-motorcycle"></i>
+                            <span>{{ 'dashboard.championship.raceScoring' | t }}</span>
+                          </mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <div class="scoring-points">
+                          <div class="point-item" *ngFor="let point of getRaceScoringPoints()">
+                            <span class="position">{{ point.position }}</span>
+                            <span class="points">{{ point.points }} pts</span>
+                          </div>
+                        </div>
+                      </mat-expansion-panel>
+                      <mat-expansion-panel class="scoring-item">
+                        <mat-expansion-panel-header>
+                          <mat-panel-title>
+                            <i class="fa-solid fa-flag-checkered"></i>
+                            <span>{{ 'dashboard.championship.sprintScoring' | t }}</span>
+                          </mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <div class="scoring-points">
+                          <div class="point-item" *ngFor="let point of getSprintScoringPoints()">
+                            <span class="position">{{ point.position }}</span>
+                            <span class="points">{{ point.points }} pts</span>
+                          </div>
+                        </div>
+                      </mat-expansion-panel>
+                    </div>
+                  </div>
+
+                <!-- Rules Section -->
+                <div class="config-section">
+                  <h3 class="section-title">{{ 'dashboard.championship.rules' | t }}</h3>
+                  <div class="rules-grid">
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                      <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.betsLimitRace' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.bets_limit_race || 'Unlimited' }}</span>
+                      </div>
+                    </div>
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.betsLimitSprintRace' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.bets_limit_sprint_race || 'Unlimited' }}</span>
+                      </div>
+                    </div>
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                      <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.betsLimitPoints' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.bets_limit_points || 'Unlimited' }}</span>
+                      </div>
+                    </div>
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                      <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.betsLimitSprintPoints' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.bets_limit_sprint_points || 'Unlimited' }}</span>
+                      </div>
+                    </div>
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                      <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.betsLimitDriver' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.bets_limit_driver || 'Unlimited' }}</span>
+                      </div>
+                    </div>
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                      <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.betsLimitSprintDriver' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.bets_limit_sprint_driver || 'Unlimited' }}</span>
+                      </div>
+                    </div>
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.formationLimitDriver' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.formation_limit_driver || 'Unlimited' }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
         </div>
       </main>
     </div>
+    <nav class="bottom-nav" aria-label="Primary">
+      <button class="item" [class.active]="isActive('standings')" (click)="setTab('standings')">
+        <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+        <!-- <span>{{ 'dashboard.standings.title' | t }}</span> -->
+      </button>
+      <button class="item" [class.active]="isActive('next')" (click)="setTab('next')">
+        <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>
+        <!-- <span>{{ isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t) }}</span> -->
+      </button>
+      <button class="item" [class.active]="isActive('team')" (click)="setTab('team')">
+        <i class="fa-solid fa-users" aria-hidden="true"></i>
+        <!-- <span>{{ 'dashboard.team.teamRiders' | t }}</span> -->
+      </button>
+      <button class="item" [class.active]="isActive('config')" (click)="setTab('config')">
+        <i class="fa-solid fa-gear" aria-hidden="true"></i>
+        <!-- <span>{{ 'dashboard.championship.configuration' | t }}</span> -->
+      </button>
+
+      <!-- Animated pill to show active tab -->
+      <!-- <div class="active-pill" [attr.data-route]="
+        isActive('standings') ? 'standings' :
+        isActive('next') ? 'next' :
+        isActive('team') ? 'team' : 'config'
+      "></div> -->
+    </nav>
   `,
   styles: [`
     .dashboard-container {
@@ -675,27 +711,24 @@ import { I18nService } from '../../services/i18n.service';
       padding-top: 80px;
     }
 
-         .grid-content {
-       display: grid;
-       grid-template-columns: 1fr;
-       gap: 20px;
-       padding: 20px;
+    .grid-content {
+        display: grid;
+        grid-template-columns: 1fr;
+        //gap: 20px;
+        padding: 8px;
 
-       @media (min-width: 768px) {
-         grid-template-columns: 1fr 1fr;
-         gap: 30px;
-         padding: 30px;
-       }
+        @media (min-width: 768px) {
+          grid-template-columns: 1fr 1fr;
+          gap: 30px;
+          padding: 30px;
+        }
 
-       @media (min-width: 1200px) {
-         grid-template-columns: 1fr 1fr;
-         gap: 40px;
-         padding: 40px;
-       }
+        @media (min-width: 1200px) {
+          grid-template-columns: 1fr 1fr;
+          gap: 40px;
+          padding: 40px;
+        }
      }
-
-
-
     /* Dashboard Cards */
     .mat-mdc-card.fantasy-team-card,
     .mat-mdc-card.next-race-card,
@@ -1234,10 +1267,11 @@ import { I18nService } from '../../services/i18n.service';
          background: #fafafa;
 
          .main-actions {
-           display: flex;
-           gap: 12px;
-           flex-wrap: wrap;
-           justify-content: center;
+          display: flex;
+          flex-direction: column;
+          gap: 7px !important;
+          flex-wrap: wrap;
+          justify-content: space-around;
 
            .main-btn {
              min-width: 160px;
@@ -1814,8 +1848,9 @@ import { I18nService } from '../../services/i18n.service';
 
       .standings-table {
         .rank-col {
-          width: 15% !important;
-          min-width: 40px;
+          width: 5% !important;
+          //min-width: 10px;
+          max-width: 40px;
 
           .position-container {
             .position {
@@ -1833,7 +1868,7 @@ import { I18nService } from '../../services/i18n.service';
         }
 
         .user-col {
-          width: 40%;
+          width: 70%;
 
           .user-info {
             gap: 0.5rem;
@@ -1860,7 +1895,7 @@ import { I18nService } from '../../services/i18n.service';
         }
 
         .score-col {
-          width: 25%;
+          width: 15%;
 
           .score-display {
             .score-value {
@@ -1874,7 +1909,7 @@ import { I18nService } from '../../services/i18n.service';
         }
 
         .gap-col {
-          width: 20%;
+          width: 10%;
 
           .gap-display {
             .gap-value {
@@ -2429,7 +2464,7 @@ import { I18nService } from '../../services/i18n.service';
       font-size: 0.95em;
 
       th {
-        padding: 12px 16px;
+        padding: 0.15rem 1rem;
         font-weight: 600;
         color: #333;
         border-bottom: 2px solid #eee;
@@ -2442,7 +2477,7 @@ import { I18nService } from '../../services/i18n.service';
       }
 
       td {
-        padding: 1rem;
+        padding: 0.15rem;
         border-bottom: 1px solid #f0f0f0;
         vertical-align: middle;
       }
@@ -2897,6 +2932,92 @@ import { I18nService } from '../../services/i18n.service';
     .crown-bronze {
       color: #CD7F32 !important; /* Bronze color for 3rd place */
     }
+
+    /* Reserve bottom space on mobile so content isn't hidden behind nav */
+    @media (max-width: 768px) {
+      .dashboard-container {
+        padding-bottom: 72px; /* ~height of bottom nav */
+      }
+      /* Hide non-active cards on mobile */
+      .mobile-hidden {
+        display: none !important;
+      }
+    }
+
+    /* Bottom nav (mobile only) */
+    .bottom-nav {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 60;
+      height: 60px;
+      display: none; /* hidden by default; enabled by media query */
+      grid-template-columns: repeat(4, 1fr);
+      align-items: center;
+      gap: .25rem;
+      padding: .35rem .5rem max(.35rem, env(safe-area-inset-bottom));
+      background: white;
+      border-radius: 50px;
+      margin: 15px 34px;
+      //box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+      box-shadow: rgba(0, 0, 0, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 15px 12px;
+      //box-shadow: rgba(0, 0, 0, 0.17) 0px -23px 25px 0px inset, rgba(0, 0, 0, 0.15) 0px -36px 30px 0px inset, rgba(0, 0, 0, 0.1) 0px -79px 40px 0px inset, rgba(0, 0, 0, 0.06) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
+
+    }
+    .bottom-nav .item {
+      position: relative;
+      display: flex; flex-direction: column; align-items: center; gap: .15rem;
+      padding: .35rem 0 .25rem;
+      text-decoration: none;
+      color: #000000;
+      background: transparent;
+      border: 0;
+      font-size: .78rem;
+    }
+    .bottom-nav .item i { font-size: 1.05rem; }
+    .bottom-nav .item.active { 
+      color: blue;
+      border-radius: 50px;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+      /* vertical-align: middle; */
+      justify-content: center;
+      //box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+      box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
+      
+      i {
+        margin: 0px;
+        font-size: 22px;
+      }
+    }
+
+    /* Animated pill under active item */
+    .bottom-nav .active-pill {
+      position: absolute; bottom: .35rem; left: 0; right: 0;
+      width: 10%; height: .25rem; border-radius: 999px;
+      margin-left: 5%;
+      background: #415aee; opacity: .9;
+      transition: transform .22s ease;
+      transform: translateX(0);
+    }
+    .bottom-nav .active-pill[data-route="standings"] { transform: translateX(calc(0 * 100%)); }
+    .bottom-nav .active-pill[data-route="next"]      { transform: translateX(calc(1 * 100%)); }
+    .bottom-nav .active-pill[data-route="team"]      { transform: translateX(calc(2 * 100%)); }
+    .bottom-nav .active-pill[data-route="config"]    { transform: translateX(calc(3 * 100%)); }
+
+    /* Show bottom nav only on mobile */
+    @media (max-width: 768px) {
+      .bottom-nav { display: grid; }
+    }
+
+    /* On desktop: show all cards; bottom nav hidden by default above */
+    @media (min-width: 769px) {
+      /* ensure mobile-hidden has no effect on desktop */
+      .mobile-hidden { display: initial !important; }
+    }
+
   `]
 })
 export class DashboardComponent implements OnInit {
@@ -2920,6 +3041,10 @@ export class DashboardComponent implements OnInit {
   ridersRaceCount: Map<number, number> = new Map<number, number>();
 
   Math = Math;
+  // Mobile tab state
+  currentTab: Tab = 'standings';
+  private swipeX = 0;
+  private tracking = false;
 
   constructor(
     private router: Router,
@@ -3263,4 +3388,41 @@ export class DashboardComponent implements OnInit {
     });
 
   }
+
+  // --- Mobile bottom nav helpers ---
+  setTab(next: Tab) {
+    this.currentTab = next;
+  }
+  isActive(name: Tab) {
+    return this.currentTab === name;
+  }
+
+  // Optional: keyboard support for convenience
+  @HostListener('window:keydown', ['$event'])
+  onKeydown(e: KeyboardEvent) {
+    if (e.key === 'ArrowLeft') this.shift(-1);
+    else if (e.key === 'ArrowRight') this.shift(1);
+  }
+  private shift(direction: -1 | 1) {
+    const order: Tab[] = ['standings', 'next', 'team', 'config'];
+    const i = order.indexOf(this.currentTab);
+    const j = Math.min(order.length - 1, Math.max(0, i + direction));
+    if (j !== i) this.currentTab = order[j];
+  }
+
+  // --- Simple swipe handling (mobile) ---
+  onSwipeStart(ev: PointerEvent) {
+    this.swipeX = ev.clientX;
+    this.tracking = true;
+  }
+  onSwipeEnd(ev: PointerEvent) {
+    if (!this.tracking) return;
+    const dx = ev.clientX - this.swipeX;
+    this.tracking = false;
+    if (Math.abs(dx) > 60) {
+      if (dx < 0) this.shift(1);   // swipe left → next tab
+      if (dx > 0) this.shift(-1);  // swipe right → prev tab
+    }
+  }
+
 }
