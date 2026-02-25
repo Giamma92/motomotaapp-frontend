@@ -455,7 +455,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                     <mat-expansion-panel class="rider third-tier">
                       <mat-expansion-panel-header>
                         <mat-panel-title>
-                          <i class="fa-solid fa-3"></i>
+                          <i class="fa-solid fa-user-shield"></i>
                           <h4>{{ 'dashboard.team.thirdTierPilot' | t }}</h4>
                         </mat-panel-title>
                       </mat-expansion-panel-header>
