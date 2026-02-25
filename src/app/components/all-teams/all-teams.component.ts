@@ -50,7 +50,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                         <span class="number">#{{ team.official_rider_1.number }}</span>
                         <span class="name">{{ team.official_rider_1.first_name }} {{ team.official_rider_1.last_name }}</span>
                       </div>
-                      <div class="rider">
+                      <div class="rider" *ngIf="team.official_rider_2">
                         <span class="number">#{{ team.official_rider_2.number }}</span>
                         <span class="name">{{ team.official_rider_2.first_name }} {{ team.official_rider_2.last_name }}</span>
                       </div>

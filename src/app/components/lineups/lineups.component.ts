@@ -238,7 +238,7 @@ export class LineupsComponent implements OnInit {
           team.official_rider_1,
           team.official_rider_2,
           team.reserve_rider
-        ];
+        ].filter((rider): rider is Rider => !!rider);
         this.loadExistingLineupAndUpdateForm(championshipId);
         this.loadAllLineupsAndUpdateRiders();
       },

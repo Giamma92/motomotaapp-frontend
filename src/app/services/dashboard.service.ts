@@ -49,7 +49,7 @@ export interface FantasyTeam {
   team_image: string;
   championship_id: number;
   official_rider_1: Rider;
-  official_rider_2: Rider;
+  official_rider_2?: Rider | null;
   reserve_rider: Rider;
 }
 

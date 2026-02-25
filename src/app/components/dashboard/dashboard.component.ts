@@ -423,7 +423,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                       </div>
                     </mat-expansion-panel>
 
-                    <mat-expansion-panel class="rider second-tier">
+                    <mat-expansion-panel class="rider second-tier" *ngIf="fantasyTeam.official_rider_2">
                       <mat-expansion-panel-header>
                         <mat-panel-title>
                           <i class="fa-solid fa-2"></i>
@@ -2974,7 +2974,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       font-size: .78rem;
     }
     .bottom-nav .item i { font-size: 1.05rem; }
-    .bottom-nav .item.active { 
+    .bottom-nav .item.active {
       color: blue;
       border-radius: 50px;
       width: 100%;
@@ -2986,7 +2986,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       justify-content: center;
       //box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
       box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
-      
+
       i {
         margin: 0px;
         font-size: 22px;
@@ -3170,9 +3170,9 @@ export class DashboardComponent implements OnInit {
 
     const riderIds = [
       this.fantasyTeam.official_rider_1.id,
-      this.fantasyTeam.official_rider_2.id,
+      this.fantasyTeam.official_rider_2?.id,
       this.fantasyTeam.reserve_rider.id,
-    ];
+    ].filter((id): id is number => !!id);
 
     const counts = this.racesDetails.lineups.reduce<Record<number, { q: number; r: number }>>(
       (acc, { qualifying_rider_id, race_rider_id }) => {
