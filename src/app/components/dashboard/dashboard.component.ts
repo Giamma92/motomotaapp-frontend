@@ -678,21 +678,21 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       </main>
     </div>
     <nav class="bottom-nav" aria-label="Primary">
-      <button class="item" [class.active]="isActive('standings')" (click)="setTab('standings')">
+      <button class="item" [class.active]="isActive('standings')" (click)="setTab('standings')" [attr.aria-label]="'dashboard.standings.title' | t">
         <i class="fa-solid fa-trophy" aria-hidden="true"></i>
-        <!-- <span>{{ 'dashboard.standings.title' | t }}</span> -->
+        <span class="label">{{ 'dashboard.standings.title' | t }}</span>
       </button>
-      <button class="item" [class.active]="isActive('next')" (click)="setTab('next')">
+      <button class="item" [class.active]="isActive('next')" (click)="setTab('next')" [attr.aria-label]="(isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t))">
         <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>
-        <!-- <span>{{ isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t) }}</span> -->
+        <span class="label">{{ isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t) }}</span>
       </button>
-      <button class="item" [class.active]="isActive('team')" (click)="setTab('team')">
+      <button class="item" [class.active]="isActive('team')" (click)="setTab('team')" [attr.aria-label]="'dashboard.team.teamRiders' | t">
         <i class="fa-solid fa-users" aria-hidden="true"></i>
-        <!-- <span>{{ 'dashboard.team.teamRiders' | t }}</span> -->
+        <span class="label">{{ 'dashboard.team.teamRiders' | t }}</span>
       </button>
-      <button class="item" [class.active]="isActive('config')" (click)="setTab('config')">
+      <button class="item" [class.active]="isActive('config')" (click)="setTab('config')" [attr.aria-label]="'dashboard.championship.configuration' | t">
         <i class="fa-solid fa-gear" aria-hidden="true"></i>
-        <!-- <span>{{ 'dashboard.championship.configuration' | t }}</span> -->
+        <span class="label">{{ 'dashboard.championship.configuration' | t }}</span>
       </button>
 
       <!-- Animated pill to show active tab -->
@@ -708,14 +708,16 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       min-height: 100vh;
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       color: #fff;
-      padding-top: 80px;
+      padding-top: calc(var(--app-header-height) + 8px);
     }
 
     .grid-content {
         display: grid;
         grid-template-columns: 1fr;
-        //gap: 20px;
+        width: min(100%, var(--content-max-width));
+        margin-inline: auto;
         padding: 8px;
+        gap: 12px;
 
         @media (min-width: 768px) {
           grid-template-columns: 1fr 1fr;
@@ -2936,7 +2938,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
     /* Reserve bottom space on mobile so content isn't hidden behind nav */
     @media (max-width: 768px) {
       .dashboard-container {
-        padding-bottom: 72px; /* ~height of bottom nav */
+        padding-bottom: 90px;
       }
       /* Hide non-active cards on mobile */
       .mobile-hidden {
@@ -2949,47 +2951,51 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       position: fixed;
       left: 0; right: 0; bottom: 0;
       z-index: 60;
-      height: 60px;
+      height: 72px;
       display: none; /* hidden by default; enabled by media query */
       grid-template-columns: repeat(4, 1fr);
       align-items: center;
       gap: .25rem;
-      padding: .35rem .5rem max(.35rem, env(safe-area-inset-bottom));
-      background: white;
-      border-radius: 50px;
-      margin: 15px 34px;
-      //box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
-      box-shadow: rgba(0, 0, 0, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 15px 12px;
-      //box-shadow: rgba(0, 0, 0, 0.17) 0px -23px 25px 0px inset, rgba(0, 0, 0, 0.15) 0px -36px 30px 0px inset, rgba(0, 0, 0, 0.1) 0px -79px 40px 0px inset, rgba(0, 0, 0, 0.06) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
+      padding: .4rem .5rem max(.4rem, env(safe-area-inset-bottom));
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      width: min(560px, calc(100% - 18px));
+      margin: 0 auto 10px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(74, 20, 140, 0.12);
 
     }
     .bottom-nav .item {
       position: relative;
-      display: flex; flex-direction: column; align-items: center; gap: .15rem;
-      padding: .35rem 0 .25rem;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .12rem;
+      min-height: 56px;
+      padding: .35rem 0;
       text-decoration: none;
-      color: #000000;
+      color: #2f2f2f;
       background: transparent;
       border: 0;
-      font-size: .78rem;
+      border-radius: 12px;
+      font-size: .7rem;
+      line-height: 1;
+      font-weight: 600;
+      text-align: center;
     }
     .bottom-nav .item i { font-size: 1.05rem; }
+    .bottom-nav .item .label {
+      display: block;
+      max-width: 72px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .bottom-nav .item.active {
-      color: blue;
-      border-radius: 50px;
-      width: 100%;
-      height: 100%;
-      align-items: center;
-      display: flex;
-      flex-direction: column;
-      /* vertical-align: middle; */
-      justify-content: center;
-      //box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-      box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
+      color: var(--primary-color);
+      background: rgba(74, 20, 140, 0.1);
 
       i {
-        margin: 0px;
-        font-size: 22px;
+        margin: 0;
+        font-size: 1.18rem;
       }
     }
 
@@ -3010,6 +3016,16 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
     /* Show bottom nav only on mobile */
     @media (max-width: 768px) {
       .bottom-nav { display: grid; }
+    }
+
+    @media (max-width: 420px) {
+      .bottom-nav .item .label {
+        display: none;
+      }
+
+      .bottom-nav {
+        height: 64px;
+      }
     }
 
     /* On desktop: show all cards; bottom nav hidden by default above */

@@ -84,22 +84,25 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
       align-items: center;
       min-height: 100vh;
       background: linear-gradient(135deg, var(--primary-color), var(--accent-red));
+      padding: 16px;
     }
 
     .login-card {
       width: 100%;
-      max-width: 440px;
-      padding: 2.5rem;
-      margin: 1rem;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      max-width: 460px;
+      padding: clamp(1.2rem, 3.8vw, 2.25rem);
+      margin: 0;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.24);
       overflow: hidden;
+      border: 1px solid rgba(74, 20, 140, 0.12);
 
       .login-form {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        padding: 0px 10px;
+        gap: 8px;
+        padding: 0 4px;
       }
 
       .card-header {
@@ -112,11 +115,11 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 1.5rem;
+          gap: 1rem;
 
           img {
-            width: 100px;
-            height: 100px;
+            width: 88px;
+            height: 88px;
             border-radius: 50%;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
           }
@@ -125,20 +128,20 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
             text-align: center;
             font-family: 'MotoGP Bold', sans-serif;
             color: var(--primary-color);
-            font-size: 1.5rem;
+            font-size: clamp(1.25rem, 4.8vw, 1.55rem);
 
             .subtitle {
               font-family: 'Roboto', sans-serif;
-              font-size: 1rem;
+              font-size: 0.95rem;
               color: #666;
-              margin-top: 0.5rem;
+              margin-top: 0.35rem;
             }
           }
         }
       }
 
       .mat-form-field {
-        margin: 1.5rem 0;
+        margin: 0.4rem 0;
 
         .mat-icon {
           color: var(--accent-red);
@@ -148,9 +151,9 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 
       .login-button {
         width: 100%;
-        padding: 1rem;
-        font-size: 1.1rem;
-        margin-top: 1rem;
+        min-height: 46px;
+        font-size: 1rem;
+        margin-top: 0.5rem;
         transition: all 0.3s ease;
 
         &:hover {
@@ -162,9 +165,9 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
       .error-message {
         background: #ffecec;
         color: var(--accent-red);
-        padding: 1rem;
+        padding: 0.85rem;
         border-radius: 8px;
-        margin: 1.5rem 10px;
+        margin: 0.9rem 4px 0;
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -190,11 +193,15 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
     }
 
     @media (max-width: 480px) {
+      .login-container {
+        padding: 10px;
+      }
+
       .login-card {
-        padding: 1.5rem;
+        padding: 1rem;
 
         .card-header mat-card-title .header-content {
-          font-size: 1.3rem;
+          font-size: 1.15rem;
         }
 
         .footer-links {

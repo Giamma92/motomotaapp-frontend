@@ -57,9 +57,11 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
       </header>
 
       <main class="main-content" @cardAnimation>
-        <div *ngIf="loading" class="loading-container">
-          <mat-spinner></mat-spinner>
-          <p>{{ 'common.loading' | t }}</p>
+        <div *ngIf="loading" class="ux-state loading-container">
+          <div class="ux-state-card">
+            <mat-spinner diameter="34"></mat-spinner>
+            <p>{{ 'common.loading' | t }}</p>
+          </div>
         </div>
 
         <div *ngIf="!loading" class="results-container">
@@ -441,12 +443,10 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
           </mat-card>
 
           <div *ngIf="!showLineups && !showSprintBet && !showRaceBet" class="no-results">
-            <mat-card class="no-results-card">
-              <mat-card-content>
-                <i class="fa-regular fa-hourglass no-results-icon"></i>
-                <p>{{ 'raceDetail.notStarted' | t }}</p>
-              </mat-card-content>
-            </mat-card>
+            <div class="ux-state-card no-results-card">
+              <i class="fa-regular fa-hourglass no-results-icon ux-state-icon"></i>
+              <p>{{ 'raceDetail.notStarted' | t }}</p>
+            </div>
           </div>
         </div>
       </main>
@@ -455,20 +455,20 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
   styles: [`
     :host { --accent-blue:#1976d2; --accent-orange:#ef6c00; --accent-red:#d32f2f; }
 
-    .page-container { min-height: 100vh; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; padding: 20px; }
-    .header { position: fixed; top: 0; left: 0; width: 100%; height: 60px; display: flex; align-items: center; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); box-shadow: 0 2px 4px rgba(0,0,0,0.3); color:#fff; z-index:1000; padding: 0 20px; }
+    .page-container { min-height: 100vh; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; }
+    .header { position: fixed; top: 0; left: 0; width: 100%; height: var(--app-header-height); display: flex; align-items: center; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); box-shadow: 0 8px 22px rgba(0,0,0,0.22); color:#fff; z-index:1000; padding: 0 clamp(10px,2.5vw,20px); }
     .header button i { font-size: 1.1rem; color: #fff; }
-    .header h1 { flex: 1; text-align: center; margin: 0; font-size: 24px; font-family: 'MotoGP Bold', sans-serif; }
-    .main-content { display:flex; flex-direction:column; align-items:center; padding:80px 0 0 0; max-width:1200px; margin:0 auto; width:100%; }
+    .header h1 { flex: 1; text-align: center; margin: 0; font-size: clamp(1rem,2.8vw,1.5rem); font-family: 'MotoGP Bold', sans-serif; }
+    .main-content { display:flex; flex-direction:column; align-items:stretch; gap: 10px; padding:0; max-width:var(--content-max-width); margin:0 auto; width:100%; }
 
     .loading-container { display:flex; flex-direction:column; align-items:center; gap:1rem; padding:4rem; color:#fff; }
-    .results-container { width:100%; display:flex; flex-direction:column; gap:1.25rem; }
+    .results-container { width:100%; display:flex; flex-direction:column; gap:1rem; }
 
-    .info-card, .results-card, .admin-card, .mobile-card { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.1); color: var(--text-dark); border-left:6px solid rgba(0,0,0,.08); }
+    .info-card, .results-card, .admin-card, .mobile-card { background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 6px 20px rgba(0,0,0,0.14); color: var(--text-dark); border-left:6px solid rgba(0,0,0,.08); }
     .card-accent-blue{ border-left-color:var(--accent-blue); } .card-accent-orange{ border-left-color:var(--accent-orange); } .card-accent-red{ border-left-color:var(--accent-red); }
 
     .card-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color:#fff; padding:1.1rem 1.25rem; display:flex; align-items:center; gap:.75rem; font-family:'MotoGP Bold', sans-serif; font-size:1.1rem; }
-    .event-meta-chips { display:flex; gap:.6rem; padding:1rem; flex-wrap:wrap; }
+    .event-meta-chips { display:flex; gap:.6rem; padding:0.9rem 1rem 1rem; flex-wrap:wrap; }
 
     .meta-chip { display:inline-grid; grid-template-columns:20px auto; column-gap:.5rem; align-items:center; padding:.5rem .75rem; background:#fff; color:#333; border:1px solid #eceff1; border-radius:10px; box-shadow:0 1px 2px rgba(0,0,0,.03); position:relative; }
     .meta-chip::before { content:''; position:absolute; left:0; top:0; bottom:0; width:6px; border-radius:10px 0 0 10px; background:#e0e0e0; }
@@ -482,7 +482,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
     .results-tabs ::ng-deep .mat-mdc-tab-label { color:var(--primary-color); font-family:'MotoGP Bold', sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
     .results-tabs ::ng-deep .mdc-tab--active .mdc-tab__text-label{ color:var(--primary-color)!important; }
     .results-tabs ::ng-deep .mat-mdc-ink-bar{ background:var(--primary-color); height:3px; }
-    .session-results{ padding:1.25rem; }
+    .session-results{ padding:1rem; }
 
     .result-table{ width:100%; border-radius:10px; overflow:hidden; }
     .result-table ::ng-deep .mat-mdc-header-row{ position:sticky; top:0; z-index:1; background:#f8f9fa; }
@@ -522,8 +522,8 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
 
     .mini-hint{ font-size:.75rem; color:#888; margin-top:.35rem; }
 
-    .no-results{ text-align:center; padding:4rem 2rem; }
-    .no-results-card{ background:#fff; border-radius:18px; padding:3rem; color:var(--text-dark); text-align:center; }
+    .no-results{ text-align:center; padding:2.5rem 1.25rem; }
+    .no-results-card{ background:#fff; border-radius:18px; padding:2rem; color:var(--text-dark); text-align:center; }
     .no-results-icon{ font-size:3.2rem; color:#ccc; margin-bottom:1rem; }
 
     .mat-mdc-card{ transition: all .3s cubic-bezier(.4,0,.2,1); }
@@ -554,17 +554,11 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
 
 
     @media (max-width:768px){
-      .page-container{ padding:10px; }
-      .header{ padding:0 10px; }
       .header h1{ font-size:20px; }
-      .main-content{ padding:70px 0 0 0; }
       .results-container{ gap:1rem; }
       .card-header{ padding:1rem; font-size:1rem; }
     }
     @media (max-width:480px){
-      .page-container{ padding:5px; }
-      .header{ padding:0 5px; }
-      .main-content{ padding:65px 0 0 0; }
       .mobile-card{ padding:10px; }
       .grid{ grid-template-columns:1fr 1fr; gap:6px; }
       .chip{ padding:6px 6px 6px 10px; }

@@ -67,30 +67,84 @@ import { NotificationServiceService } from '../../services/notification.service'
   styles: [`
     .settings-container {
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      justify-content: flex-start;
       align-items: center;
       min-height: 100vh;
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      padding: 20px;
+      padding: calc(var(--app-header-height) + 12px) 12px 18px;
     }
+
     .settings-card {
       width: 100%;
-      max-width: 500px;
-      padding: 20px;
+      max-width: 560px;
+      padding: clamp(0.65rem, 2vw, 1rem);
+      border-radius: 16px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+      border: 1px solid rgba(74, 20, 140, 0.12);
     }
+
     .form-group {
       margin-bottom: 20px;
     }
+
     .full-width {
       width: 100%;
     }
+
     .success-message {
-      color: green;
+      color: #1b5e20;
+      background: #e9f7ec;
+      border: 1px solid #b7dfbf;
+      padding: 0.75rem;
+      border-radius: 10px;
       margin-top: 10px;
-      font-weight: bold;
+      font-weight: 600;
+      font-size: 0.92rem;
     }
+
+    mat-card-content {
+      padding: 0.6rem 0.85rem 0.4rem;
+    }
+
+    mat-card-actions {
+      padding: 0.5rem 0.85rem 0.8rem;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    mat-card-actions button {
+      min-height: 44px;
+      min-width: 120px;
+      font-weight: 600;
+    }
+
     mat-card-header.mat-mdc-card-header {
-        padding-bottom: 20px;
+      padding-bottom: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .settings-container {
+        padding: calc(var(--app-header-height) + 8px) 8px 14px;
+      }
+
+      .settings-card {
+        max-width: 100%;
+      }
+
+      mat-card-content,
+      mat-card-actions {
+        padding-left: 0.6rem;
+        padding-right: 0.6rem;
+      }
+
+      mat-card-actions {
+        justify-content: stretch;
+
+        button {
+          width: 100%;
+        }
+      }
     }
   `],
 })

@@ -97,9 +97,11 @@ interface MotoGPResultsData {
       </header>
 
       <main class="main-content" @cardAnimation>
-        <div *ngIf="loading" class="loading-container">
-          <mat-spinner></mat-spinner>
-          <p>{{ 'common.loading' | t }}</p>
+        <div *ngIf="loading" class="ux-state loading-container">
+          <div class="ux-state-card">
+            <mat-spinner diameter="34"></mat-spinner>
+            <p>{{ 'common.loading' | t }}</p>
+          </div>
         </div>
 
         <div *ngIf="!loading && results" class="results-container">
@@ -474,13 +476,11 @@ interface MotoGPResultsData {
           </mat-card>
         </div>
 
-        <div *ngIf="!loading && !results" class="no-results">
-          <mat-card class="no-results-card">
-            <mat-card-content>
-              <i class="fa-solid fa-trophy no-results-icon"></i>
-              <p>{{ 'motogp.results.noResults' | t }}</p>
-            </mat-card-content>
-          </mat-card>
+        <div *ngIf="!loading && !results" class="ux-state no-results">
+          <div class="ux-state-card no-results-card">
+            <i class="fa-solid fa-trophy no-results-icon ux-state-icon"></i>
+            <p>{{ 'motogp.results.noResults' | t }}</p>
+          </div>
         </div>
       </main>
     </div>
@@ -598,29 +598,28 @@ interface MotoGPResultsData {
       min-height: 100vh;
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       color: #fff;
-      padding: 20px;
     }
 
     .header {
-      position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+      position: fixed; top: 0; left: 0; width: 100%; height: var(--app-header-height);
       display: flex; align-items: center;
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      color: #fff; z-index: 1000; padding: 0 20px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.22);
+      color: #fff; z-index: 1000; padding: 0 clamp(10px,2.5vw,20px);
     }
     .header button i { font-size: 1.1rem; color: #fff; }
-    .header h1 { flex: 1; text-align: center; margin: 0; font-size: 24px; font-family: 'MotoGP Bold', sans-serif; }
+    .header h1 { flex: 1; text-align: center; margin: 0; font-size: clamp(1rem,2.8vw,1.5rem); font-family: 'MotoGP Bold', sans-serif; }
 
     .main-content {
-      display: flex; flex-direction: column; align-items: center;
-      padding: 80px 0 0 0; max-width: 1200px; margin: 0 auto; width: 100%;
+      display: flex; flex-direction: column; align-items: stretch;
+      padding: 0; max-width: var(--content-max-width); margin: 0 auto; width: 100%;
     }
 
     .loading-container { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 4rem; color: #fff; }
-    .results-container { width: 100%; display: flex; flex-direction: column; gap: 2rem; }
+    .results-container { width: 100%; display: flex; flex-direction: column; gap: 1rem; }
 
     .event-info-card, .admin-actions-card, .results-card {
-      background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.1); color: var(--text-dark);
+      background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.14); color: var(--text-dark);
       border-left: 4px solid var(--accent-red);
     }
     .card-header {
@@ -645,7 +644,7 @@ interface MotoGPResultsData {
     .results-tabs ::ng-deep .mdc-tab--active .mdc-tab__text-label { color: var(--primary-color) !important; }
     .results-tabs ::ng-deep .mat-mdc-ink-bar { background: var(--primary-color); height: 3px; }
 
-    .session-results { padding: 1.5rem; }
+    .session-results { padding: 1rem; }
 
     .result-table { width: 100%; border-radius: 10px; overflow: hidden; }
     .result-table ::ng-deep .mat-mdc-header-row { position: sticky; top: 0; z-index: 1; background: #f8f9fa; }
@@ -760,10 +759,7 @@ interface MotoGPResultsData {
 
     /* Responsive */
     @media (max-width: 768px) {
-      .page-container { padding: 10px; }
-      .header { padding: 0 10px; }
       .header h1 { font-size: 20px; }
-      .main-content { padding: 70px 0 0 0; }
       .results-container { gap: 1rem; }
       .session-results { padding: 1rem; }
       .card-header { padding: 1rem; font-size: 1rem; }
@@ -771,9 +767,6 @@ interface MotoGPResultsData {
     }
 
     @media (max-width: 480px) {
-      .page-container { padding: 5px; }
-      .header { padding: 0 5px; }
-      .main-content { padding: 65px 0 0 0; }
       .session-results { padding: .75rem; }
       .mobile-result-card { padding: 10px; }
       .stats-grid { grid-template-columns: 1fr 1fr; gap: 6px; }

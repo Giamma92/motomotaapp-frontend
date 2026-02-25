@@ -154,16 +154,18 @@ import { I18nService } from '../../services/i18n.service';
   `,
   styles: [`
     .main-content {
-      color: black;
+      color: #111;
       padding: 0;
+      gap: 12px;
+
       .mat-mdc-card-header {
-        padding: 0px;
+        padding: 0;
       }
     }
 
-    @media(max-width: 768px) {
+    @media (max-width: 768px) {
       .main-content {
-        padding: 0px 0px 0px 0px;
+        gap: 10px;
       }
     }
 
@@ -192,9 +194,11 @@ import { I18nService } from '../../services/i18n.service';
       background: white;
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 4px 24px rgba(var(--primary-color), 0.1);
-      width: 90%;
-      margin-top: 3rem;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
+      width: 100%;
+      max-width: var(--content-max-width);
+      margin-top: 0;
+      border: 1px solid rgba(74, 20, 140, 0.14);
     }
 
     .card-header {
@@ -236,7 +240,8 @@ import { I18nService } from '../../services/i18n.service';
     /* Desktop Table Styling */
     .desktop-view {
       display: block;
-      padding: 1.5rem;
+      padding: clamp(0.85rem, 2vw, 1.5rem);
+
       @media (max-width: 768px) {
         display: none;  // Hide table on mobile
       }
@@ -246,7 +251,7 @@ import { I18nService } from '../../services/i18n.service';
         border-collapse: collapse;
 
         th, td {
-          padding: 1rem;
+          padding: clamp(0.7rem, 1.5vw, 1rem);
           text-align: left;
           border-bottom: 1px solid #eee;
         }
@@ -289,6 +294,7 @@ import { I18nService } from '../../services/i18n.service';
       padding: 0;
       width: 100%;
       background: transparent;
+
       @media (max-width: 768px) {
         display: block;
       }
@@ -296,7 +302,7 @@ import { I18nService } from '../../services/i18n.service';
 
     .calendar-race-card {
       width: 100%;
-      margin: 1.5rem 0;
+      margin: 0.75rem 0;
       box-sizing: border-box;
       border-radius: 18px;
       box-shadow: 0 4px 16px rgba(74, 20, 140, 0.10), 0 1.5px 4px rgba(74, 20, 140, 0.06);
@@ -438,7 +444,7 @@ import { I18nService } from '../../services/i18n.service';
 
     .calendar-race-card .time-value {
       color: var(--primary-color);
-      font-size: 1.08rem;
+      font-size: 1rem;
       font-weight: 600;
       letter-spacing: 0.5px;
       white-space: nowrap;
@@ -657,6 +663,19 @@ import { I18nService } from '../../services/i18n.service';
     .calendar-race-card .action-buttons {
       border-bottom-left-radius: 18px;
       border-bottom-right-radius: 18px;
+      padding: 0.75rem 1rem 0.95rem;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    @media (min-width: 769px) {
+      .calendar-mobile-list {
+        display: none !important;
+      }
+
+      .dashboard-card {
+        margin-bottom: 0.5rem;
+      }
     }
   `]
 })
