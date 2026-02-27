@@ -395,17 +395,16 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
 
                                    <div class="rider-grid">
                     <mat-expansion-panel class="rider first-tier">
-                      <mat-expansion-panel-header>
-                        <mat-panel-title>
-                          <i class="fa-solid fa-crown"></i>
-                          <h4>{{ 'dashboard.team.firstTierPilot' | t }}</h4>
-                        </mat-panel-title>
+                      <mat-expansion-panel-header class="rider-header">
+                        <div class="rider-header-main">
+                          <span class="rider-role">{{ 'dashboard.team.firstTierPilot' | t }}</span>
+                          <div class="rider-name-row">
+                            <span class="rider-name">{{ fantasyTeam.official_rider_1.first_name }} {{ fantasyTeam.official_rider_1.last_name }}</span>
+                            <span class="rider-header-number">#{{ fantasyTeam.official_rider_1.number }}</span>
+                          </div>
+                        </div>
                       </mat-expansion-panel-header>
                       <div class="rider-info">
-                        <div class="rider-basic">
-                          <span class="rider-name">{{ fantasyTeam.official_rider_1.first_name }} {{ fantasyTeam.official_rider_1.last_name }}</span>
-                          <span class="rider-number">#{{ fantasyTeam.official_rider_1.number }}</span>
-                        </div>
                         <div class="rider-stats">
                           <div class="stat-row">
                             <span class="stat-label">{{ 'dashboard.team.lineupsUsed' | t }}</span>
@@ -424,17 +423,16 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                     </mat-expansion-panel>
 
                     <mat-expansion-panel class="rider second-tier" *ngIf="fantasyTeam.official_rider_2">
-                      <mat-expansion-panel-header>
-                        <mat-panel-title>
-                          <i class="fa-solid fa-medal"></i>
-                          <h4>{{ 'dashboard.team.secondTierPilot' | t }}</h4>
-                        </mat-panel-title>
+                      <mat-expansion-panel-header class="rider-header">
+                        <div class="rider-header-main">
+                          <span class="rider-role">{{ 'dashboard.team.secondTierPilot' | t }}</span>
+                          <div class="rider-name-row">
+                            <span class="rider-name">{{ fantasyTeam.official_rider_2.first_name }} {{ fantasyTeam.official_rider_2.last_name }}</span>
+                            <span class="rider-header-number">#{{ fantasyTeam.official_rider_2.number }}</span>
+                          </div>
+                        </div>
                       </mat-expansion-panel-header>
                       <div class="rider-info">
-                        <div class="rider-basic">
-                          <span class="rider-name">{{ fantasyTeam.official_rider_2.first_name }} {{ fantasyTeam.official_rider_2.last_name }}</span>
-                          <span class="rider-number">#{{ fantasyTeam.official_rider_2.number }}</span>
-                        </div>
                         <div class="rider-stats">
                           <div class="stat-row">
                             <span class="stat-label">{{ 'dashboard.team.lineupsUsed' | t }}</span>
@@ -453,17 +451,16 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                     </mat-expansion-panel>
 
                     <mat-expansion-panel class="rider third-tier">
-                      <mat-expansion-panel-header>
-                        <mat-panel-title>
-                          <i class="fa-solid fa-user-shield"></i>
-                          <h4>{{ 'dashboard.team.thirdTierPilot' | t }}</h4>
-                        </mat-panel-title>
+                      <mat-expansion-panel-header class="rider-header">
+                        <div class="rider-header-main">
+                          <span class="rider-role">{{ 'dashboard.team.thirdTierPilot' | t }}</span>
+                          <div class="rider-name-row">
+                            <span class="rider-name">{{ fantasyTeam.reserve_rider.first_name }} {{ fantasyTeam.reserve_rider.last_name }}</span>
+                            <span class="rider-header-number">#{{ fantasyTeam.reserve_rider.number }}</span>
+                          </div>
+                        </div>
                       </mat-expansion-panel-header>
                       <div class="rider-info">
-                        <div class="rider-basic">
-                          <span class="rider-name">{{ fantasyTeam.reserve_rider.first_name }} {{ fantasyTeam.reserve_rider.last_name }}</span>
-                          <span class="rider-number">#{{ fantasyTeam.reserve_rider.number }}</span>
-                        </div>
                         <div class="rider-stats">
                           <div class="stat-row">
                             <span class="stat-label">{{ 'dashboard.team.lineupsUsed' | t }}</span>
@@ -2017,30 +2014,11 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
             }
 
             ::ng-deep .mat-expansion-panel-header {
-              padding: 1rem;
+              min-height: 68px;
+              height: auto;
+              padding: 8px 10px;
               background: transparent;
               border-bottom: 1px solid #e9ecef;
-
-              .mat-expansion-panel-header-title {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                color: var(--primary-color);
-                font-size: 1.1rem;
-                font-weight: 600;
-
-                i {
-                  color: var(--primary-color);
-                  font-size: 1.2rem;
-                }
-
-                h4 {
-                  margin: 0;
-                  color: var(--primary-color);
-                  font-size: 1.1rem;
-                  font-weight: 600;
-                }
-              }
             }
 
             ::ng-deep .mat-expansion-panel-body {
@@ -2048,28 +2026,6 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
             }
 
            .rider-info {
-                           .rider-basic {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 0.75rem;
-
-               .rider-name {
-                 font-weight: 600;
-                 font-size: 1.1rem;
-                 color: #333;
-               }
-
-               .rider-number {
-                 background: var(--secondary-color);
-                 color: white;
-                 padding: 4px 12px;
-                 border-radius: 20px;
-                 font-weight: bold;
-                 font-size: 0.9rem;
-               }
-             }
-
                            .rider-stats {
                 display: grid;
                 gap: 0.4rem;
@@ -2102,6 +2058,62 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                }
              }
            }
+
+           .rider-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0;
+
+            .rider-header-main {
+              min-width: 0;
+              width: 100%;
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 2px;
+
+              .rider-role {
+                font-size: 0.72rem;
+                line-height: 1.05;
+                text-transform: uppercase;
+                letter-spacing: 0.35px;
+                color: #6b7280;
+                font-weight: 700;
+                font-family: 'MotoGP Bold', sans-serif;
+              }
+
+              .rider-name-row {
+                display: flex;
+                align-items: baseline;
+                gap: 8px;
+                min-width: 0;
+              }
+
+              .rider-name {
+                color: #111827;
+                font-size: 1.02rem;
+                line-height: 1.15;
+                font-weight: 700;
+                font-family: 'MotoGP Bold', sans-serif;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              }
+            }
+
+            .rider-header-number {
+              color: var(--primary-color);
+              border-left: 1px solid #d1d5db;
+              padding-left: 8px;
+              font-size: 0.76rem;
+              letter-spacing: 0.15px;
+              font-weight: 600;
+              font-family: 'MotoGP Bold', sans-serif;
+              white-space: nowrap;
+              flex: 0 0 auto;
+            }
+          }
          }
 
          .first-tier {
