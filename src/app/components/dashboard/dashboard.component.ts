@@ -426,7 +426,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                     <mat-expansion-panel class="rider second-tier" *ngIf="fantasyTeam.official_rider_2">
                       <mat-expansion-panel-header>
                         <mat-panel-title>
-                          <i class="fa-solid fa-2"></i>
+                          <i class="fa-solid fa-medal"></i>
                           <h4>{{ 'dashboard.team.secondTierPilot' | t }}</h4>
                         </mat-panel-title>
                       </mat-expansion-panel-header>
