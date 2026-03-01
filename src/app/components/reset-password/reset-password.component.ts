@@ -25,85 +25,140 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   ],
   template: `
     <div class="reset-container">
-      <mat-card class="reset-card">
-        <mat-card-header class="card-header">
-          <mat-card-title>{{ 'resetPassword.title' | t }}</mat-card-title>
-        </mat-card-header>
+      <header class="header">
+        <button mat-icon-button (click)="goBack()" aria-label="Back">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>{{ 'resetPassword.title' | t }}</h1>
+      </header>
 
-        <form class="reset-form" [formGroup]="resetForm" (ngSubmit)="onSave()">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'resetPassword.newPassword' | t }}</mat-label>
-            <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="password" required>
-            <button mat-icon-button matSuffix type="button" (click)="toggleShowPassword()" [attr.aria-label]="showPassword ? ('resetPassword.hide' | t) : ('resetPassword.show' | t)">
-              <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+      <main class="reset-main">
+        <section class="reset-panel">
+          <form class="reset-form" [formGroup]="resetForm" (ngSubmit)="onSave()">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ 'resetPassword.newPassword' | t }}</mat-label>
+              <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="password" required>
+              <button mat-icon-button matSuffix type="button" (click)="toggleShowPassword()" [attr.aria-label]="showPassword ? ('resetPassword.hide' | t) : ('resetPassword.show' | t)">
+                <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ 'resetPassword.confirmPassword' | t }}</mat-label>
+              <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="confirmPassword" required>
+              <mat-icon matPrefix>lock</mat-icon>
+            </mat-form-field>
+
+            <div *ngIf="errorMessage" class="error-message">
+              <mat-icon>error</mat-icon>
+              {{ errorMessage }}
+            </div>
+
+            <button mat-raised-button color="primary" class="save-button" type="submit" [disabled]="resetForm.invalid || loading">
+              {{ 'resetPassword.save' | t }}
             </button>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'resetPassword.confirmPassword' | t }}</mat-label>
-            <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="confirmPassword" required>
-            <mat-icon matPrefix>lock</mat-icon>
-          </mat-form-field>
-
-          <div *ngIf="errorMessage" class="error-message">
-            <mat-icon>error</mat-icon>
-            {{ errorMessage }}
-          </div>
-
-          <button mat-raised-button color="primary" class="save-button" type="submit" [disabled]="resetForm.invalid || loading">
-            {{ 'resetPassword.save' | t }}
-          </button>
-        </form>
-      </mat-card>
+          </form>
+        </section>
+      </main>
     </div>
   `,
   styles: [`
     .reset-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, var(--primary-color), var(--accent-red));
+      background:
+        radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
+        radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
+        linear-gradient(158deg, #ffffff 0%, #f8f8f9 48%, #f1f2f4 100%);
+      color: #16181d;
     }
 
-    .reset-card {
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
-      max-width: 440px;
-      padding: 2rem;
-      margin: 1rem;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      height: var(--app-header-height);
+      display: flex;
+      align-items: center;
+      background: rgba(17, 18, 20, 0.97);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+      color: #fff;
+      z-index: 1000;
+      padding: 0 clamp(10px, 2.5vw, 20px);
+    }
 
-      .card-header {
-        background: transparent;
-        padding: 0;
-        margin-bottom: 1rem;
+    .header button {
+      background: #fff;
+      color: #c8102e;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+    }
+
+    .header h1 {
+      flex: 1;
+      text-align: center;
+      margin: 0;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      font-size: clamp(1rem, 2.8vw, 1.5rem);
+      font-family: 'MotoGP Bold', sans-serif;
+      padding-right: 42px;
+    }
+
+    .reset-main {
+      width: min(100%, 560px);
+      margin: 0 auto;
+      padding: calc(var(--app-header-height) + 12px) 10px 12px;
+    }
+
+    .reset-panel {
+      width: 100%;
+      border: 1px solid rgba(17, 18, 20, 0.12);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 8px 18px rgba(0,0,0,.08);
+      padding: 10px;
+    }
+
+    .reset-form {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .full-width {
+      width: 100%;
+    }
+
+    .save-button {
+      width: 100%;
+      min-height: 44px;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .error-message {
+      background: #ffecec;
+      color: #c8102e;
+      padding: .72rem;
+      border-radius: 8px;
+      margin: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid #c8102e;
+      font-size: .86rem;
+    }
+
+    @media (max-width: 600px) {
+      .reset-main {
+        padding: calc(var(--app-header-height) + 8px) 8px 10px;
       }
 
-      .reset-form {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        padding: 0px 10px;
-      }
-
-      .save-button {
-        width: 100%;
-        padding: 1rem;
-        font-size: 1.1rem;
-        margin-top: 1rem;
-      }
-
-      .error-message {
-        background: #ffecec;
-        color: var(--accent-red);
-        padding: 1rem;
-        border-radius: 8px;
-        margin: 1rem 10px;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        border: 1px solid var(--accent-red);
+      .reset-panel {
+        padding: 8px;
       }
     }
   `]
@@ -123,6 +178,10 @@ export class ResetPasswordComponent {
 
   toggleShowPassword(): void {
     this.showPassword = !this.showPassword;
+  }
+
+  goBack(): void {
+    this.router.navigate(['/']);
   }
 
   onSave(): void {

@@ -16,15 +16,15 @@
 }
 
 :root {
-  --primary-color: #4A148C;
-  --secondary-color: #D81B60;
+  --primary-color: #C8102E;
+  --secondary-color: #F4F4F4;
   --accent-red: #e40000;
   --accent-black: #000000;
-  --text-dark: #333;
+  --text-dark: #141414;
   --text-light: #ffffff;
-  --background-light: #f8f9fa;
+  --background-light: #f3f3f3;
   --surface-color: #ffffff;
-  --surface-muted: #f4f5f8;
+  --surface-muted: #ececec;
   --app-header-height: 64px;
   --content-max-width: 1280px;
   --radius-md: 14px;
@@ -45,7 +45,10 @@ body {
   font-family: 'MotoGP Regular', 'Helvetica Neue', sans-serif;
   line-height: 1.4;
   color: var(--text-dark);
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background:
+    radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.16), transparent 42%),
+    radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.04), transparent 36%),
+    linear-gradient(160deg, #ffffff 0%, #f9f9fa 48%, #f1f2f4 100%);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -74,8 +77,11 @@ textarea:focus-visible {
 
 .page-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: #fff;
+  background:
+    radial-gradient(circle at 10% -15%, rgba(200, 16, 46, 0.13), transparent 40%),
+    radial-gradient(circle at 100% -10%, rgba(0, 0, 0, 0.035), transparent 34%),
+    linear-gradient(160deg, #ffffff 0%, #fafafa 46%, #f2f3f5 100%);
+  color: var(--text-dark);
   padding: calc(var(--app-header-height) + 12px) clamp(12px, 2.8vw, 28px) clamp(18px, 4vw, 36px);
 }
 
@@ -89,14 +95,15 @@ textarea:focus-visible {
   align-items: center;
   gap: 8px;
   padding: 0 clamp(10px, 2.5vw, 20px);
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
-  color: #fff;
+  color: var(--text-dark);
   z-index: 1000;
 }
 
 .header button {
-  color: #fff;
+  color: var(--text-dark);
   min-width: 44px;
   min-height: 44px;
 }
@@ -110,6 +117,7 @@ textarea:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--text-dark);
 }
 
 .main-content {

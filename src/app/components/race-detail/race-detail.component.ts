@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
@@ -32,6 +33,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
     MatChipsModule,
     MatTabsModule,
     MatProgressSpinnerModule,
+    MatIconModule,
     FormsModule,
     TranslatePipe
   ],
@@ -71,46 +73,32 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
               <i class="fa-solid fa-circle-info"></i>
               <span>{{ 'raceDetail.info.title' | t }}</span>
             </div>
-            <div class="event-meta-chips">
-              <span class="meta-chip chip-accent-red">
-                <i class="fa-solid fa-flag-checkered"></i>
-                <span class="chip-body">
-                  <span class="val">{{ raceName || ('common.na' | t) }}</span>
-                  <span class="sub">{{ 'raceDetail.info.raceName' | t }}</span>
-                </span>
-              </span>
+            <div class="race-overview">
+              <div class="race-overview-main">
+                <div class="race-kicker">{{ 'raceDetail.info.raceName' | t }}</div>
+                <h2 class="race-title">{{ raceName || ('common.na' | t) }}</h2>
+                <div class="race-date-row">
+                  <i class="fa-solid fa-calendar-day"></i>
+                  <span>{{ calendarRace.event_date | date:'EEE d MMM y' }}</span>
+                </div>
+              </div>
 
-              <span class="meta-chip chip-accent-blue">
-                <i class="fa-solid fa-calendar-day"></i>
-                <span class="chip-body">
-                  <span class="val">{{ calendarRace.event_date | date:'MMM d, y' }}</span>
-                  <span class="sub">{{ 'raceDetail.info.date' | t }}</span>
-                </span>
-              </span>
+              <div class="race-times-grid">
+                <div class="race-time-item" *ngIf="calendarRace.qualifications_time">
+                  <span class="race-time-label">{{ 'raceDetail.info.qualiTime' | t }}</span>
+                  <span class="race-time-value">{{ calendarRace.qualifications_time }}</span>
+                </div>
 
-              <span class="meta-chip chip-accent-blue" *ngIf="calendarRace.event_time">
-                <i class="fa-solid fa-clock"></i>
-                <span class="chip-body">
-                  <span class="val">{{ calendarRace.event_time }}</span>
-                  <span class="sub">{{ 'raceDetail.info.raceTime' | t }}</span>
-                </span>
-              </span>
+                <div class="race-time-item" *ngIf="calendarRace.sprint_time">
+                  <span class="race-time-label">{{ 'raceDetail.info.sprintTime' | t }}</span>
+                  <span class="race-time-value">{{ calendarRace.sprint_time }}</span>
+                </div>
 
-              <span class="meta-chip chip-accent-orange" *ngIf="calendarRace.qualifications_time">
-                <i class="fa-solid fa-stopwatch"></i>
-                <span class="chip-body">
-                  <span class="val">{{ calendarRace.qualifications_time }}</span>
-                  <span class="sub">{{ 'raceDetail.info.qualiTime' | t }}</span>
-                </span>
-              </span>
-
-              <span class="meta-chip chip-accent-orange" *ngIf="calendarRace.sprint_time">
-                <i class="fa-solid fa-gauge-high"></i>
-                <span class="chip-body">
-                  <span class="val">{{ calendarRace.sprint_time }}</span>
-                  <span class="sub">{{ 'raceDetail.info.sprintTime' | t }}</span>
-                </span>
-              </span>
+                <div class="race-time-item race-time-item-primary" *ngIf="calendarRace.event_time">
+                  <span class="race-time-label">{{ 'raceDetail.info.raceTime' | t }}</span>
+                  <span class="race-time-value">{{ calendarRace.event_time }}</span>
+                </div>
+              </div>
             </div>
           </mat-card>
 
@@ -244,28 +232,19 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
 
                   <ng-container *ngIf="isMobile">
                     <div class="mobile-list">
-                      <article class="mobile-card card-accent-blue" *ngFor="let e of lineups; trackBy: trackByUser">
-                        <header class="mobile-card-header">
-                          <i class="fa-solid fa-user"></i>
-                          <div class="title-wrap">
-                            <span class="title">{{ displayUser(e.user_id) }}</span>
-                            <span class="when">{{ e.modified_at | date:'MM/dd HH:mm' }}</span>
-                          </div>
+                      <article class="mobile-entry" *ngFor="let e of lineups; trackBy: trackByUser">
+                        <header class="entry-head">
+                          <span class="entry-user">{{ displayUser(e.user_id) }}</span>
+                          <span class="entry-when">{{ e.modified_at | date:'MM/dd HH:mm' }}</span>
                         </header>
-                        <section class="grid">
-                          <div class="chip chip-accent-orange">
-                            <i class="fa-solid fa-flag-checkered"></i>
-                            <div class="chip-body">
-                              <span class="val">{{ getRiderDisplay(e.qualifying_rider_id) }}</span>
-                              <span class="sub">{{ 'raceDetail.table.qualifyingRider' | t }}</span>
-                            </div>
+                        <section class="entry-body">
+                          <div class="kv-row">
+                            <span class="kv-key"><i class="fa-solid fa-flag-checkered"></i>{{ 'raceDetail.table.qualifyingRider' | t }}</span>
+                            <span class="kv-value">{{ getRiderDisplay(e.qualifying_rider_id) }}</span>
                           </div>
-                          <div class="chip chip-accent-red">
-                            <i class="fa-solid fa-helmet-safety"></i>
-                            <div class="chip-body">
-                              <span class="val">{{ getRiderDisplay(e.race_rider_id) }}</span>
-                              <span class="sub">{{ 'raceDetail.table.raceRider' | t }}</span>
-                            </div>
+                          <div class="kv-row">
+                            <span class="kv-key"><mat-icon aria-hidden="true">sports_motorsports</mat-icon>{{ 'raceDetail.table.raceRider' | t }}</span>
+                            <span class="kv-value">{{ getRiderDisplay(e.race_rider_id) }}</span>
                           </div>
                         </section>
                       </article>
@@ -284,7 +263,10 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                         <td mat-cell *matCellDef="let e">{{ displayUser(e.user_id) }}</td>
                       </ng-container>
                       <ng-container matColumnDef="rider">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.rider' | t }}</th>
+                        <th mat-header-cell *matHeaderCellDef>
+                          <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
+                          {{ 'raceDetail.table.rider' | t }}
+                        </th>
                         <td mat-cell *matCellDef="let e">{{ displayRiderName(e.rider_id) }}</td>
                       </ng-container>
                       <ng-container matColumnDef="position">
@@ -314,41 +296,22 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
 
                   <ng-container *ngIf="isMobile">
                     <div class="mobile-list">
-                      <article class="mobile-card card-accent-orange" *ngFor="let e of sprints; trackBy: trackByUser">
-                        <header class="mobile-card-header">
-                          <div class="title-wrap">
-                            <span class="title">{{ displayUser(e.user_id) }}</span>
-                            <span class="when">{{ e.modified_at | date:'MM/dd HH:mm' }}</span>
-                          </div>
+                      <article class="mobile-entry" *ngFor="let e of sprints; trackBy: trackByUser">
+                        <header class="entry-head">
+                          <span class="entry-user">{{ displayUser(e.user_id) }}</span>
+                          <span class="entry-when">{{ e.modified_at | date:'MM/dd HH:mm' }}</span>
                         </header>
-                        <section class="grid">
-                          <div class="chip chip-accent-red">
-                            <i class="fa-solid fa-helmet-safety"></i>
-                            <div class="chip-body">
-                              <span class="val">{{ displayRiderName(e.rider_id) }}</span>
-                              <span class="sub">{{ 'raceDetail.table.rider' | t }}</span>
-                            </div>
+                        <section class="entry-body">
+                          <div class="kv-row">
+                            <span class="kv-key"><mat-icon aria-hidden="true">sports_motorsports</mat-icon>{{ 'raceDetail.table.rider' | t }}</span>
+                            <span class="kv-value">{{ displayRiderName(e.rider_id) }}</span>
                           </div>
-                          <div class="chip chip-accent-blue">
-                            <i class="fa-solid fa-star"></i>
-                            <div class="chip-body">
-                              <span class="val">{{ e.points }}</span>
-                              <span class="sub">{{ 'raceDetail.table.points' | t }}</span>
-                            </div>
-                          </div>
-                          <div class="chip chip-accent-blue">
-                            <i class="fa-solid fa-list-ol"></i>
-                            <div class="chip-body">
-                              <span class="val">{{ getPositionDisplay(e.position) }}</span>
-                              <span class="sub">{{ 'raceDetail.table.position' | t }}</span>
-                            </div>
-                          </div>
-                          <div class="chip chip-accent-orange">
-                            <i [class]="resultIconClass(e.outcome, e.points)"></i>
-                            <div class="chip-body">
-                              <span class="val">{{ resultText(e.outcome) }}</span>
-                              <span class="sub">{{ 'raceDetail.table.result' | t }}</span>
-                            </div>
+                          <div class="entry-meta">
+                            <span class="meta-tag">{{ 'raceDetail.table.position' | t }}: <strong>{{ getPositionDisplay(e.position) }}</strong></span>
+                            <span class="meta-tag points">{{ 'raceDetail.table.points' | t }}: <strong>{{ e.points }}</strong></span>
+                            <span class="meta-tag result" [class.ok-tag]="e.points > 0" [class.ko-tag]="e.points <= 0">
+                              <i [class]="resultIconClass(e.outcome, e.points)"></i> {{ resultText(e.outcome) }}
+                            </span>
                           </div>
                         </section>
                       </article>
@@ -367,7 +330,10 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                         <td mat-cell *matCellDef="let e">{{ displayUser(e.user_id) }}</td>
                       </ng-container>
                       <ng-container matColumnDef="rider">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.rider' | t }}</th>
+                        <th mat-header-cell *matHeaderCellDef>
+                          <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
+                          {{ 'raceDetail.table.rider' | t }}
+                        </th>
                         <td mat-cell *matCellDef="let e">{{ displayRiderName(e.rider_id) }}</td>
                       </ng-container>
                       <ng-container matColumnDef="position">
@@ -397,41 +363,22 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
 
                   <ng-container *ngIf="isMobile">
                     <div class="mobile-list">
-                      <article class="mobile-card card-accent-red" *ngFor="let e of bets; trackBy: trackByUser">
-                        <header class="mobile-card-header">
-                          <div class="title-wrap">
-                            <span class="title">{{ displayUser(e.user_id) }}</span>
-                            <span class="when">{{ e.modified_at | date:'MM/dd HH:mm' }}</span>
-                          </div>
+                      <article class="mobile-entry" *ngFor="let e of bets; trackBy: trackByUser">
+                        <header class="entry-head">
+                          <span class="entry-user">{{ displayUser(e.user_id) }}</span>
+                          <span class="entry-when">{{ e.modified_at | date:'MM/dd HH:mm' }}</span>
                         </header>
-                        <section class="grid">
-                          <div class="chip chip-accent-red">
-                            <i class="fa-solid fa-helmet-safety"></i>
-                            <div class="chip-body">
-                              <span class="val">{{ displayRiderName(e.rider_id) }}</span>
-                              <span class="sub">{{ 'raceDetail.table.rider' | t }}</span>
-                            </div>
+                        <section class="entry-body">
+                          <div class="kv-row">
+                            <span class="kv-key"><mat-icon aria-hidden="true">sports_motorsports</mat-icon>{{ 'raceDetail.table.rider' | t }}</span>
+                            <span class="kv-value">{{ displayRiderName(e.rider_id) }}</span>
                           </div>
-                          <div class="chip chip-accent-blue">
-                            <i class="fa-solid fa-star"></i>
-                            <div class="chip-body">
-                              <span class="val">{{ e.points }}</span>
-                              <span class="sub">{{ 'raceDetail.table.points' | t }}</span>
-                            </div>
-                          </div>
-                          <div class="chip chip-accent-blue">
-                            <i class="fa-solid fa-list-ol"></i>
-                            <div class="chip-body">
-                              <span class="val">{{ getPositionDisplay(e.position) }}</span>
-                              <span class="sub">{{ 'raceDetail.table.position' | t }}</span>
-                            </div>
-                          </div>
-                          <div class="chip chip-accent-orange">
-                            <i [class]="resultIconClass(e.outcome, e.points)"></i>
-                            <div class="chip-body">
-                              <span class="val">{{ resultText(e.outcome) }}</span>
-                              <span class="sub">{{ 'raceDetail.table.result' | t }}</span>
-                            </div>
+                          <div class="entry-meta">
+                            <span class="meta-tag">{{ 'raceDetail.table.position' | t }}: <strong>{{ getPositionDisplay(e.position) }}</strong></span>
+                            <span class="meta-tag points">{{ 'raceDetail.table.points' | t }}: <strong>{{ e.points }}</strong></span>
+                            <span class="meta-tag result" [class.ok-tag]="e.points > 0" [class.ko-tag]="e.points <= 0">
+                              <i [class]="resultIconClass(e.outcome, e.points)"></i> {{ resultText(e.outcome) }}
+                            </span>
                           </div>
                         </section>
                       </article>
@@ -477,6 +424,83 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
     .meta-chip .val { font-weight:800; color:#222; line-height:1.1; }
     .meta-chip .sub { margin-top:2px; font-size:.75rem; color:#667; }
     .chip-accent-blue::before{ background:var(--accent-blue);} .chip-accent-orange::before{ background:var(--accent-orange);} .chip-accent-red::before{ background:var(--accent-red);}
+
+    .race-overview{
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: .8rem;
+      padding: .75rem .9rem .25rem;
+      align-items: start;
+    }
+    .race-overview-main{
+      display: flex;
+      flex-direction: column;
+      gap: .32rem;
+      min-width: 0;
+    }
+    .race-kicker{
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .38px;
+      color: #6c727e;
+      font-weight: 700;
+    }
+    .race-title{
+      margin: 0;
+      color: #111214;
+      font-family: 'MotoGP Bold', sans-serif;
+      letter-spacing: .25px;
+      text-transform: uppercase;
+      line-height: 1.02;
+      font-size: clamp(1.12rem, 2.3vw, 1.5rem);
+    }
+    .race-date-row{
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      color: #353b46;
+      font-weight: 600;
+      font-size: .88rem;
+    }
+    .race-date-row i{
+      color: #c8102e;
+      font-size: .88rem;
+    }
+    .race-times-grid{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .42rem;
+      align-self: stretch;
+    }
+    .race-time-item{
+      border: 1px solid rgba(17, 18, 20, 0.14);
+      border-radius: 10px;
+      padding: .48rem .55rem;
+      background: #fff;
+      display: grid;
+      gap: .12rem;
+      min-height: 52px;
+    }
+    .race-time-item-primary{
+      grid-column: 1 / -1;
+      border-color: rgba(200, 16, 46, 0.35);
+      background: linear-gradient(180deg, rgba(200, 16, 46, 0.05), rgba(200, 16, 46, 0.02));
+    }
+    .race-time-label{
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .35px;
+      color: #666d79;
+      line-height: 1.1;
+      font-weight: 700;
+    }
+    .race-time-value{
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 1.02rem;
+      color: #111214;
+      line-height: 1.05;
+      letter-spacing: .2px;
+    }
 
     .results-tabs ::ng-deep .mat-mdc-tab-labels { background:#fafafa; }
     .results-tabs ::ng-deep .mat-mdc-tab-label { color:var(--primary-color); font-family:'MotoGP Bold', sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
@@ -557,11 +581,402 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
       .header h1{ font-size:20px; }
       .results-container{ gap:1rem; }
       .card-header{ padding:1rem; font-size:1rem; }
+      .race-overview{
+        grid-template-columns: 1fr;
+        gap: .55rem;
+        padding: .65rem .72rem .2rem;
+      }
+      .race-times-grid{
+        grid-template-columns: 1fr 1fr;
+      }
     }
     @media (max-width:480px){
       .mobile-card{ padding:10px; }
       .grid{ grid-template-columns:1fr 1fr; gap:6px; }
       .chip{ padding:6px 6px 6px 10px; }
+      .race-title{
+        font-size: 1.14rem;
+      }
+      .race-time-item{
+        min-height: 48px;
+        padding: .42rem .5rem;
+      }
+      .race-time-value{
+        font-size: .98rem;
+      }
+    }
+
+    /* Dashboard-aligned theme override */
+    .page-container{
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
+        radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
+        linear-gradient(158deg, #ffffff 0%, #f8f8f9 48%, #f1f2f4 100%);
+      color: #16181d;
+    }
+    .header{
+      background: rgba(17, 18, 20, 0.97);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+    }
+    .header button{
+      background: #fff;
+      color: #c8102e;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+    }
+    .header button i{ color: #c8102e; }
+    .header h1{
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      padding-right: 42px;
+    }
+    .main-content{
+      padding: calc(var(--app-header-height) + 12px) clamp(10px, 2.5vw, 22px) 18px;
+      max-width: var(--content-max-width);
+      gap: 12px;
+    }
+
+    .info-card, .results-card, .admin-card, .mobile-card{
+      border-left: 0;
+      border: 1px solid rgba(17, 18, 20, 0.12);
+      box-shadow: 0 8px 18px rgba(0,0,0,.08);
+      border-radius: 14px;
+    }
+    .card-header{
+      background: #111214;
+      color: #fff;
+      border-radius: 14px 14px 0 0;
+    }
+    .card-header i{ color: #ff6e84; }
+
+    .results-tabs ::ng-deep .mat-mdc-tab-labels{
+      background: #fff;
+      border-bottom: 1px solid rgba(17, 18, 20, 0.08);
+    }
+    .results-tabs ::ng-deep .mat-mdc-tab-label{ color: #111214; }
+    .results-tabs ::ng-deep .mdc-tab--active .mdc-tab__text-label{ color: #c8102e !important; }
+    .results-tabs ::ng-deep .mat-mdc-ink-bar{ background: #c8102e; }
+
+    .result-table ::ng-deep .mat-mdc-header-row{
+      background: #111214;
+    }
+    .result-table ::ng-deep .mat-mdc-header-cell{
+      color: #fff;
+      text-transform: uppercase;
+      font-size: .76rem;
+      letter-spacing: .35px;
+    }
+    .result-table ::ng-deep .mat-mdc-header-cell i,
+    .result-table ::ng-deep .mat-mdc-header-cell mat-icon{
+      margin-right: 6px;
+      color: #ff6e84;
+      font-size: .75rem;
+      vertical-align: baseline;
+    }
+    .result-table ::ng-deep .mat-mdc-row:hover{ background: rgba(200,16,46,.06); }
+
+    .badge.points, .points{
+      background: rgba(200,16,46,.12);
+      color: #c8102e;
+      border: 1px solid rgba(200,16,46,.25);
+    }
+    .ok{ color: #1f8f43; }
+    .ko{ color: #c8102e; }
+
+    @media (max-width:768px){
+      .main-content{
+        padding: calc(var(--app-header-height) + 10px) 8px 12px;
+      }
+      .card-header{
+        border-radius: 12px 12px 0 0;
+      }
+    }
+
+    /* Full-page compact layout (no card look) */
+    .main-content{
+      max-width: none;
+      padding: calc(var(--app-header-height) + 10px) 10px 12px;
+      gap: 8px;
+    }
+    .results-container{
+      gap: 8px;
+    }
+
+    .mat-mdc-card.info-card,
+    .mat-mdc-card.admin-card,
+    .mat-mdc-card.results-card,
+    .mat-mdc-card.mobile-card{
+      background: transparent !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      overflow: visible !important;
+      margin: 0 !important;
+    }
+
+    .info-card .card-header,
+    .admin-card .card-header{
+      border-radius: 10px;
+      padding: .75rem .9rem;
+      min-height: 42px;
+    }
+
+    .event-meta-chips{
+      gap: .4rem;
+      padding: .55rem 0 .15rem;
+    }
+    .meta-chip{
+      min-height: 36px;
+      border-radius: 10px;
+      border-color: rgba(17, 18, 20, 0.14);
+      padding: .3rem .55rem;
+    }
+
+    .results-tabs{
+      border: 1px solid rgba(17, 18, 20, 0.10);
+      border-radius: 12px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .results-tabs ::ng-deep .mat-mdc-tab-header{
+      min-height: 44px;
+    }
+    .results-tabs ::ng-deep .mdc-tab{
+      height: 42px;
+      min-width: 84px;
+      padding: 0 10px;
+    }
+
+    .session-results{
+      padding: .55rem .6rem .65rem;
+    }
+    .result-table{
+      border-radius: 10px;
+      border: 1px solid rgba(17, 18, 20, 0.08);
+    }
+    .result-table ::ng-deep .mat-mdc-header-cell,
+    .result-table ::ng-deep .mat-mdc-cell{
+      padding: .65rem .55rem;
+    }
+
+    .mobile-list{
+      gap: 6px;
+    }
+    .mobile-card{
+      border: 1px solid rgba(17, 18, 20, 0.10) !important;
+      border-radius: 10px !important;
+      background: #fff !important;
+      box-shadow: none !important;
+      padding: 9px !important;
+    }
+    .mobile-card-header{
+      margin-bottom: 6px;
+      padding-bottom: 6px;
+    }
+    .grid{
+      gap: 6px;
+    }
+    .chip{
+      border-radius: 9px;
+    }
+
+    @media (max-width:768px){
+      .main-content{
+        padding: calc(var(--app-header-height) + 8px) 8px 10px;
+      }
+      .event-meta-chips{
+        padding-top: .45rem;
+      }
+      .results-tabs{
+        border-radius: 10px;
+      }
+    }
+
+    /* Extra compact spacing */
+    .main-content{ gap: 6px !important; }
+    .results-container{ gap: 6px !important; }
+    .card-header{
+      padding: .62rem .78rem !important;
+      min-height: 38px !important;
+      font-size: .95rem !important;
+      gap: .5rem !important;
+    }
+    .event-meta-chips{
+      gap: .32rem !important;
+      padding: .42rem 0 .05rem !important;
+    }
+    .meta-chip{
+      min-height: 32px !important;
+      padding: .22rem .48rem !important;
+    }
+    .results-tabs ::ng-deep .mdc-tab{
+      height: 38px !important;
+      min-width: 76px !important;
+      padding: 0 8px !important;
+    }
+    .session-results{ padding: .42rem .5rem .5rem !important; }
+    .result-table ::ng-deep .mat-mdc-header-cell,
+    .result-table ::ng-deep .mat-mdc-cell{
+      padding: .52rem .46rem !important;
+    }
+    .mobile-list{ gap: 5px !important; }
+    .mobile-card{
+      padding: 8px !important;
+      border-radius: 9px !important;
+    }
+    .mobile-card-header{
+      margin-bottom: 5px !important;
+      padding-bottom: 5px !important;
+    }
+    .chip{ padding: 5px 6px 5px 8px !important; }
+
+    /* Tab info redesign: lineups / sprint / race (mobile) */
+    .mobile-list {
+      gap: 7px !important;
+    }
+    .mobile-entry {
+      border: 1px solid rgba(17, 18, 20, 0.12);
+      border-radius: 10px;
+      background: #fff;
+      padding: 8px 9px;
+      display: grid;
+      gap: 6px;
+    }
+    .entry-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      border-bottom: 1px solid rgba(17, 18, 20, 0.08);
+      padding-bottom: 5px;
+    }
+    .entry-user {
+      min-width: 0;
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.84rem;
+      color: #111214;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .entry-when {
+      flex: 0 0 auto;
+      font-size: 0.64rem;
+      color: #6a717c;
+      white-space: nowrap;
+    }
+    .entry-body {
+      display: grid;
+      gap: 6px;
+    }
+    .kv-row {
+      display: grid;
+      grid-template-columns: minmax(92px, 1fr) minmax(0, 1.2fr);
+      gap: 8px;
+      align-items: center;
+    }
+    .kv-key {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.63rem;
+      letter-spacing: 0.25px;
+      text-transform: uppercase;
+      color: #5e6672;
+      font-family: 'MotoGP Bold', sans-serif;
+    }
+    .kv-key i,
+    .kv-key mat-icon {
+      color: #c8102e;
+      font-size: 0.72rem;
+      width: 12px;
+      text-align: center;
+      flex: 0 0 auto;
+    }
+    .kv-key mat-icon {
+      height: 12px;
+      line-height: 12px;
+    }
+    .kv-value {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #16181d;
+      line-height: 1.22;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+    .entry-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding-top: 2px;
+    }
+    .meta-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 22px;
+      padding: 0 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(17, 18, 20, 0.15);
+      background: #fff;
+      color: #353b46;
+      font-size: 0.64rem;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .meta-tag strong {
+      font-family: 'MotoGP Bold', sans-serif;
+      font-weight: 700;
+      color: #111214;
+    }
+    .meta-tag.points {
+      border-color: rgba(200, 16, 46, 0.24);
+      color: #8e1128;
+      background: rgba(200, 16, 46, 0.06);
+    }
+    .meta-tag.result {
+      font-weight: 700;
+    }
+    .meta-tag.result i {
+      font-size: 0.7rem;
+    }
+    .meta-tag.ok-tag {
+      border-color: rgba(31, 143, 67, 0.32);
+      color: #1f8f43;
+      background: rgba(31, 143, 67, 0.08);
+    }
+    .meta-tag.ko-tag {
+      border-color: rgba(200, 16, 46, 0.32);
+      color: #c8102e;
+      background: rgba(200, 16, 46, 0.08);
+    }
+
+    @media (max-width: 480px) {
+      .mobile-entry {
+        padding: 7px 8px;
+      }
+      .entry-user {
+        font-size: 0.8rem;
+      }
+      .entry-when {
+        font-size: 0.6rem;
+      }
+      .kv-row {
+        grid-template-columns: 1fr;
+        gap: 2px;
+      }
+      .kv-value {
+        text-align: left;
+        font-size: 0.78rem;
+      }
+      .meta-tag {
+        font-size: 0.61rem;
+      }
     }
   `]
 })

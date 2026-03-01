@@ -3,7 +3,6 @@ import { FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angula
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -19,7 +18,6 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
     MatInputModule,
     MatButtonModule,
     MatProgressSpinnerModule,
@@ -29,186 +27,384 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   ],
   template: `
     <div class="login-container">
-      <mat-card class="login-card">
-        <mat-card-header class="card-header">
-          <mat-card-title>
-            <img src="assets/images/motomotaGPLogo512x512.png" alt="MotoMota Logo">
-            <div class="header-content">
-              {{ 'login.title' | t }}
-              <div class="subtitle">{{ 'login.subtitle' | t }}</div>
-            </div>
-          </mat-card-title>
-        </mat-card-header>
-
-        <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'login.language' | t }}</mat-label>
-            <mat-select [value]="currentLang" (selectionChange)="onLanguageChange($event.value)">
-              <mat-option *ngFor="let l of languages" [value]="l.code">
-                {{ l.label }}
-              </mat-option>
-            </mat-select>
-            <mat-icon matPrefix>language</mat-icon>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'login.username' | t }}</mat-label>
-            <input matInput formControlName="username" required>
-            <mat-icon matPrefix>person</mat-icon>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ 'login.password' | t }}</mat-label>
-            <input matInput type="password" formControlName="password" required>
-            <mat-icon matPrefix>lock</mat-icon>
-          </mat-form-field>
-
-          <button mat-raised-button color="primary" class="login-button" type="submit"
-                  [disabled]="loginForm.invalid || loading">
-            <span *ngIf="!loading">{{ 'login.signIn' | t }}</span>
-            <mat-spinner *ngIf="loading" diameter="24"></mat-spinner>
-          </button>
-        </form>
-
-        <div *ngIf="errorMessage" class="error-message">
-          <mat-icon>error</mat-icon>
-          {{ errorMessage }}
+      <section class="login-shell">
+        <div class="hero-panel">
+          <div class="hero-kicker">Fanta Moto GP</div>
+          <div class="hero-brand">
+            <img src="assets/images/motomotaGPLogo512x512.png" alt="Moto Mota logo">
+            <h1 class="hero-title">Moto Mota</h1>
+          </div>
+          <p class="hero-subtitle">
+            <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
+            <span>Fantasy MotoGP, semplice e veloce.</span>
+          </p>
+          <div class="hero-divider" aria-hidden="true">
+            <span class="hero-divider-mark"></span>
+            <span class="hero-divider-track"></span>
+          </div>
         </div>
-      </mat-card>
+
+        <div class="login-panel">
+          <header class="login-header">
+            <div class="header-content">
+              <h2 class="app-title">{{ 'login.signIn' | t }}</h2>
+            </div>
+          </header>
+
+          <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ 'login.language' | t }}</mat-label>
+              <mat-select [value]="currentLang" (selectionChange)="onLanguageChange($event.value)">
+                <mat-option *ngFor="let l of languages" [value]="l.code">
+                  {{ l.label }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>language</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ 'login.username' | t }}</mat-label>
+              <input matInput formControlName="username" required>
+              <mat-icon matPrefix>person</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ 'login.password' | t }}</mat-label>
+              <input matInput type="password" formControlName="password" required>
+              <mat-icon matPrefix>lock</mat-icon>
+            </mat-form-field>
+
+            <button mat-raised-button color="primary" class="login-button" type="submit"
+                    [disabled]="loginForm.invalid || loading">
+              <span *ngIf="!loading">{{ 'login.signIn' | t }}</span>
+              <mat-spinner *ngIf="loading" diameter="22"></mat-spinner>
+            </button>
+          </form>
+
+          <div *ngIf="errorMessage" class="error-message">
+            <mat-icon>error</mat-icon>
+            {{ errorMessage }}
+          </div>
+        </div>
+      </section>
+      <div class="login-powered">powered by Gianmarco Moretti</div>
     </div>
   `,
   styles: [`
     .login-container {
+      position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, var(--primary-color), var(--accent-red));
-      padding: 16px;
+      background: linear-gradient(135deg, #0b0b0d 0%, #2a0e14 40%, #7d1024 76%, #c8102e 100%);
+      padding: clamp(12px, 2.6vw, 20px);
+      overflow: hidden;
     }
 
-    .login-card {
+    .login-container::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      transform: rotate(-8deg) scale(1.3);
+      background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.88) 0 25%,
+        rgba(0, 0, 0, 0.9) 25% 50%,
+        rgba(255, 255, 255, 0.88) 50% 75%,
+        rgba(0, 0, 0, 0.9) 75% 100%
+      );
+      background-size: 34px 34px;
+      opacity: 0.12;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .login-container::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.14), transparent 35%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0.28));
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .login-shell {
+      position: relative;
+      z-index: 1;
       width: 100%;
-      max-width: 460px;
-      padding: clamp(1.2rem, 3.8vw, 2.25rem);
-      margin: 0;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.24);
+      max-width: 900px;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 12px;
+      padding: 0;
+      margin: auto 0;
+      border-radius: 0;
+      box-shadow: none;
       overflow: hidden;
-      border: 1px solid rgba(74, 20, 140, 0.12);
+      border: 0;
+      background: transparent;
+    }
 
-      .login-form {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 8px;
-        padding: 0 4px;
-      }
+    .login-powered {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      font-size: 0.68rem;
+      letter-spacing: 0.2px;
+      color: rgba(255, 255, 255, 0.75);
+      text-transform: none;
+      white-space: nowrap;
+      pointer-events: none;
+    }
 
-      .card-header {
-        background: transparent;
-        padding: 0;
-        margin-bottom: 2rem;
-        justify-content: center;
+    .hero-panel {
+      min-height: 100%;
+      background: rgba(10, 10, 12, 0.58);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 16px;
+      padding: clamp(1rem, 2.8vw, 2rem);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.7rem;
+      position: relative;
+      overflow: hidden;
+    }
 
-        mat-card-title {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 1rem;
+    .hero-kicker {
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #ff8ca0;
+    }
 
-          img {
-            width: 88px;
-            height: 88px;
-            border-radius: 50%;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-          }
+    .hero-title {
+      margin: 0;
+      font-family: 'MotoGP Bold', sans-serif;
+      text-transform: uppercase;
+      line-height: 0.95;
+      font-size: clamp(1.6rem, 4.2vw, 2.7rem);
+      letter-spacing: 0.8px;
+    }
 
-          .header-content {
-            text-align: center;
-            font-family: 'MotoGP Bold', sans-serif;
-            color: var(--primary-color);
-            font-size: clamp(1.25rem, 4.8vw, 1.55rem);
+    .hero-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
 
-            .subtitle {
-              font-family: 'Roboto', sans-serif;
-              font-size: 0.95rem;
-              color: #666;
-              margin-top: 0.35rem;
-            }
-          }
+    .hero-brand img {
+      width: clamp(36px, 5vw, 52px);
+      height: clamp(36px, 5vw, 52px);
+      border-radius: 10px;
+      object-fit: cover;
+      flex: 0 0 auto;
+    }
+
+    .hero-subtitle {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 0.92rem;
+      line-height: 1.35;
+      max-width: 36ch;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.42rem;
+    }
+
+    .hero-subtitle mat-icon {
+      width: 18px;
+      height: 18px;
+      font-size: 18px;
+      color: #ff8ca0;
+      flex: 0 0 auto;
+    }
+
+    .hero-divider {
+      margin-top: 0.45rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .hero-divider-mark {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      background: linear-gradient(135deg, #ffffff 0%, #ffffff 45%, #c8102e 45%, #c8102e 100%);
+      transform: skewX(-16deg);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+    }
+
+    .hero-divider-track {
+      width: clamp(130px, 24vw, 210px);
+      height: 5px;
+      border-radius: 999px;
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.95) 24%,
+        rgba(200, 16, 46, 1) 24%,
+        rgba(200, 16, 46, 1) 58%,
+        rgba(17, 17, 17, 0.95) 58%,
+        rgba(17, 17, 17, 0.95) 100%
+      );
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+    }
+
+    .login-header {
+      padding: 0;
+      margin-bottom: 0.85rem;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.62rem;
+
+      .header-content {
+        text-align: left;
+        color: #111;
+
+        .app-title {
+          margin: 0 0 0.15rem;
+          font-family: 'MotoGP Bold', sans-serif;
+          color: #111214;
+          font-size: clamp(1.12rem, 3vw, 1.3rem);
+          letter-spacing: 0.4px;
+          line-height: 1;
+          text-transform: uppercase;
+          transform: none;
+          text-shadow: none;
         }
+
       }
+    }
 
-      .mat-form-field {
-        margin: 0.4rem 0;
+    .login-panel {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.52);
+      border-radius: 12px;
+      padding: 0.58rem 0.68rem 0.68rem;
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
+      backdrop-filter: none;
+    }
 
-        .mat-icon {
-          color: var(--accent-red);
-          margin-right: 0.5rem;
-        }
-      }
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 7px;
+      padding: 0;
+    }
 
-      .login-button {
-        width: 100%;
-        min-height: 46px;
-        font-size: 1rem;
-        margin-top: 0.5rem;
-        transition: all 0.3s ease;
+    .mat-form-field {
+      margin: 0.14rem 0;
 
-        &:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(var(--primary-color), 0.3);
-        }
-      }
-
-      .error-message {
-        background: #ffecec;
+      .mat-icon {
         color: var(--accent-red);
-        padding: 0.85rem;
-        border-radius: 8px;
-        margin: 0.9rem 4px 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        border: 1px solid var(--accent-red);
+        margin-right: 0.35rem;
       }
+    }
 
-      .footer-links {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 2rem;
+    ::ng-deep .login-form .mat-mdc-text-field-wrapper {
+      background: #ffffff;
+    }
 
-        a {
-          color: var(--primary-color);
-          text-decoration: none;
-          font-weight: 500;
-          transition: color 0.3s ease;
+    ::ng-deep .login-form .mdc-notched-outline__leading,
+    ::ng-deep .login-form .mdc-notched-outline__notch,
+    ::ng-deep .login-form .mdc-notched-outline__trailing {
+      border-color: rgba(0, 0, 0, 0.18) !important;
+    }
 
-          &:hover {
-            color: var(--accent-red);
-          }
-        }
+    ::ng-deep .login-form .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+    ::ng-deep .login-form .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+    ::ng-deep .login-form .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+      border-color: var(--primary-color) !important;
+      border-width: 2px !important;
+    }
+
+    .login-button {
+      width: 100%;
+      min-height: 42px;
+      font-size: 0.92rem;
+      margin-top: 0.32rem;
+      transition: all 0.3s ease;
+      border-radius: 9px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      background: linear-gradient(135deg, #c8102e, #960920) !important;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(200, 16, 46, 0.32);
       }
+    }
+
+    .error-message {
+      background: #ffecec;
+      color: var(--accent-red);
+      padding: 0.62rem;
+      border-radius: 8px;
+      margin: 0.56rem 0 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid var(--accent-red);
     }
 
     @media (max-width: 480px) {
       .login-container {
-        padding: 10px;
+        padding: 10px 8px;
       }
 
-      .login-card {
-        padding: 1rem;
+      .login-shell {
+        padding: 0;
+        margin: 0;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
 
-        .card-header mat-card-title .header-content {
-          font-size: 1.15rem;
-        }
+      .login-panel {
+        padding: 0.55rem 0.58rem 0.62rem;
+      }
 
-        .footer-links {
-          flex-direction: column;
-          gap: 1rem;
-          text-align: center;
-        }
+      .hero-panel {
+        padding: 0.85rem 0.9rem;
+      }
+
+      .hero-title {
+        font-size: 1.55rem;
+      }
+
+      .hero-divider-track {
+        width: 150px;
+      }
+
+      .login-header {
+        padding: 0;
+      }
+
+      .login-header .header-content .app-title {
+        font-size: 1.05rem;
+      }
+
+    }
+
+    @media (max-width: 900px) {
+      .login-shell {
+        grid-template-columns: 1fr;
+        max-width: 560px;
+      }
+
+      .hero-panel {
+        min-height: auto;
       }
     }
   `]

@@ -1,84 +1,153 @@
 .settings-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  padding: 20px;
+  background:
+    radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
+    radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
+    linear-gradient(158deg, #ffffff 0%, #f8f8f9 48%, #f1f2f4 100%);
+  padding: calc(var(--app-header-height) + 10px) 10px 12px;
+  color: #16181d;
 }
-.settings-card {
-  width: 100%;
-  max-width: 500px;
-  padding: 20px;
-}
-.full-width {
-  width: 100%;
-}
+
 .header {
-  width: 100%;
-  margin-bottom: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--app-header-height);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
+  margin: 0;
+  padding: 0 8px;
+  background: rgba(17, 18, 20, 0.97);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  z-index: 1000;
+
+  button {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #fff;
+    color: #c8102e;
+  }
+
   h1 {
     margin: 0;
-    color: white;
+    flex: 1;
+    text-align: center;
+    font-family: 'MotoGP Bold', sans-serif;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    font-size: clamp(1rem, 2.7vw, 1.3rem);
+    padding-right: 42px;
   }
+}
+
+.settings-card {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+mat-card-header {
+  padding: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 .header-content {
   width: 100%;
-  padding: 24px 16px;
-  background: white;
-  border-bottom: 3px solid var(--primary-color);
-  margin-bottom: 24px;
-  background-color: whitesmoke;
+  background: #111214;
+  color: #fff;
+  border-radius: 10px;
+  padding: .62rem .78rem;
+  margin-bottom: 8px;
 }
 
 .race-title {
-  font-family: 'MotoGP-Bold', sans-serif;
-  font-size: 1.8rem;
-  color: var(--primary-color);
-  letter-spacing: 1.5px;
+  font-family: 'MotoGP Bold', sans-serif;
+  font-size: 1.08rem;
+  color: #fff;
+  letter-spacing: .35px;
   text-align: center;
   text-transform: uppercase;
 }
 
 .session-info {
-  font-family: 'MotoGP Regular';
-  font-size: 1rem;
-  color: #666;
+  font-family: 'MotoGP Regular', sans-serif;
+  font-size: .85rem;
+  color: rgba(255, 255, 255, .88);
   text-align: center;
-  letter-spacing: 0.8px;
+  letter-spacing: .2px;
   font-weight: 500;
 }
 
-mat-card-header {
-  padding: 0px !important;
-  margin-bottom: 24px !important;
+mat-card-content {
+  background: #fff;
+  border: 1px solid rgba(17, 18, 20, 0.12);
+  border-radius: 10px;
+  padding: .55rem .62rem .45rem !important;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 6px;
 }
 
 mat-card-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 12px;
-  padding: 16px 0 0 0;
-  min-height: 150px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 8px 0 0;
+  min-height: 0;
 }
 
 .action-button {
-  padding: 0 16px;
-  min-width: 120px;
+  min-height: 38px;
   width: 100%;
+  border-radius: 9px;
+  padding: 0 10px;
+  line-height: 1.05;
+}
+
+button.action-button[mat-raised-button] {
+  background: #c8102e !important;
+  color: #fff !important;
+}
+
+button.action-button[mat-stroked-button] {
+  border-color: rgba(17, 18, 20, 0.25) !important;
+  color: #111214 !important;
+  background: #fff !important;
 }
 
 mat-card-actions button:last-child {
-  margin-top: auto;
+  margin-top: 0;
 }
 
 .form-level-error {
-  color: red;
-  font-size: 0.8rem;
-  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  color: #c8102e;
+  font-size: .8rem;
+}
+
+@media (max-width: 768px) {
+  .settings-container {
+    padding: calc(var(--app-header-height) + 8px) 8px 10px;
+  }
+
+  mat-card-actions {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
 }

@@ -15,41 +15,52 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   template: `
     <div class="profile-container">
       <header class="header">
-        <button mat-icon-button (click)="goBack()">
+        <button mat-icon-button (click)="goBack()" aria-label="Back">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ 'profile.title' | t }}</h1>
       </header>
       <main class="profile-main">
-        <mat-card *ngIf="userInfo; else notLoggedIn" class="profile-card">
-          <div class="profile-image-container" *ngIf="userInfo.profile_image">
-            <img [src]="userInfo.profile_image" alt="Profile Image">
-          </div>
-          <mat-card-header>
-            <mat-card-title>{{ userInfo.first_name }} {{ userInfo.last_name }}</mat-card-title>
-            <mat-card-subtitle>{{ userInfo.id }}</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="profile-details">
-              <p><strong>{{ 'profile.userId' | t }}</strong> {{ userInfo.profile_id }}</p>
-              <p><strong>{{ 'profile.email' | t }}</strong> {{ userInfo.email }}</p>
-              <p><strong>{{ 'profile.lastAccess' | t }}</strong> {{ userInfo.last_access | date:'short' }}</p>
+        <section *ngIf="userInfo; else notLoggedIn" class="profile-panel">
+          <div class="profile-top">
+            <div class="profile-image-container" *ngIf="userInfo.profile_image">
+              <img [src]="userInfo.profile_image" alt="Profile Image">
             </div>
-          </mat-card-content>
-          <mat-card-actions>
+            <div class="profile-identity">
+              <h2>{{ userInfo.first_name }} {{ userInfo.last_name }}</h2>
+              <span class="profile-subid">{{ userInfo.id }}</span>
+            </div>
+          </div>
+
+          <div class="profile-details">
+            <div class="kv-row">
+              <span class="kv-key"><mat-icon aria-hidden="true">badge</mat-icon>{{ 'profile.userId' | t }}</span>
+              <span class="kv-value">{{ userInfo.profile_id }}</span>
+            </div>
+            <div class="kv-row">
+              <span class="kv-key"><mat-icon aria-hidden="true">mail</mat-icon>{{ 'profile.email' | t }}</span>
+              <span class="kv-value">{{ userInfo.email }}</span>
+            </div>
+            <div class="kv-row">
+              <span class="kv-key"><mat-icon aria-hidden="true">schedule</mat-icon>{{ 'profile.lastAccess' | t }}</span>
+              <span class="kv-value">{{ userInfo.last_access | date:'short' }}</span>
+            </div>
+          </div>
+
+          <div class="profile-actions">
             <button mat-raised-button color="primary" (click)="logout()">{{ 'common.logout' | t }}</button>
-          </mat-card-actions>
-        </mat-card>
+          </div>
+        </section>
         <ng-template #notLoggedIn>
-          <mat-card class="profile-card">
-            <mat-card-title>{{ 'profile.noInfoTitle' | t }}</mat-card-title>
-            <mat-card-content>
+          <section class="profile-panel">
+            <h2 class="empty-title">{{ 'profile.noInfoTitle' | t }}</h2>
+            <div class="empty-content">
               <p>{{ 'profile.noInfoDesc' | t }}</p>
-            </mat-card-content>
-            <mat-card-actions>
+            </div>
+            <div class="profile-actions">
               <button mat-raised-button color="accent" (click)="goToLogin()">{{ 'common.login' | t }}</button>
-            </mat-card-actions>
-          </mat-card>
+            </div>
+          </section>
         </ng-template>
       </main>
     </div>
@@ -57,117 +68,182 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   styles: [`
     .profile-container {
       min-height: 100vh;
+      background:
+        radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
+        radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
+        linear-gradient(158deg, #ffffff 0%, #f8f8f9 48%, #f1f2f4 100%);
+      color: #16181d;
+    }
+
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: var(--app-header-height);
       display: flex;
-      flex-direction: column;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      align-items: center;
+      background: rgba(17, 18, 20, 0.97);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
       color: #fff;
-      padding: 0 10px 14px;
+      z-index: 1000;
+      padding: 0 clamp(10px, 2.5vw, 20px);
+    }
+
+    .header button {
+      background: #fff;
+      color: #c8102e;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+    }
+
+    .header h1 {
+      flex: 1;
+      text-align: center;
+      margin: 0;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      font-size: clamp(1rem, 2.8vw, 1.5rem);
+      font-family: 'MotoGP Bold', sans-serif;
+      padding-right: 42px;
     }
 
     .profile-main {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: min(100%, 680px);
+      width: min(100%, 760px);
       margin: 0 auto;
-      padding: calc(var(--app-header-height) + 14px) 0 10px;
+      padding: calc(var(--app-header-height) + 10px) 10px 12px;
     }
 
-    .profile-card {
+    .profile-panel {
       width: 100%;
-      max-width: 460px;
-      background: rgba(255, 255, 255, 0.95);
-      color: #333;
-      border-radius: 16px;
-      border: 1px solid rgba(211, 47, 47, 0.22);
-      padding: 0.9rem;
-      box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+      border: 1px solid rgba(17, 18, 20, 0.12);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 8px 18px rgba(0,0,0,.08);
+      padding: 10px;
     }
 
-    .profile-image-container {
-      text-align: center;
-      margin-bottom: 12px;
+    .profile-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(17, 18, 20, 0.1);
     }
 
     .profile-image-container img {
-      width: 108px;
-      height: 108px;
+      width: 62px;
+      height: 62px;
       border-radius: 50%;
-      border: 3px solid #d32f2f;
+      border: 2px solid #d32f2f;
       object-fit: cover;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.14);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.14);
     }
 
-    mat-card-header {
-      text-align: center;
-      justify-content: center;
-      padding: 6px 8px;
-    }
-
-    mat-card-title {
-      font-size: 1.24rem;
-      color: var(--primary-color);
-      line-height: 1.2;
-    }
-
-    mat-card-subtitle {
-      font-size: 0.8rem;
-      color: #555;
-      word-break: break-all;
-    }
-
-    mat-card-content {
-      padding: 0.4rem 0.65rem 0.2rem;
-    }
-
-    .profile-details p {
-      margin: 9px 0;
-      font-size: 0.92rem;
-      line-height: 1.35;
-      color: #303030;
-      display: grid;
-      gap: 2px;
-    }
-
-    .profile-details strong {
-      color: #616161;
-      font-size: 0.78rem;
+    .profile-identity h2 {
+      margin: 0;
+      font-family: 'MotoGP Bold', sans-serif;
       text-transform: uppercase;
-      letter-spacing: 0.4px;
+      letter-spacing: 0.15px;
+      color: #111214;
+      font-size: clamp(1.02rem, 2.5vw, 1.25rem);
     }
 
-    mat-card-actions {
-      padding: 0.6rem 0.65rem 0.8rem;
+    .profile-subid {
+      font-size: 0.72rem;
+      color: #626977;
+    }
+
+    .profile-details {
+      display: grid;
+      gap: 6px;
+      padding-top: 9px;
+    }
+
+    .kv-row {
+      display: grid;
+      grid-template-columns: minmax(96px, 1fr) minmax(0, 1.4fr);
+      gap: 8px;
+      align-items: center;
+      border: 1px solid rgba(17, 18, 20, 0.1);
+      border-radius: 9px;
+      padding: 6px 8px;
+      background: #fff;
+    }
+
+    .kv-key {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.63rem;
+      letter-spacing: 0.28px;
+      text-transform: uppercase;
+      color: #5c6471;
+    }
+
+    .kv-key mat-icon {
+      width: 12px;
+      height: 12px;
+      line-height: 12px;
+      font-size: 12px;
+      color: #c8102e;
+    }
+
+    .kv-value {
+      text-align: right;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #111214;
+      overflow-wrap: anywhere;
+    }
+
+    .profile-actions {
       display: flex;
       justify-content: flex-end;
+      padding-top: 10px;
     }
 
-    mat-card-actions button {
-      min-height: 44px;
-      min-width: 120px;
-      font-weight: 600;
+    .empty-title {
+      margin: 0;
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 1.1rem;
+      color: #111214;
+    }
+
+    .empty-content {
+      color: #4a4f58;
+      font-size: 0.9rem;
+      padding-top: 8px;
     }
 
     @media (max-width: 600px) {
-      .profile-container {
-        padding: 0 6px 10px;
-      }
-
       .profile-main {
-        padding-top: calc(var(--app-header-height) + 10px);
+        padding: calc(var(--app-header-height) + 8px) 8px 10px;
       }
 
-      .profile-card {
-        padding: 0.6rem;
+      .profile-panel {
+        padding: 8px;
       }
 
-      mat-card-actions {
+      .kv-row {
+        grid-template-columns: 1fr;
+        gap: 2px;
+      }
+
+      .kv-value {
+        text-align: left;
+        font-size: 0.78rem;
+      }
+
+      .profile-actions {
         justify-content: stretch;
+      }
 
-        button {
-          width: 100%;
-        }
+      .profile-actions button {
+        width: 100%;
       }
     }
   `]

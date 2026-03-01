@@ -29,15 +29,19 @@ import { NotificationServiceService } from '../../services/notification.service'
   template: `
     <div class="settings-container">
       <header class="header">
-        <button mat-icon-button (click)="goBack()">
+        <button mat-icon-button (click)="goBack()" aria-label="Back">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ 'settings.title' | t }}</h1>
       </header>
-      <mat-card class="settings-card">
-        <mat-card-content>
-          <form [formGroup]="settingsForm" (ngSubmit)="save()">
-            <mat-form-field appearance="fill" class="full-width">
+      <main class="settings-main">
+        <section class="settings-panel">
+          <div class="panel-head">
+            <h2>{{ 'settings.title' | t }}</h2>
+          </div>
+
+          <form class="settings-form" [formGroup]="settingsForm" (ngSubmit)="save()">
+            <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'settings.selectChampionship' | t }}</mat-label>
               <mat-select formControlName="championship_id">
                 <mat-option *ngFor="let champ of championships" [value]="champ.id">
@@ -46,7 +50,7 @@ import { NotificationServiceService } from '../../services/notification.service'
               </mat-select>
             </mat-form-field>
 
-            <mat-form-field appearance="fill" class="full-width">
+            <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'settings.language' | t }}</mat-label>
               <mat-select formControlName="language">
                 <mat-option *ngFor="let l of languages" [value]="l.code">
@@ -54,38 +58,94 @@ import { NotificationServiceService } from '../../services/notification.service'
                 </mat-option>
               </mat-select>
             </mat-form-field>
-
           </form>
+
           <p *ngIf="successMessageKey" class="success-message">{{ successMessageKey | t }}</p>
-        </mat-card-content>
-        <mat-card-actions>
-          <button mat-raised-button color="primary" (click)="save()" [disabled]="settingsForm.invalid || loading">{{ 'settings.save' | t }}</button>
-        </mat-card-actions>
-      </mat-card>
+
+          <div class="settings-actions">
+            <button mat-raised-button color="primary" (click)="save()" [disabled]="settingsForm.invalid || loading">{{ 'settings.save' | t }}</button>
+          </div>
+        </section>
+      </main>
     </div>
   `,
   styles: [`
     .settings-container {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      padding: calc(var(--app-header-height) + 12px) 12px 18px;
+      background:
+        radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
+        radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
+        linear-gradient(158deg, #ffffff 0%, #f8f8f9 48%, #f1f2f4 100%);
     }
 
-    .settings-card {
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
-      max-width: 560px;
-      padding: clamp(0.65rem, 2vw, 1rem);
-      border-radius: 16px;
-      box-shadow: 0 10px 28px rgba(0,0,0,0.22);
-      border: 1px solid rgba(74, 20, 140, 0.12);
+      height: var(--app-header-height);
+      display: flex;
+      align-items: center;
+      background: rgba(17, 18, 20, 0.97);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+      color: #fff;
+      z-index: 1000;
+      padding: 0 clamp(10px, 2.5vw, 20px);
     }
 
-    .form-group {
-      margin-bottom: 20px;
+    .header button {
+      background: #fff;
+      color: #c8102e;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+    }
+
+    .header h1 {
+      flex: 1;
+      text-align: center;
+      margin: 0;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      font-size: clamp(1rem, 2.8vw, 1.5rem);
+      font-family: 'MotoGP Bold', sans-serif;
+      padding-right: 42px;
+    }
+
+    .settings-main {
+      width: min(100%, 760px);
+      margin: 0 auto;
+      padding: calc(var(--app-header-height) + 10px) 10px 12px;
+    }
+
+    .settings-panel {
+      width: 100%;
+      border: 1px solid rgba(17, 18, 20, 0.12);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 8px 18px rgba(0,0,0,.08);
+      padding: 10px;
+    }
+
+    .panel-head {
+      border-bottom: 1px solid rgba(17, 18, 20, 0.1);
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      color: #111214;
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: clamp(1rem, 2.2vw, 1.2rem);
+      text-transform: uppercase;
+      letter-spacing: 0.18px;
+    }
+
+    .settings-form {
+      display: grid;
+      gap: 2px;
     }
 
     .full-width {
@@ -103,47 +163,43 @@ import { NotificationServiceService } from '../../services/notification.service'
       font-size: 0.92rem;
     }
 
-    mat-card-content {
-      padding: 0.6rem 0.85rem 0.4rem;
+    ::ng-deep .settings-form .mat-mdc-text-field-wrapper {
+      background: #fff;
     }
 
-    mat-card-actions {
-      padding: 0.5rem 0.85rem 0.8rem;
+    ::ng-deep .settings-form .mdc-notched-outline__leading,
+    ::ng-deep .settings-form .mdc-notched-outline__notch,
+    ::ng-deep .settings-form .mdc-notched-outline__trailing {
+      border-color: rgba(0, 0, 0, 0.18) !important;
+    }
+
+    .settings-actions {
       display: flex;
       justify-content: flex-end;
+      padding-top: 10px;
     }
 
-    mat-card-actions button {
+    .settings-actions button {
       min-height: 44px;
       min-width: 120px;
       font-weight: 600;
     }
 
-    mat-card-header.mat-mdc-card-header {
-      padding-bottom: 20px;
-    }
-
     @media (max-width: 600px) {
-      .settings-container {
-        padding: calc(var(--app-header-height) + 8px) 8px 14px;
+      .settings-main {
+        padding: calc(var(--app-header-height) + 8px) 8px 10px;
       }
 
-      .settings-card {
-        max-width: 100%;
+      .settings-panel {
+        padding: 8px;
       }
 
-      mat-card-content,
-      mat-card-actions {
-        padding-left: 0.6rem;
-        padding-right: 0.6rem;
-      }
-
-      mat-card-actions {
+      .settings-actions {
         justify-content: stretch;
+      }
 
-        button {
-          width: 100%;
-        }
+      .settings-actions button {
+        width: 100%;
       }
     }
   `],

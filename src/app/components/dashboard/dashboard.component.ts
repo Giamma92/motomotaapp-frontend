@@ -38,13 +38,27 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
     ])
   ],
   template: `
-    <div class="dashboard-container" @cardAnimation>
-      <header class="header">
-        <h1>{{ 'dashboard.title' | t }}</h1>
+    <div class="dashboard-container" @cardAnimation [class.header-collapsed]="!headerVisible">
+      <header class="header dashboard-header" [class.header-hidden]="!headerVisible">
+        <div class="header-brand">
+          <span class="brand-kicker">MOTO MOTA</span>
+          <h1>{{ 'dashboard.title' | t }}</h1>
+        </div>
 
-        <button mat-icon-button [matMenuTriggerFor]="menu">
-          <i class="fa-solid fa-ellipsis-vertical"></i>
-        </button>
+        <div class="header-actions">
+          <button type="button" class="header-quick-link" (click)="goTo('calendar')" aria-label="Apri calendario">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>Calendario</span>
+          </button>
+          <button type="button" class="header-quick-link" (click)="goTo('teams')" aria-label="Apri teams">
+            <i class="fa-solid fa-people-group"></i>
+            <span>Teams</span>
+          </button>
+
+          <button mat-icon-button class="header-menu-btn" [matMenuTriggerFor]="menu" aria-label="Open dashboard menu">
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+        </div>
         <mat-menu #menu="matMenu">
           <button mat-menu-item (click)="goTo('profile')">
             <i class="fa-solid fa-user"></i> {{ 'dashboard.menu.profile' | t }}
@@ -78,6 +92,19 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
              </mat-card-header>
             <mat-card-content>
               <div class="standings-container">
+                <!-- Current User Summary -->
+                <div class="current-user-summary" *ngIf="currentUserPosition">
+                  <div class="summary-compact">
+                    <span class="summary-kicker">{{ 'dashboard.standings.yourPosition' | t }}</span>
+                    <span class="summary-pill position-pill">
+                      #{{ currentUserPosition }} {{ 'dashboard.standings.of' | t:{total: classificationData.length} }}
+                    </span>
+                    <span class="summary-pill points-pill">
+                      {{ currentUserPoints | number:'1.0-0' }} {{ 'dashboard.standings.points' | t }}
+                    </span>
+                  </div>
+                </div>
+
                 <!-- Top 3 Podium Section -->
                 <div class="podium-section" *ngIf="classificationData?.length">
                   <div class="podium-steps">
@@ -139,10 +166,22 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                   <table class="standings-table">
                     <thead>
                       <tr>
-                        <th class="rank-col">{{ 'dashboard.standings.rank' | t }}</th>
-                        <th class="user-col">{{ 'dashboard.standings.user' | t }}</th>
-                        <th class="score-col">{{ 'dashboard.standings.score' | t }}</th>
-                        <th class="gap-col">{{ 'dashboard.standings.gap' | t }}</th>
+                        <th class="rank-col" [attr.aria-label]="'dashboard.standings.rank' | t">
+                          <span class="th-full">{{ 'dashboard.standings.rank' | t }}</span>
+                          <span class="th-short">#</span>
+                        </th>
+                        <th class="user-col" [attr.aria-label]="'dashboard.standings.user' | t">
+                          <span class="th-full">{{ 'dashboard.standings.user' | t }}</span>
+                          <span class="th-short">Rider</span>
+                        </th>
+                        <th class="score-col" [attr.aria-label]="'dashboard.standings.score' | t">
+                          <span class="th-full">{{ 'dashboard.standings.score' | t }}</span>
+                          <span class="th-short">Pts</span>
+                        </th>
+                        <th class="gap-col" [attr.aria-label]="'dashboard.standings.gap' | t">
+                          <span class="th-full">{{ 'dashboard.standings.gap' | t }}</span>
+                          <span class="th-short">&Delta;</span>
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -193,26 +232,6 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                     </tbody>
                   </table>
                 </div>
-
-                <!-- Current User Summary -->
-                <div class="current-user-summary" *ngIf="currentUserPosition">
-                  <div class="summary-card">
-                    <div class="summary-header">
-                      <i class="fa-solid fa-user-circle"></i>
-                      <span>{{ 'dashboard.standings.yourPosition' | t }}</span>
-                    </div>
-                    <div class="summary-content">
-                      <div class="position-info">
-                        <span class="position-number">{{ currentUserPosition }}</span>
-                        <span class="position-label">{{ 'dashboard.standings.of' | t:{total: classificationData.length} }}</span>
-                      </div>
-                      <div class="points-info">
-                        <span class="points-value">{{ currentUserPoints | number:'1.0-0' }}</span>
-                        <span class="points-label">{{ 'dashboard.standings.points' | t }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               <div class="no-standings" *ngIf="!classificationData?.length">
@@ -228,124 +247,77 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
              <mat-card-header class="next-race-header">
                <mat-card-title>
                  <i class="fa-solid fa-flag-checkered"></i>
-                 {{ isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t) }}
+                 {{ isCurrentRace ? 'Gara in corso' : 'Prossima gara' }}
                </mat-card-title>
              </mat-card-header>
              <mat-card-content>
                <div class="race-content">
-                 <!-- Race Information Section -->
-                  <div class="race-info-section">
-                    <div class="race-basic-info">
+                  <section class="race-info-section race-overview">
+                    <div class="race-overview-main">
+                      <span class="race-kicker">{{ isCurrentRace ? 'Gara in corso' : 'Prossima gara' }}</span>
+                      <h2 class="grand-prix-name">{{ nextCalendarRace.race_id.name }}</h2>
+                      <div class="race-date-display">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <span>{{ formatEventRange(nextCalendarRace.event_date) }}</span>
+                      </div>
 
-                      <div class="race-round-badge">
-                        <i class="fa-solid fa-hashtag"></i>
-                        <span>
-                          {{ 'dashboard.nextRace.roundShort' | t }}
-                          {{ nextCalendarRace.race_order }}
-                          <ng-container *ngIf="totalRaces as tot">
-                            / {{ tot }}
-                          </ng-container>
+                      <div class="race-meta-inline" [attr.aria-label]="'Race meta'">
+                        <span class="meta-pill">
+                          <i class="fa-solid fa-hashtag"></i>
+                          <span class="meta-label">{{ 'dashboard.nextRace.roundShort' | t }}</span>
+                          <span class="meta-value">{{ nextCalendarRace.race_order }}<ng-container *ngIf="totalRaces as tot"> / {{ tot }}</ng-container></span>
+                        </span>
+                        <span class="meta-pill">
+                          <i class="fa-solid fa-location-dot"></i>
+                          <span class="meta-label">Location</span>
+                          <span class="meta-value">{{ nextCalendarRace.race_id.location }}</span>
                         </span>
                       </div>
-
-                      <h2 class="grand-prix-name">{{ nextCalendarRace.race_id.name }}</h2>
-
-                      <div class="location-chip">
-                        <i class="fa-solid fa-location-dot"></i>
-                        <span>{{ nextCalendarRace.race_id.location }}</span>
-                      </div>
                     </div>
 
-                    <div class="race-dates">
-                      <div class="date-pill" [attr.aria-label]="'Event dates'">
-                        <i class="fa-solid fa-calendar-days"></i>
-                        <div class="date-lines">
-                          <span class="date-strong">
-                            {{ formatEventRange(nextCalendarRace.event_date) }}
-                          </span>
-                          <!--<span class="date-sub">
-                            {{ 'dashboard.nextRace.weekend' | t }} •
-                            {{ getQualifyingDay(nextCalendarRace.event_date) | t | titlecase }}
-                            / {{ getSprintDay(nextCalendarRace.event_date) | t | titlecase }}
-                            / {{ getRaceDay(nextCalendarRace.event_date)   | t | titlecase }}
-                          </span>-->
+                    <div class="race-timing-list" role="list" aria-label="Race weekend program">
+                      <div class="timing-row" role="listitem">
+                        <div class="timing-main">
+                          <i class="fa-regular fa-clock"></i>
+                          <span class="timing-name">{{ 'common.qualifying' | t }}</span>
                         </div>
+                        <span class="timing-day">{{ getQualifyingDay(nextCalendarRace.event_date) | t }}</span>
+                        <span class="timing-time">{{ nextCalendarRace.qualifications_time ?? '10:00:00' | timeFormat }}</span>
+                      </div>
+
+                      <div class="timing-row" role="listitem">
+                        <div class="timing-main">
+                          <i class="fa-solid fa-flag-checkered"></i>
+                          <span class="timing-name">{{ 'common.sprint' | t }}</span>
+                        </div>
+                        <span class="timing-day">{{ getSprintDay(nextCalendarRace.event_date) | t }}</span>
+                        <span class="timing-time">{{ nextCalendarRace.sprint_time ?? '15:00:00' | timeFormat }}</span>
+                      </div>
+
+                      <div class="timing-row timing-row-race" role="listitem">
+                        <div class="timing-main">
+                          <i class="fa-solid fa-motorcycle"></i>
+                          <span class="timing-name">{{ 'common.race' | t }}</span>
+                        </div>
+                        <span class="timing-day">{{ getRaceDay(nextCalendarRace.event_date) | t }}</span>
+                        <span class="timing-time">{{ nextCalendarRace.event_time ?? '14:00:00' | timeFormat }}</span>
                       </div>
                     </div>
-                  </div>
-
-                  <!-- Circuit Image Section -->
-                  <!--<div class="circuit-image-section">
-                    <div class="circuit-image-container">
-                      <img [src]="getCircuitImageUrl(nextCalendarRace.race_id.name)"
-                           [alt]="nextCalendarRace.race_id.name + ' Circuit'"
-                           (error)="onCircuitImageError($event)"
-                           class="circuit-image">
-                      <div class="circuit-overlay">
-                        <i class="fa-solid fa-motorcycle"></i>
-                        <span>{{ 'dashboard.nextRace.circuit' | t }}</span>
-                      </div>
-                    </div>
-                  </div>-->
-
-                 <!-- Schedule Section -->
-                 <div class="schedule-section">
-                   <h3 class="section-title">{{ 'dashboard.nextRace.schedule' | t }}</h3>
-                   <div class="schedule-grid">
-                     <div class="schedule-item qualifying">
-                       <div class="schedule-icon">
-                         <i class="fa-solid fa-clock"></i>
-                       </div>
-                       <div class="schedule-info">
-                         <div class="schedule-label">{{ 'common.qualifying' | t }}</div>
-                         <div class="schedule-time">
-                           <span class="day">{{ getQualifyingDay(nextCalendarRace.event_date) | t }}</span>
-                           <span class="time">{{ nextCalendarRace.qualifications_time ?? '10:00:00' | timeFormat }}</span>
-                         </div>
-                       </div>
-                     </div>
-
-                     <div class="schedule-item sprint">
-                       <div class="schedule-icon">
-                         <i class="fa-solid fa-flag-checkered"></i>
-                       </div>
-                       <div class="schedule-info">
-                         <div class="schedule-label">{{ 'common.sprint' | t }}</div>
-                         <div class="schedule-time">
-                           <span class="day">{{ getSprintDay(nextCalendarRace.event_date) | t }}</span>
-                           <span class="time">{{ nextCalendarRace.sprint_time ?? '15:00:00' | timeFormat }}</span>
-                         </div>
-                       </div>
-                     </div>
-
-                     <div class="schedule-item race">
-                       <div class="schedule-icon">
-                         <i class="fa-solid fa-motorcycle"></i>
-                       </div>
-                       <div class="schedule-info">
-                         <div class="schedule-label">{{ 'common.race' | t }}</div>
-                         <div class="schedule-time">
-                           <span class="day">{{ getRaceDay(nextCalendarRace.event_date) | t }}</span>
-                           <span class="time">{{ nextCalendarRace.event_time ?? '14:00:00' | timeFormat }}</span>
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
+                  </section>
                </div>
              </mat-card-content>
              <mat-card-actions>
                <!-- Main Actions -->
                <div class="main-actions">
-                 <button mat-raised-button color="primary" class="main-btn" (click)="goTo('race-detail', nextCalendarRace.id)">
+                 <button mat-raised-button color="primary" class="main-btn main-btn-primary" (click)="goTo('race-detail', nextCalendarRace.id)">
                    <i class="fa-solid fa-eye"></i>
                    {{ 'dashboard.actions.viewRaceDetail' | t }}
                  </button>
-                 <button mat-raised-button color="accent" class="main-btn" (click)="goTo('motogp-results', nextCalendarRace.id)">
+                 <button mat-raised-button color="accent" class="main-btn main-btn-secondary" (click)="goTo('motogp-results', nextCalendarRace.id)">
                    <i class="fa-solid fa-trophy"></i>
                    {{ 'dashboard.actions.viewMotoGPResults' | t }}
                  </button>
-                 <button mat-raised-button color="primary" class="main-btn" (click)="goTo('calendar')">
+                 <button mat-raised-button color="primary" class="main-btn main-btn-ghost" (click)="goTo('calendar')">
                    <i class="fa-solid fa-calendar"></i>
                    {{ 'dashboard.actions.viewAllRaces' | t }}
                  </button>
@@ -367,7 +339,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                      {{ 'dashboard.actions.placeSprintBet' | t }}
                    </button>
                    <button mat-raised-button color="warn" class="betting-btn" *ngIf="showPlaceBetButton" (click)="goTo('race-bet', nextCalendarRace.id)">
-                     <i class="fa-solid fa-motorcycle"></i>
+                     <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
                      {{ 'dashboard.actions.placeRaceBet' | t }}
                    </button>
                  </div>
@@ -529,8 +501,8 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
             <mat-card-content>
               <div class="config-content">
                 <!-- Championship Info Section -->
-                <div class="config-section">
-                  <h3 class="section-title">{{ 'dashboard.championship.info' | t }}</h3>
+                <div class="config-section config-info-section">
+                  <h3 class="section-title"><i class="fa-solid fa-circle-info"></i> {{ 'dashboard.championship.info' | t }}</h3>
                   <div class="config-grid">
                     <div class="config-item">
                       <div class="config-icon">
@@ -565,8 +537,8 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                 </div>
 
                                     <!-- Scoring System Section -->
-                  <div class="config-section">
-                    <h3 class="section-title">{{ 'dashboard.championship.scoringSystem' | t }}</h3>
+                  <div class="config-section config-scoring-section">
+                    <h3 class="section-title"><i class="fa-solid fa-chart-line"></i> {{ 'dashboard.championship.scoringSystem' | t }}</h3>
                     <div class="scoring-grid">
                       <mat-expansion-panel class="scoring-item">
                         <mat-expansion-panel-header>
@@ -600,8 +572,8 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                   </div>
 
                 <!-- Rules Section -->
-                <div class="config-section">
-                  <h3 class="section-title">{{ 'dashboard.championship.rules' | t }}</h3>
+                <div class="config-section config-rules-section">
+                  <h3 class="section-title"><i class="fa-solid fa-shield-halved"></i> {{ 'dashboard.championship.rules' | t }}</h3>
                   <div class="rules-grid">
                     <div class="rule-item">
                       <div class="rule-icon">
@@ -676,19 +648,19 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
     </div>
     <nav class="bottom-nav" aria-label="Primary">
       <button class="item" [class.active]="isActive('standings')" (click)="setTab('standings')" [attr.aria-label]="'dashboard.standings.title' | t">
-        <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+        <span class="icon-wrap"><i class="fa-solid fa-trophy" aria-hidden="true"></i></span>
         <span class="label">{{ 'dashboard.standings.title' | t }}</span>
       </button>
       <button class="item" [class.active]="isActive('next')" (click)="setTab('next')" [attr.aria-label]="(isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t))">
-        <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>
+        <span class="icon-wrap"><i class="fa-solid fa-flag-checkered" aria-hidden="true"></i></span>
         <span class="label">{{ isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t) }}</span>
       </button>
       <button class="item" [class.active]="isActive('team')" (click)="setTab('team')" [attr.aria-label]="'dashboard.team.teamRiders' | t">
-        <i class="fa-solid fa-users" aria-hidden="true"></i>
+        <span class="icon-wrap"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
         <span class="label">{{ 'dashboard.team.teamRiders' | t }}</span>
       </button>
       <button class="item" [class.active]="isActive('config')" (click)="setTab('config')" [attr.aria-label]="'dashboard.championship.configuration' | t">
-        <i class="fa-solid fa-gear" aria-hidden="true"></i>
+        <span class="icon-wrap"><i class="fa-solid fa-gear" aria-hidden="true"></i></span>
         <span class="label">{{ 'dashboard.championship.configuration' | t }}</span>
       </button>
 
@@ -706,6 +678,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       color: #fff;
       padding-top: calc(var(--app-header-height) + 8px);
+      transition: padding-top 0.22s ease;
     }
 
     .grid-content {
@@ -1420,7 +1393,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
      /* Championship Configuration Card */
      .championship-config-card {
        background: rgba(255, 255, 255, 0.95) !important;
-       border: 2px solid #2196f3;
+       border: 2px solid #c8102e;
        border-radius: 12px;
        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
@@ -1432,7 +1405,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
          gap: 8px;
 
          i {
-           color: #2196f3;
+           color: #c8102e;
          }
        }
 
@@ -1478,7 +1451,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                width: 40px;
                height: 40px;
                border-radius: 50%;
-               background: linear-gradient(135deg, #2196f3, #1976f2);
+               background: linear-gradient(135deg, #c8102e, #960a21);
                flex-shrink: 0;
 
                i {
@@ -1505,10 +1478,10 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                  color: #333;
 
                  &.active {
-                   color: #28a745;
+                   color: #c8102e;
                  }
                  &.inactive {
-                   color: #dc3545;
+                   color: #111214;
                  }
                }
              }
@@ -1539,7 +1512,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                   color: #333;
 
                   i {
-                    color: #2196f3;
+                    color: #c8102e;
                   }
                 }
               }
@@ -1564,7 +1537,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                   .position {
                     font-weight: 600;
                     color: #333;
-                    background: #2196f3;
+                    background: #111214;
                     color: white;
                     padding: 0.25rem 0.5rem;
                     border-radius: 12px;
@@ -1575,7 +1548,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
 
                   .points {
                     font-weight: 600;
-                    color: #28a745;
+                    color: #c8102e;
                   }
                 }
               }
@@ -1608,7 +1581,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                width: 40px;
                height: 40px;
                border-radius: 50%;
-               background: linear-gradient(135deg, #ff9800, #f57c00);
+               background: linear-gradient(135deg, #111214, #2b3038);
                flex-shrink: 0;
 
                i {
@@ -2341,10 +2314,13 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
 
     /* Podium Section */
     .podium-section {
-      background: linear-gradient(135deg,#f7f9fc,#eef2f6);
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+      background:
+        radial-gradient(circle at 50% -35%, rgba(200, 16, 46, 0.12), transparent 60%),
+        linear-gradient(145deg, #f7f8fb, #eef1f5);
+      border-radius: 14px;
+      padding: 0.95rem 0.85rem 0.8rem;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
     }
 
     /* Grid layout for steps */
@@ -2352,7 +2328,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       align-items: end;
-      gap: 0.9rem;
+      gap: 0.65rem;
       max-width: 820px;
       margin: 0 auto;
     }
@@ -2362,10 +2338,10 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       --h: 10rem;
       position: relative;
       height: var(--h);
-      border-radius: 12px;
-      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(245,247,250,.98));
-      border: 1px solid rgba(0,0,0,.06);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 8px 20px rgba(0,0,0,.08);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,248,252,.98));
+      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 8px 18px rgba(0,0,0,.08);
       display: flex;
       align-items: end;
       justify-content: center;
@@ -2377,46 +2353,48 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
     }
 
     /* Heights per position */
-    .step-1 { --h: clamp(8.5rem, 20vw, 11rem); }
+    .step-1 { --h: clamp(9.2rem, 21vw, 11.4rem); }
     .step-2 { --h: clamp(7.2rem, 18vw, 9.5rem); }
     .step-3 { --h: clamp(6.2rem, 16vw, 8.5rem); }
 
     /* Crown bubble */
     .step-top {
       position: absolute;
-      top: -14px;
+      top: -13px;
       left: 50%;
       transform: translateX(-50%);
       display: grid;
       place-items: center;
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       background: #fff;
       border: 1px solid rgba(0,0,0,.08);
-      box-shadow: 0 6px 16px rgba(0,0,0,.16);
+      box-shadow: 0 5px 12px rgba(0,0,0,.14);
     }
-    .step-top i { font-size: 1rem; }
+    .step-top i { font-size: 0.95rem; }
 
     /* Content inside each step */
     .step-body {
       width: 100%;
       text-align: center;
       display: grid;
-      padding: 0.5rem 0.4rem 0.7rem;  /* was ~0.85–1rem */
-      gap: 0.25rem;
+      padding: 0.5rem 0.36rem 0.66rem;
+      gap: 0.2rem;
     }
     .step .name {
       font-weight: 700;
-      color: #333;
-      font-size: .95rem;
+      color: #17181a;
+      font-size: .87rem;
       line-height: 1.2;
-      word-break: break-word;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .step .pts {
       font-weight: 700;
-      font-size: .9rem;
-      color: #28a745;
+      font-size: .8rem;
+      color: #9c0b22;
     }
 
     /* Champion crown pulse */
@@ -2429,15 +2407,24 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
     }
 
     /* Accents per step */
-    .step-1 { box-shadow: inset 0 -4px 0 #ffd700, 0 8px 20px rgba(0,0,0,.08); }
-    .step-2 { box-shadow: inset 0 -4px 0 #c0c0c0, 0 8px 20px rgba(0,0,0,.08); }
-    .step-3 { box-shadow: inset 0 -4px 0 #cd7f32, 0 8px 20px rgba(0,0,0,.08); }
+    .step-1 {
+      border-color: rgba(255, 215, 0, 0.45);
+      box-shadow: inset 0 -5px 0 #ffd700, 0 10px 24px rgba(0,0,0,.1);
+    }
+    .step-2 {
+      border-color: rgba(192, 192, 192, 0.55);
+      box-shadow: inset 0 -4px 0 #c0c0c0, 0 8px 20px rgba(0,0,0,.08);
+    }
+    .step-3 {
+      border-color: rgba(205, 127, 50, 0.5);
+      box-shadow: inset 0 -4px 0 #cd7f32, 0 8px 20px rgba(0,0,0,.08);
+    }
 
     .pos-badge {
       font-weight: 900;
-      font-size: 1.1rem;
+      font-size: 1rem;
       display: inline-block;
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.22rem;
     }
 
     .pos-badge i {
@@ -2452,10 +2439,14 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
 
     /* Mobile adjustments */
     @media (max-width:600px) {
-      .podium-steps { gap: .6rem; }
-      .step-top { width: 36px; height: 36px; top: -16px; }
-      .step .name { font-size: .82rem; }
-      .step .pts { font-size: .8rem; }
+      .podium-section { padding: 0.75rem 0.55rem 0.62rem; }
+      .podium-steps { gap: .45rem; }
+      .step-top { width: 30px; height: 30px; top: -11px; }
+      .step .name { font-size: .74rem; }
+      .step .pts { font-size: .7rem; }
+      .step-1 { --h: 8.6rem; }
+      .step-2 { --h: 7.3rem; }
+      .step-3 { --h: 6.4rem; }
       .pos-badge {display: none;}
     }
 
@@ -2489,6 +2480,9 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
 
         &:first-child, &:last-child { border-radius: 0; }
       }
+
+      .th-short { display: none; }
+      .th-full { display: inline; }
 
       td {
         padding: 0.15rem;
@@ -3046,6 +3040,1706 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       .mobile-hidden { display: initial !important; }
     }
 
+    /* --- MotoGP redesign overrides --- */
+    .dashboard-container {
+      --moto-red: #c8102e;
+      --moto-black: #111214;
+      --moto-surface: #ffffff;
+      --moto-line: rgba(0, 0, 0, 0.12);
+      background:
+        radial-gradient(circle at 8% -18%, rgba(200, 16, 46, 0.16), transparent 40%),
+        radial-gradient(circle at 100% -10%, rgba(0, 0, 0, 0.035), transparent 34%),
+        linear-gradient(160deg, #ffffff 0%, #fafafa 46%, #f2f3f5 100%);
+      color: #141414;
+    }
+
+    .dashboard-header {
+      height: auto;
+      min-height: var(--app-header-height);
+      padding: 8px clamp(10px, 2.5vw, 20px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(16, 17, 20, 0.94);
+      border-bottom: 0;
+      box-shadow: none;
+      backdrop-filter: blur(6px);
+      transition: transform 0.22s ease, opacity 0.2s ease, background 0.2s ease;
+    }
+
+    .dashboard-header.header-hidden {
+      transform: translateY(calc(-100% - 8px));
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .dashboard-container.header-collapsed {
+      padding-top: 8px;
+    }
+
+    .dashboard-header .header-brand {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .dashboard-header .brand-kicker {
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.66rem;
+      letter-spacing: 1.15px;
+      color: rgba(255, 255, 255, 0.78);
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .dashboard-header h1 {
+      margin: 0;
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: clamp(1.05rem, 2.9vw, 1.45rem);
+      line-height: 1.05;
+      letter-spacing: 0.25px;
+      color: #ffffff;
+      text-align: left;
+    }
+
+    .dashboard-header .header-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .dashboard-header .header-quick-link {
+      height: 36px;
+      border: 0;
+      border-radius: 999px;
+      padding: 0 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      background: #ffffff;
+      color: #161616;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+
+    .dashboard-header .header-quick-link i {
+      margin-right: 0;
+      font-size: 0.88rem;
+      color: #c8102e;
+    }
+
+    .dashboard-header .header-quick-link:hover {
+      background: #ffffff;
+      border-color: rgba(200, 16, 46, 0.45);
+      color: #101114;
+      transform: translateY(-1px);
+    }
+
+    .dashboard-header .header-quick-link:hover i {
+      color: #c8102e;
+    }
+
+    .dashboard-header .header-menu-btn {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #c8102e;
+    }
+
+    .dashboard-header .header-menu-btn i {
+      margin-right: 0;
+      font-size: 1rem;
+    }
+
+    .dashboard-header .header-menu-btn:hover {
+      background: #ffffff;
+      border-color: rgba(200, 16, 46, 0.45);
+      color: #c8102e;
+    }
+
+    .current-user-summary {
+      margin-top: 0.4rem;
+      flex-shrink: 0;
+    }
+
+    .current-user-summary .summary-compact {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 250, 234, 0.95);
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none;
+    }
+
+    .current-user-summary .summary-compact::-webkit-scrollbar {
+      display: none;
+    }
+
+    .current-user-summary .summary-kicker {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #6b5a2f;
+      text-transform: uppercase;
+      letter-spacing: 0.35px;
+      padding-right: 0.15rem;
+    }
+
+    .current-user-summary .summary-pill {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      line-height: 1;
+      padding: 0.28rem 0.5rem;
+      border-radius: 999px;
+    }
+
+    .current-user-summary .position-pill {
+      background: rgba(0, 0, 0, 0.06);
+      color: #272727;
+    }
+
+    .current-user-summary .points-pill {
+      background: rgba(200, 16, 46, 0.12);
+      color: #8d0d22;
+    }
+
+    .grid-content {
+      width: 100%;
+      max-width: 1320px;
+      gap: 16px;
+      padding: 12px;
+    }
+
+    .mat-mdc-card.fantasy-team-card,
+    .mat-mdc-card.next-race-card,
+    .mat-mdc-card.standings-card,
+    .mat-mdc-card.championship-config-card {
+      border-left: 0 !important;
+      border-radius: 0 !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      background: transparent !important;
+      overflow: visible;
+    }
+
+    .standings-card mat-card-header,
+    .next-race-card mat-card-header,
+    .fantasy-team-card mat-card-header,
+    .championship-config-card mat-card-header {
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      color: #141414 !important;
+      padding: 0 0 8px 0;
+      margin-bottom: 8px;
+    }
+
+    .standings-card .mat-mdc-card-title,
+    .next-race-card .mat-mdc-card-title,
+    .fantasy-team-card .mat-mdc-card-title,
+    .championship-config-card .mat-mdc-card-title {
+      color: var(--moto-black) !important;
+      font-size: clamp(1rem, 2vw, 1.25rem) !important;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 2px solid var(--moto-red);
+      padding: 0 0 7px 0;
+    }
+
+    .standings-card mat-card-content,
+    .next-race-card mat-card-content,
+    .fantasy-team-card mat-card-content,
+    .championship-config-card mat-card-content,
+    .standings-card mat-card-actions,
+    .next-race-card mat-card-actions,
+    .fantasy-team-card mat-card-actions,
+    .championship-config-card mat-card-actions {
+      background: transparent !important;
+      box-shadow: none !important;
+      border: 0 !important;
+    }
+
+    .bottom-nav {
+      background: linear-gradient(180deg, #101115, #181a21);
+      border: 1px solid #2b2f39;
+      border-top: 2px solid var(--moto-red);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
+      padding: 0.4rem 0.5rem max(0.4rem, env(safe-area-inset-bottom));
+      border-radius: 14px;
+      width: min(560px, calc(100% - 16px));
+      margin: 0 auto 8px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .bottom-nav .item {
+      color: #d9dde5;
+      border-radius: 10px;
+      min-height: 54px;
+      padding: 0.35rem 0.18rem;
+      gap: 0.24rem;
+      transition: background-color 0.2s ease, color 0.2s ease, transform 0.16s ease;
+    }
+
+    .bottom-nav .item .icon-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: auto;
+      background: transparent;
+      border: 0;
+    }
+
+    .bottom-nav .item i {
+      margin: 0;
+      font-size: 1.02rem;
+      line-height: 1;
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .bottom-nav .item .label {
+      max-width: 100%;
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 0.45px;
+      text-transform: uppercase;
+      opacity: 0.92;
+    }
+
+    .bottom-nav .item.active {
+      color: #fff;
+      background: linear-gradient(180deg, rgba(200, 16, 46, 0.24), rgba(200, 16, 46, 0.14));
+      transform: translateY(-1px);
+    }
+
+    .bottom-nav .item.active .icon-wrap {
+      background: transparent;
+      border: 0;
+      transform: none;
+    }
+
+    .bottom-nav .item.active i {
+      transform: scale(1.05);
+      color: #fff;
+    }
+
+    .bottom-nav .item.active .label {
+      color: #fff;
+      opacity: 1;
+    }
+
+    .bottom-nav .item:not(.active):hover .icon-wrap {
+      background: transparent;
+      border: 0;
+    }
+
+    .bottom-nav .item:not(.active):hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .bottom-nav .item:active {
+      transform: scale(0.98);
+    }
+
+    .bottom-nav .active-pill {
+      display: none;
+    }
+
+    .table-container {
+      border: 1px solid var(--moto-line);
+      background: var(--moto-surface);
+    }
+
+    .standings-table th {
+      background: #121316 !important;
+      color: #fff !important;
+      border-bottom: 1px solid #2c2f34 !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.8px !important;
+    }
+
+    .standings-table tr.top-three {
+      background: linear-gradient(90deg, rgba(0, 0, 0, 0.035), rgba(200, 16, 46, 0.04)) !important;
+      border-left: 3px solid var(--moto-red) !important;
+    }
+
+    .standings-table tr.highlight {
+      background: linear-gradient(90deg, rgba(200, 16, 46, 0.12), rgba(200, 16, 46, 0.04)) !important;
+      border-left: 3px solid var(--moto-red) !important;
+    }
+
+    .standings-table .score-value {
+      color: var(--moto-red) !important;
+    }
+
+    .standings-table .gap-value {
+      color: #9c0b22 !important;
+    }
+
+    .next-race-card mat-card-content {
+      padding: 14px 14px 12px !important;
+    }
+
+    .next-race-card .race-content {
+      gap: 14px !important;
+    }
+
+    .next-race-card .race-info-section {
+      gap: 12px !important;
+      margin-bottom: 0 !important;
+    }
+
+    .next-race-card .race-basic-info {
+      gap: 10px !important;
+    }
+
+    .next-race-card .race-meta-strip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      padding: 10px 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .next-race-card .race-meta-strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .next-race-card .race-meta-strip .meta-item {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      min-width: 0;
+      white-space: nowrap;
+      flex: 1 0 auto;
+    }
+
+    .next-race-card .race-meta-strip .meta-key {
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.66rem;
+      letter-spacing: 0.35px;
+      text-transform: uppercase;
+      color: #666c77;
+    }
+
+    .next-race-card .race-meta-strip .meta-value {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #121317;
+    }
+
+    .next-race-card .race-meta-strip .meta-date .meta-value {
+      color: #c8102e;
+    }
+
+    .next-race-card .race-meta-strip .meta-sep {
+      width: 1px;
+      align-self: stretch;
+      background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.16), transparent);
+      flex: 0 0 1px;
+    }
+
+    .next-race-card .race-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .next-race-card .race-meta-grid .meta-panel {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      align-content: start;
+      padding: 8px 0;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .next-race-card .race-meta-grid .meta-head {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1;
+    }
+
+    .next-race-card .race-meta-grid .meta-icon {
+      display: inline-flex;
+      align-items: center;
+      color: #c8102e;
+      font-size: 0.74rem;
+      line-height: 1;
+    }
+
+    .next-race-card .race-meta-grid .meta-key {
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.67rem;
+      letter-spacing: 0.35px;
+      text-transform: uppercase;
+      color: #666c77;
+      line-height: 1.1;
+    }
+
+    .next-race-card .race-meta-grid .meta-value {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #121317;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .next-race-card .race-meta-grid .meta-panel:last-child .meta-value {
+      color: #c8102e;
+      font-size: 1.08rem;
+      font-weight: 800;
+      letter-spacing: 0.15px;
+    }
+
+    .next-race-card .grand-prix-name {
+      margin: 2px 0 0 !important;
+      font-size: clamp(1.32rem, 3.8vw, 1.72rem) !important;
+      line-height: 1.08 !important;
+      letter-spacing: 0.2px;
+    }
+
+    .next-race-card .schedule-section {
+      margin-top: 4px !important;
+    }
+
+    .next-race-card .schedule-section .section-title {
+      margin: 0 0 9px !important;
+      font-size: 0.82rem !important;
+      letter-spacing: 0.6px !important;
+    }
+
+    .next-race-card .schedule-section .section-title i {
+      margin-right: 6px;
+      color: #c8102e;
+    }
+
+    .next-race-card .race-program {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+      border-top: 1px solid rgba(0, 0, 0, 0.09);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.09);
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+
+    .next-race-card .race-program-grid {
+      display: grid;
+      gap: 8px;
+      border-top: 1px solid rgba(0, 0, 0, 0.09);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.09);
+      padding: 9px 0;
+    }
+
+    .next-race-card .program-row {
+      display: grid;
+      grid-template-columns: minmax(120px, auto) 1fr auto;
+      gap: 10px;
+      align-items: baseline;
+      min-width: 0;
+    }
+
+    .next-race-card .program-row .program-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .next-race-card .program-row .program-title i {
+      color: #c8102e;
+      font-size: 0.74rem;
+      line-height: 1;
+    }
+
+    .next-race-card .program-row .program-key {
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.74rem;
+      letter-spacing: 0.25px;
+      text-transform: uppercase;
+      color: #121317;
+    }
+
+    .next-race-card .program-row .program-day {
+      font-size: 0.76rem;
+      color: #5b616c;
+      text-transform: capitalize;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .next-race-card .program-row .program-time {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #c8102e;
+      justify-self: end;
+      white-space: nowrap;
+      letter-spacing: 0.2px;
+    }
+
+    .next-race-card .race-program::-webkit-scrollbar {
+      display: none;
+    }
+
+    .next-race-card .program-stop {
+      min-width: 0;
+      flex: 1 0 auto;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .next-race-card .program-key {
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.35px;
+      text-transform: uppercase;
+      color: #101114;
+      opacity: 0.9;
+    }
+
+    .next-race-card .program-when {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #c8102e;
+      letter-spacing: 0.1px;
+    }
+
+    .next-race-card .program-sep {
+      width: 1px;
+      align-self: stretch;
+      background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.16), transparent);
+      flex: 0 0 1px;
+    }
+
+    .next-race-card .schedule-grid {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      align-items: stretch;
+      gap: 6px !important;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 1px;
+    }
+
+    .next-race-card .schedule-grid::-webkit-scrollbar {
+      display: none;
+    }
+
+    .next-race-card .schedule-item {
+      background: transparent !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      padding: 2px 6px 2px 0 !important;
+      min-height: 0 !important;
+      gap: 6px !important;
+      flex: 1 1 0;
+      min-width: 0;
+      box-shadow: none !important;
+    }
+
+    .next-race-card .schedule-item .schedule-icon {
+      background: transparent !important;
+      width: auto !important;
+      height: auto !important;
+      min-width: 0 !important;
+      font-size: 0.7rem !important;
+      color: #6a6f79 !important;
+      border: 0 !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+    }
+
+    .next-race-card .schedule-item .schedule-label {
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      font-size: 0.58rem !important;
+      font-weight: 700 !important;
+      color: #5f6470 !important;
+      margin-bottom: 1px !important;
+      line-height: 1.05 !important;
+    }
+
+    .next-race-card .schedule-item .schedule-time {
+      display: flex !important;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      line-height: 1;
+    }
+
+    .next-race-card .schedule-item .day,
+    .next-race-card .schedule-item .time {
+      display: inline;
+      align-items: initial;
+      height: auto;
+      border-radius: 0;
+      padding: 0;
+      font-size: 0.64rem !important;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+
+    .next-race-card .schedule-item .day {
+      background: transparent;
+      color: #6c717d;
+      border: 0;
+    }
+
+    .next-race-card .schedule-item .time {
+      background: transparent;
+      color: #15171b !important;
+      border: 0;
+      font-weight: 700;
+    }
+
+    .next-race-card mat-card-actions {
+      padding: 12px 14px 14px !important;
+      gap: 12px !important;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), #f5f6f8) !important;
+      border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .next-race-card .main-actions {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px !important;
+    }
+
+    .next-race-card .main-actions .main-btn,
+    .next-race-card .betting-buttons .betting-btn {
+      border-radius: 10px !important;
+      text-transform: none;
+      letter-spacing: 0.1px;
+      font-weight: 700 !important;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      min-height: 44px !important;
+      height: auto !important;
+      min-width: 0 !important;
+      font-size: 0.74rem !important;
+      padding: 10px 12px !important;
+    }
+
+    .next-race-card .main-actions .main-btn .mdc-button__label,
+    .next-race-card .betting-buttons .betting-btn .mdc-button__label {
+      display: inline-flex !important;
+      align-items: center;
+      justify-content: center !important;
+      gap: 4px !important;
+      width: 100%;
+      min-width: 0;
+      overflow: visible;
+      text-overflow: clip;
+      white-space: normal;
+      line-height: 1.15;
+      text-align: center;
+    }
+
+    .next-race-card .main-actions .main-btn i,
+    .next-race-card .main-actions .main-btn mat-icon,
+    .next-race-card .betting-buttons .betting-btn i,
+    .next-race-card .betting-buttons .betting-btn mat-icon {
+      margin-right: 0 !important;
+      flex: 0 0 auto;
+      font-size: 0.78rem !important;
+    }
+
+    .next-race-card .main-actions .main-btn-primary {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #111214, #252a33) !important;
+      color: #fff !important;
+    }
+
+    .next-race-card .main-actions .main-btn-secondary {
+      background: linear-gradient(135deg, #d41b3a, #a80f29) !important;
+      color: #fff !important;
+      border: 1px solid rgba(146, 8, 33, 0.45);
+    }
+
+    .next-race-card .main-actions .main-btn-ghost {
+      background: linear-gradient(135deg, #fff, #f5f6f8) !important;
+      color: #111 !important;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      box-shadow: none !important;
+    }
+
+    .next-race-card .betting-header {
+      color: #111 !important;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.45px;
+      font-size: 0.74rem !important;
+      padding: 8px 10px !important;
+      margin-bottom: 8px !important;
+    }
+
+    .next-race-card .betting-actions {
+      border-top: 1px dashed rgba(0, 0, 0, 0.16) !important;
+      padding-top: 10px !important;
+    }
+
+    .next-race-card .betting-buttons {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 9px !important;
+    }
+
+    .next-race-card .betting-buttons .betting-btn {
+      background: linear-gradient(135deg, #cf1736, #9c0b22) !important;
+      color: #fff !important;
+      border: 0;
+    }
+
+    .fantasy-team-card .team-title {
+      letter-spacing: 0.85px;
+      text-transform: uppercase;
+      color: var(--moto-black) !important;
+    }
+
+    .fantasy-team-card .team-image-container img {
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .fantasy-team-card .rider {
+      border: 1px solid var(--moto-line) !important;
+      border-left: 3px solid var(--moto-red) !important;
+      border-radius: 10px !important;
+      box-shadow: none !important;
+      background: #fff !important;
+    }
+
+    .fantasy-team-card .rider-header {
+      background: linear-gradient(90deg, rgba(200, 16, 46, 0.08), rgba(200, 16, 46, 0.02)) !important;
+    }
+
+    .championship-config-card .config-item {
+      border: 1px solid var(--moto-line) !important;
+      border-left: 3px solid var(--moto-red) !important;
+      border-radius: 10px !important;
+      background: #fff !important;
+      box-shadow: none !important;
+      padding: 10px !important;
+      gap: 10px !important;
+    }
+
+    .championship-config-card .config-icon {
+      background: linear-gradient(135deg, #111214, #2f3139) !important;
+      width: 34px !important;
+      height: 34px !important;
+      min-width: 34px !important;
+      border-radius: 9px !important;
+    }
+
+    .championship-config-card .config-label {
+      text-transform: uppercase;
+      letter-spacing: 0.45px;
+      font-size: 0.72rem !important;
+      color: #656a74 !important;
+      font-weight: 700 !important;
+    }
+
+    .championship-config-card .config-value {
+      color: #15161a !important;
+      font-weight: 700 !important;
+    }
+
+    .championship-config-card .config-content {
+      display: grid;
+      gap: 14px;
+    }
+
+    .championship-config-card .config-section {
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 12px;
+    }
+
+    .championship-config-card .config-section .section-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0 0 10px !important;
+      font-size: 0.82rem !important;
+      letter-spacing: 0.45px;
+      text-transform: uppercase;
+      color: #23262d !important;
+      font-family: 'MotoGP Bold', sans-serif;
+    }
+
+    .championship-config-card .config-section .section-title i {
+      color: var(--moto-red);
+      font-size: 0.78rem;
+    }
+
+    .championship-config-card .config-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .championship-config-card .scoring-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .championship-config-card .scoring-item {
+      border: 1px solid var(--moto-line) !important;
+      border-radius: 10px !important;
+      box-shadow: none !important;
+      overflow: hidden;
+      margin: 0 !important;
+    }
+
+    .championship-config-card .scoring-item .mat-expansion-panel-header {
+      background: #131418 !important;
+      color: #fff !important;
+      height: 44px !important;
+    }
+
+    .championship-config-card .scoring-item .mat-expansion-panel-header mat-panel-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      letter-spacing: 0.35px;
+      text-transform: uppercase;
+      color: #fff !important;
+    }
+
+    .championship-config-card .scoring-item .mat-expansion-panel-header .mat-expansion-panel-header-title,
+    .championship-config-card .scoring-item .mat-expansion-panel-header .mat-expansion-indicator::after {
+      color: #fff !important;
+      border-color: #fff !important;
+    }
+
+    .championship-config-card .scoring-item .scoring-points {
+      padding: 8px 10px 10px;
+      display: grid;
+      gap: 5px;
+    }
+
+    .championship-config-card .scoring-item .point-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+      padding-bottom: 4px;
+    }
+
+    .championship-config-card .scoring-item .point-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .championship-config-card .rules-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .championship-config-card .rule-item {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 8px;
+      align-items: start;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 10px;
+      padding: 8px 9px;
+      background: #fff;
+    }
+
+    .championship-config-card .rule-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #111214, #262b34);
+      color: #fff;
+      font-size: 0.72rem;
+    }
+
+    .championship-config-card .rule-label {
+      display: block;
+      font-size: 0.69rem;
+      color: #646a74;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 2px;
+      font-weight: 700;
+    }
+
+    .championship-config-card .rule-value {
+      display: block;
+      font-size: 0.84rem;
+      color: #17191d;
+      font-weight: 700;
+    }
+
+    @media (min-width: 1024px) {
+      .championship-config-card .config-content {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+        grid-template-areas:
+          "info scoring"
+          "rules rules";
+        gap: 12px;
+        align-items: start;
+      }
+
+      .championship-config-card .config-info-section { grid-area: info; }
+      .championship-config-card .config-scoring-section { grid-area: scoring; }
+      .championship-config-card .config-rules-section { grid-area: rules; }
+
+      .championship-config-card .config-section {
+        padding: 12px 13px;
+        border-radius: 12px;
+      }
+
+      .championship-config-card .config-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .championship-config-card .config-item {
+        min-height: 62px;
+      }
+
+      .championship-config-card .scoring-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .championship-config-card .scoring-item .mat-expansion-panel-header {
+        height: 42px !important;
+      }
+
+      .championship-config-card .rules-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .championship-config-card .rule-item {
+        min-height: 72px;
+      }
+    }
+
+
+    @media (max-width: 768px) {
+      .dashboard-container {
+        padding-top: var(--app-header-height);
+        padding-bottom: 84px;
+      }
+
+      .dashboard-container.header-collapsed {
+        padding-top: 6px;
+      }
+
+      .dashboard-header {
+        padding: 9px 12px;
+      }
+
+      .dashboard-header .brand-kicker {
+        font-size: 0.62rem;
+      }
+
+      .dashboard-header h1 {
+        font-size: clamp(1rem, 5vw, 1.2rem);
+      }
+
+      .dashboard-header .header-actions {
+        gap: 6px;
+      }
+
+      .dashboard-header .header-quick-link {
+        width: 34px;
+        min-width: 34px;
+        height: 34px;
+        padding: 0;
+        justify-content: center;
+      }
+
+      .dashboard-header .header-quick-link span {
+        display: none;
+      }
+
+      .dashboard-header .header-menu-btn {
+        width: 34px;
+        height: 34px;
+      }
+
+      .grid-content {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        gap: 0;
+      }
+
+      .mat-mdc-card.fantasy-team-card,
+      .mat-mdc-card.next-race-card,
+      .mat-mdc-card.standings-card,
+      .mat-mdc-card.championship-config-card {
+        border: 0;
+        border-radius: 0 !important;
+        margin: 0;
+      }
+
+      .standings-card mat-card-content,
+      .next-race-card mat-card-content,
+      .fantasy-team-card mat-card-content,
+      .championship-config-card mat-card-content,
+      .standings-card mat-card-actions,
+      .next-race-card mat-card-actions,
+      .fantasy-team-card mat-card-actions,
+      .championship-config-card mat-card-actions {
+        padding-inline: 12px !important;
+      }
+
+      /* Compact standings on mobile: keep page still and scroll inside table */
+      .standings-card:not(.mobile-hidden) mat-card-content {
+        height: calc(100dvh - var(--app-header-height) - 84px - 8px);
+        min-height: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .standings-card .standings-container {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .standings-card .table-container {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: none;
+      }
+
+      .standings-card .standings-table {
+        font-size: 0.78rem;
+      }
+
+      .standings-card .standings-table .th-full { display: none; }
+      .standings-card .standings-table .th-short { display: inline; }
+
+      .standings-card .standings-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+      }
+
+      .standings-card .standings-table th,
+      .standings-card .standings-table td {
+        padding: 0.3rem 0.28rem;
+      }
+
+      .standings-card .standings-table .rank-col {
+        width: 12%;
+      }
+
+      .standings-card .standings-table .rank-col .position {
+        font-size: 0.95rem;
+      }
+
+      .standings-card .standings-table .rank-col .position.top-position {
+        font-size: 1.05rem;
+      }
+
+      .standings-card .standings-table .rank-col .position-indicator {
+        display: none;
+      }
+
+      .standings-card .standings-table .user-col {
+        width: 49%;
+      }
+
+      .standings-card .standings-table .user-avatar-small,
+      .standings-card .standings-table .score-progress {
+        display: none !important;
+      }
+
+      .standings-card .standings-table .user-info {
+        gap: 0;
+      }
+
+      .standings-card .standings-table .username {
+        display: block;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.8rem;
+      }
+
+      .standings-card .standings-table .score-col {
+        width: 20%;
+      }
+
+      .standings-card .standings-table .score-value {
+        font-size: 0.95rem;
+      }
+
+      .standings-card .standings-table .score-label {
+        font-size: 0.62rem;
+      }
+
+      .standings-card .standings-table .gap-col {
+        width: 19%;
+      }
+
+      .standings-card .standings-table .gap-value {
+        font-size: 0.74rem;
+      }
+
+      .standings-card .standings-table .gap-label,
+      .standings-card .standings-table .gap-leader {
+        font-size: 0.62rem;
+      }
+
+      .standings-card .current-user-summary {
+        margin-top: 0.2rem;
+      }
+
+      .standings-card .current-user-summary .summary-compact {
+        padding: 0.34rem 0.44rem;
+        gap: 0.32rem;
+      }
+
+      .standings-card .current-user-summary .summary-kicker {
+        font-size: 0.6rem;
+        letter-spacing: 0.3px;
+      }
+
+      .standings-card .current-user-summary .summary-pill {
+        font-size: 0.63rem;
+        padding: 0.24rem 0.42rem;
+      }
+
+      .championship-config-card .config-content {
+        gap: 10px;
+      }
+
+      .championship-config-card .config-section {
+        padding: 10px;
+        border-radius: 10px;
+      }
+
+      .championship-config-card .config-section .section-title {
+        margin-bottom: 8px !important;
+        font-size: 0.76rem !important;
+      }
+
+      .championship-config-card .config-grid {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+
+      .championship-config-card .scoring-grid {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+
+      .championship-config-card .rules-grid {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+
+      .championship-config-card .rule-item {
+        grid-template-columns: 26px 1fr;
+        padding: 7px 8px;
+      }
+
+      .championship-config-card .rule-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        font-size: 0.66rem;
+      }
+
+      .championship-config-card .rule-label {
+        font-size: 0.64rem;
+      }
+
+      .championship-config-card .rule-value {
+        font-size: 0.78rem;
+      }
+
+      .next-race-card mat-card-content {
+        padding: 10px 12px 8px !important;
+      }
+
+      .next-race-card .race-content {
+        gap: 10px !important;
+      }
+
+      .next-race-card .grand-prix-name {
+        font-size: 1.2rem !important;
+      }
+
+      .next-race-card .race-meta-strip {
+        gap: 7px;
+        padding: 7px 0;
+      }
+
+      .next-race-card .race-meta-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .next-race-card .race-meta-grid .meta-panel {
+        padding: 6px 0;
+      }
+
+      .next-race-card .race-meta-grid .meta-key {
+        font-size: 0.61rem;
+      }
+
+      .next-race-card .race-meta-grid .meta-value {
+        font-size: 0.72rem;
+      }
+
+      .next-race-card .race-meta-grid .meta-panel:last-child .meta-value {
+        font-size: 0.96rem;
+      }
+
+      .next-race-card .race-meta-grid .meta-icon {
+        font-size: 0.68rem;
+      }
+
+      .next-race-card .race-meta-strip .meta-item {
+        gap: 5px;
+      }
+
+      .next-race-card .race-meta-strip .meta-key {
+        font-size: 0.6rem;
+      }
+
+      .next-race-card .race-meta-strip .meta-value {
+        font-size: 0.68rem;
+      }
+
+      .next-race-card .race-program-grid {
+        gap: 6px;
+        padding: 7px 0;
+      }
+
+      .next-race-card .program-row {
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "key time"
+          "day time";
+        gap: 2px 8px;
+      }
+
+      .next-race-card .program-row .program-key {
+        grid-area: key;
+        font-size: 0.67rem;
+      }
+
+      .next-race-card .program-row .program-day {
+        grid-area: day;
+        font-size: 0.66rem;
+      }
+
+      .next-race-card .program-row .program-time {
+        grid-area: time;
+        font-size: 0.98rem;
+      }
+
+      .next-race-card .schedule-grid {
+        gap: 5px !important;
+      }
+
+      .next-race-card .race-program {
+        gap: 6px;
+        padding-top: 6px;
+        padding-bottom: 6px;
+      }
+
+      .next-race-card .program-stop {
+        gap: 5px;
+      }
+
+      .next-race-card .program-key {
+        font-size: 0.58rem;
+      }
+
+      .next-race-card .program-when {
+        font-size: 0.62rem;
+      }
+
+      .next-race-card .schedule-item {
+        padding: 2px 5px 2px 0 !important;
+        gap: 5px !important;
+        min-width: 96px;
+      }
+
+      .next-race-card .schedule-item .schedule-icon {
+        width: auto !important;
+        height: auto !important;
+        min-width: 0 !important;
+        font-size: 0.64rem !important;
+      }
+
+      .next-race-card .schedule-item .schedule-time {
+        gap: 5px !important;
+      }
+
+      .next-race-card .schedule-item .day,
+      .next-race-card .schedule-item .time {
+        height: auto;
+        font-size: 0.6rem !important;
+        padding: 0;
+      }
+
+      .next-race-card mat-card-actions {
+        padding: 8px 10px 10px !important;
+        gap: 8px !important;
+      }
+
+      .next-race-card .main-actions {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 7px !important;
+      }
+
+      .next-race-card .main-actions .main-btn,
+      .next-race-card .betting-buttons .betting-btn {
+        min-height: 40px !important;
+        height: auto !important;
+        font-size: 0.68rem !important;
+        padding-inline: 8px !important;
+      }
+
+      .next-race-card .main-actions .main-btn-primary {
+        grid-column: 1 / -1 !important;
+      }
+
+      .next-race-card .betting-buttons {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+
+      .bottom-nav {
+        width: calc(100% - 12px);
+        margin: 0 auto 6px;
+        border-radius: 12px;
+        border-left: 1px solid #2b2f39;
+        border-right: 1px solid #2b2f39;
+      }
+    }
+
+    /* Next race redesign: full page, no inner cards */
+    .next-race-card mat-card-content {
+      padding: 12px 12px 10px !important;
+    }
+    .next-race-card .race-content {
+      display: block !important;
+      gap: 0 !important;
+    }
+    .next-race-card .race-overview {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .next-race-card .race-overview-main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .next-race-card .race-kicker {
+      display: inline-flex;
+      width: fit-content;
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.45px;
+      color: #c8102e;
+      background: rgba(200, 16, 46, 0.08);
+      border: 1px solid rgba(200, 16, 46, 0.18);
+      border-radius: 999px;
+      padding: 0.24rem 0.56rem;
+    }
+    .next-race-card .grand-prix-name {
+      margin: 0 !important;
+      font-size: clamp(1.28rem, 3.1vw, 1.78rem) !important;
+      letter-spacing: 0.15px;
+      line-height: 1.04 !important;
+      color: #101216;
+    }
+    .next-race-card .race-meta-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 2px;
+    }
+    .next-race-card .race-date-display {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 30px;
+      width: fit-content;
+      border-radius: 9px;
+      border: 1px solid rgba(17, 18, 20, 0.14);
+      background: #fff;
+      color: #111318;
+      padding: 0 10px;
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.84rem;
+      letter-spacing: 0.1px;
+    }
+    .next-race-card .race-date-display i {
+      color: #c8102e;
+      font-size: 0.78rem;
+      line-height: 1;
+    }
+    .next-race-card .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 30px;
+      border-radius: 999px;
+      border: 1px solid rgba(17, 18, 20, 0.14);
+      padding: 0 10px;
+      background: #fff;
+      color: #191b20;
+      min-width: 0;
+    }
+    .next-race-card .meta-pill i {
+      color: #c8102e;
+      font-size: 0.72rem;
+      line-height: 1;
+    }
+    .next-race-card .meta-pill .meta-label {
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.34px;
+      color: #676d78;
+      white-space: nowrap;
+    }
+    .next-race-card .meta-pill .meta-value {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #111318;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 22ch;
+    }
+    .next-race-card .race-timing-list {
+      display: grid;
+      gap: 7px;
+      border-left: 2px solid rgba(200, 16, 46, 0.24);
+      padding-left: 10px;
+      min-width: 0;
+    }
+    .next-race-card .timing-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) auto auto;
+      gap: 8px;
+      align-items: center;
+      border-bottom: 1px solid rgba(17, 18, 20, 0.09);
+      padding-bottom: 6px;
+    }
+    .next-race-card .timing-row:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+    .next-race-card .timing-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+    .next-race-card .timing-main i {
+      color: #c8102e;
+      font-size: 0.75rem;
+      width: 14px;
+      text-align: center;
+      flex: 0 0 auto;
+    }
+    .next-race-card .timing-name {
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      color: #111318;
+    }
+    .next-race-card .timing-day {
+      font-size: 0.74rem;
+      color: #5f6570;
+      text-transform: capitalize;
+      white-space: nowrap;
+    }
+    .next-race-card .timing-time {
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 1.02rem;
+      color: #c8102e;
+      line-height: 1;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      justify-self: end;
+    }
+    .next-race-card .timing-row-race .timing-time {
+      font-size: 1.12rem;
+      color: #9f0d24;
+    }
+
+    @media (max-width: 980px) {
+      .next-race-card .race-overview {
+        grid-template-columns: 1fr;
+        gap: 9px;
+      }
+      .next-race-card .race-timing-list {
+        border-left: 0;
+        border-top: 1px solid rgba(17, 18, 20, 0.12);
+        padding-left: 0;
+        padding-top: 8px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .next-race-card mat-card-content {
+        padding: 10px 8px 8px !important;
+      }
+      .next-race-card .race-overview {
+        gap: 8px;
+      }
+      .next-race-card .grand-prix-name {
+        font-size: 1.2rem !important;
+      }
+      .next-race-card .race-meta-inline {
+        gap: 6px;
+      }
+      .next-race-card .race-date-display {
+        min-height: 28px;
+        padding: 0 8px;
+        font-size: 0.74rem;
+      }
+      .next-race-card .meta-pill {
+        min-height: 28px;
+        padding: 0 8px;
+      }
+      .next-race-card .meta-pill .meta-label {
+        font-size: 0.58rem;
+      }
+      .next-race-card .meta-pill .meta-value {
+        font-size: 0.7rem;
+        max-width: 18ch;
+      }
+      .next-race-card .timing-row {
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "main time"
+          "day time";
+        gap: 2px 8px;
+        padding-bottom: 5px;
+      }
+      .next-race-card .timing-main {
+        grid-area: main;
+      }
+      .next-race-card .timing-day {
+        grid-area: day;
+        font-size: 0.66rem;
+      }
+      .next-race-card .timing-time {
+        grid-area: time;
+        align-self: center;
+        font-size: 0.96rem;
+      }
+      .next-race-card .timing-row-race .timing-time {
+        font-size: 1.04rem;
+      }
+    }
+
+    /* Final fix: standings table overflow + readable header */
+    .standings-card .table-container {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden !important;
+      overflow-y: auto;
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
+
+    .standings-card .standings-table {
+      width: 100% !important;
+      max-width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+
+    .standings-card .standings-table th,
+    .standings-card .standings-table td {
+      box-sizing: border-box;
+    }
+
+    .standings-card .standings-table thead th {
+      background: #f4f6f8 !important;
+      color: #111318 !important;
+      border-bottom: 1px solid rgba(17, 18, 20, 0.14) !important;
+      text-shadow: none !important;
+    }
+
+    .standings-card .standings-table thead th .th-full,
+    .standings-card .standings-table thead th .th-short {
+      color: #111318 !important;
+      opacity: 1 !important;
+    }
+
+    @media (max-width: 768px) {
+      .standings-card .table-container {
+        overflow-x: hidden !important;
+      }
+
+      .standings-card .standings-table {
+        table-layout: fixed;
+      }
+    }
+
   `]
 })
 export class DashboardComponent implements OnInit {
@@ -3073,6 +4767,8 @@ export class DashboardComponent implements OnInit {
   currentTab: Tab = 'standings';
   private swipeX = 0;
   private tracking = false;
+  headerVisible = true;
+  private lastScrollY = 0;
 
   constructor(
     private router: Router,
@@ -3430,6 +5126,25 @@ export class DashboardComponent implements OnInit {
   onKeydown(e: KeyboardEvent) {
     if (e.key === 'ArrowLeft') this.shift(-1);
     else if (e.key === 'ArrowRight') this.shift(1);
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll() {
+    const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+    const delta = currentY - this.lastScrollY;
+
+    // Keep header visible at top and ignore tiny scroll jitter.
+    if (currentY <= 8) {
+      this.headerVisible = true;
+      this.lastScrollY = 0;
+      return;
+    }
+    if (Math.abs(delta) < 6) {
+      return;
+    }
+
+    this.headerVisible = delta < 0;
+    this.lastScrollY = currentY;
   }
   private shift(direction: -1 | 1) {
     const order: Tab[] = ['standings', 'next', 'team', 'config'];

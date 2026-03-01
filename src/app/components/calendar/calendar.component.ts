@@ -1,8 +1,7 @@
 // src/app/calendar/calendar.component.ts
-import { Component, OnInit, ViewChildren, ElementRef, QueryList, AfterViewInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { DashboardService, CalendarRace } from '../../services/dashboard.service';
@@ -16,7 +15,7 @@ import { I18nService } from '../../services/i18n.service';
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, TimeFormatPipe, TranslatePipe],
+  imports: [CommonModule, MatButtonModule, MatIconModule, TimeFormatPipe, TranslatePipe],
   template: `
     <div class="page-container">
       <header class="header">
@@ -26,7 +25,7 @@ import { I18nService } from '../../services/i18n.service';
         <h1>{{ 'calendar.title' | t }}</h1>
       </header>
       <main class="main-content">
-      <mat-card class="dashboard-card">
+      <section class="calendar-desktop-shell">
 
         <!-- Desktop Table -->
         <div class="desktop-view">
@@ -71,35 +70,62 @@ import { I18nService } from '../../services/i18n.service';
             </tbody>
           </table>
         </div>
-      </mat-card>
+      </section>
 
-      <!-- Modified Mobile Cards - Remove CDK directives -->
-      <div class="calendar-mobile-list">
-        <mat-card #raceCards class="calendar-race-card" *ngFor="let race of calendar">
-          <mat-card-header>
-            <mat-card-title-group class="card-header">
-              <div class="header-content">
-                <div class="round-badge">{{ 'calendar.raceNum' | t:{num: race.race_order} }}</div>
-                <mat-card-title>{{ race.race_id.name }}</mat-card-title>
-                <mat-card-subtitle>
-                  <div class="event-details">
-                    <div class="detail-item">
-                      <mat-icon>event</mat-icon>
-                      <span class="detail-text">
-                      {{ formatEventRange(race.event_date) }}
-                      </span>
-                    </div>
-                    <div class="detail-item">
-                      <mat-icon>location_on</mat-icon>
-                      <span class="location-text">{{ race.race_id.location }}</span>
-                    </div>
+      <!-- Mobile: single-race carousel -->
+      <div class="calendar-mobile-list" *ngIf="calendar.length > 0">
+        <div class="mobile-race-nav">
+          <button
+            mat-icon-button
+            class="nav-arrow"
+            (click)="goToPreviousRace()"
+            [disabled]="mobileRaceIndex === 0"
+            aria-label="Previous race">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <div class="mobile-race-meta">
+            <span class="mobile-race-index">{{ mobileRaceIndex + 1 }} / {{ calendar.length }}</span>
+            <button
+              mat-stroked-button
+              class="current-race-btn"
+              (click)="goToCurrentRace()"
+              [disabled]="mobileRaceIndex === currentRaceIndex">
+              Gara attuale
+            </button>
+          </div>
+          <button
+            mat-icon-button
+            class="nav-arrow"
+            (click)="goToNextRace()"
+            [disabled]="mobileRaceIndex >= calendar.length - 1"
+            aria-label="Next race">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+
+        <article class="calendar-race-panel" *ngIf="activeMobileRace as race">
+          <div class="card-header">
+            <div class="header-content">
+              <div class="round-badge">{{ 'calendar.raceNum' | t:{num: race.race_order} }}</div>
+              <h2 class="race-title">{{ race.race_id.name }}</h2>
+              <div class="race-subtitle">
+                <div class="event-details">
+                  <div class="detail-item">
+                    <mat-icon>event</mat-icon>
+                    <span class="detail-text">
+                    {{ formatEventRange(race.event_date) }}
+                    </span>
                   </div>
-                </mat-card-subtitle>
+                  <div class="detail-item">
+                    <mat-icon>location_on</mat-icon>
+                    <span class="location-text">{{ race.race_id.location }}</span>
+                  </div>
+                </div>
               </div>
-            </mat-card-title-group>
-          </mat-card-header>
+            </div>
+          </div>
 
-          <mat-card-content>
+          <div class="race-main">
             <div class="race-content">
               <div class="race-details-vertical">
                 <div class="time-detail-container">
@@ -137,552 +163,510 @@ import { I18nService } from '../../services/i18n.service';
                 </div>
               </div>
             </div>
-          </mat-card-content>
+          </div>
 
-          <mat-card-actions class="action-buttons">
-            <button mat-mini-fab color="accent" (click)="goToMotoGPResults(race)" aria-label="View MotoGP Results">
+          <div class="action-buttons">
+            <button
+              mat-flat-button
+              class="race-action race-action-results"
+              (click)="goToMotoGPResults(race)"
+              aria-label="View MotoGP Results">
               <mat-icon>emoji_events</mat-icon>
+              <span>Risultati</span>
             </button>
-            <button mat-mini-fab color="primary" (click)="goToRaceDetail(race)">
+            <button
+              mat-flat-button
+              class="race-action race-action-details"
+              (click)="goToRaceDetail(race)">
               <mat-icon>arrow_forward</mat-icon>
+              <span>Dettagli</span>
             </button>
-          </mat-card-actions>
-        </mat-card>
+          </div>
+        </article>
       </div>
       </main>
     </div>
   `,
   styles: [`
-    .main-content {
-      color: #111;
-      padding: 0;
-      gap: 12px;
+    :host {
+      --mm-red: #c8102e;
+      --mm-black: #111214;
+      --mm-white: #ffffff;
+      --mm-text: #17181a;
+      --mm-muted: #5f6670;
+      --mm-border: rgba(17, 18, 20, 0.14);
+      --mm-soft-red: rgba(200, 16, 46, 0.08);
+    }
 
-      .mat-mdc-card-header {
-        padding: 0;
+    .page-container {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
+        radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
+        linear-gradient(158deg, #ffffff 0%, #f8f8f9 48%, #f1f2f4 100%);
+      color: var(--mm-text);
+    }
+
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--app-header-height);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 clamp(10px, 2.4vw, 20px);
+      background: rgba(17, 18, 20, 0.97);
+      color: var(--mm-white);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+      z-index: 1000;
+    }
+
+    .header button {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--mm-white);
+      color: var(--mm-red);
+      flex: 0 0 auto;
+    }
+
+    .header h1 {
+      margin: 0;
+      flex: 1;
+      text-align: center;
+      font-family: 'MotoGP Bold', sans-serif;
+      letter-spacing: 0.3px;
+      font-size: clamp(1.02rem, 2.9vw, 1.45rem);
+      color: var(--mm-white);
+      text-transform: uppercase;
+      padding-right: 42px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .main-content {
+      width: 100%;
+      max-width: none;
+      margin: 0 auto;
+      padding: calc(var(--app-header-height) + 12px) clamp(10px, 2.5vw, 22px) 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .calendar-desktop-shell {
+      width: 100%;
+      border-radius: 0;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      overflow: hidden;
+      margin: 0;
+    }
+
+    .desktop-view {
+      display: block;
+      padding: 0;
+    }
+
+    .dashboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 0.93rem;
+    }
+
+    .dashboard-table th,
+    .dashboard-table td {
+      padding: 0.68rem 0.55rem;
+      border-bottom: 1px solid rgba(17, 18, 20, 0.08);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .dashboard-table th {
+      background: var(--mm-black);
+      color: var(--mm-white);
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.42px;
+      line-height: 1.2;
+    }
+
+    .dashboard-table tbody tr:hover {
+      background: rgba(17, 18, 20, 0.03);
+    }
+
+    .dashboard-table tr.current-race {
+      background: linear-gradient(90deg, rgba(200, 16, 46, 0.1), rgba(200, 16, 46, 0.02));
+    }
+
+    .dashboard-table td.round-number {
+      width: 72px;
+      text-align: center;
+      font-family: 'MotoGP Bold', sans-serif;
+      color: var(--mm-red);
+      font-size: 0.98rem;
+    }
+
+    .event-name {
+      font-weight: 700;
+      color: var(--mm-black);
+      line-height: 1.24;
+      margin-bottom: 2px;
+    }
+
+    .event-location {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--mm-muted);
+      font-size: 0.82rem;
+      line-height: 1.2;
+    }
+
+    .event-location mat-icon {
+      color: var(--mm-red);
+      width: 16px;
+      height: 16px;
+      font-size: 16px;
+    }
+
+    .detail-text {
+      color: #353941;
+      font-weight: 600;
+      font-size: 0.86rem;
+      line-height: 1.25;
+    }
+
+    .dashboard-table td:last-child {
+      width: 84px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .dashboard-table td button[mat-icon-button] {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      margin-left: 4px;
+    }
+
+    .dashboard-table td button[mat-icon-button][color='primary'] {
+      background: var(--mm-black);
+      color: var(--mm-white);
+    }
+
+    .dashboard-table td button[mat-icon-button][color='accent'] {
+      background: var(--mm-red);
+      color: var(--mm-white);
+    }
+
+    .calendar-mobile-list {
+      display: none;
+      width: 100%;
+      gap: 10px;
+      flex-direction: column;
+    }
+
+    .mobile-race-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 2px 2px 6px;
+    }
+
+    .mobile-race-meta {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .mobile-race-index {
+      color: var(--mm-black);
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.82rem;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+
+    .nav-arrow {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--mm-black);
+      color: var(--mm-white);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .nav-arrow[disabled] {
+      opacity: 0.38;
+      background: rgba(17, 18, 20, 0.28);
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .current-race-btn {
+      min-height: 36px;
+      border-radius: 10px;
+      border-color: rgba(200, 16, 46, 0.55) !important;
+      color: var(--mm-red) !important;
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.74rem;
+      letter-spacing: 0.2px;
+      padding: 0 12px;
+      line-height: 1;
+      white-space: nowrap;
+      background: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    .current-race-btn[disabled] {
+      opacity: 0.55;
+    }
+
+    .calendar-race-panel {
+      width: 100%;
+      margin: 0;
+      border-radius: 0;
+      border: 0;
+      box-shadow: none;
+      overflow: hidden;
+      background: var(--mm-white);
+    }
+
+    .calendar-race-panel .card-header {
+      background: var(--mm-black);
+      color: var(--mm-white);
+      padding: 0.95rem 1rem 0.85rem;
+      width: 100%;
+      border-radius: 14px;
+    }
+
+    .calendar-race-panel .header-content {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .calendar-race-panel .round-badge {
+      align-self: flex-start;
+      background: var(--mm-red);
+      color: var(--mm-white);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 0.75rem;
+      font-family: 'MotoGP Bold', sans-serif;
+      letter-spacing: 0.25px;
+      text-transform: uppercase;
+    }
+
+    .calendar-race-panel .race-title {
+      margin: 0;
+      color: var(--mm-white);
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 1.06rem;
+      line-height: 1.22;
+      padding: 0;
+    }
+
+    .calendar-race-panel .race-subtitle {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .calendar-race-panel .event-details {
+      display: grid;
+      gap: 4px;
+    }
+
+    .calendar-race-panel .detail-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 0.84rem;
+      line-height: 1.25;
+    }
+
+    .calendar-race-panel .detail-item mat-icon {
+      width: 15px;
+      height: 15px;
+      font-size: 15px;
+      color: #ff8ca0;
+    }
+
+    .calendar-race-panel .race-main {
+      padding: 0.8rem 0.85rem 0.7rem;
+      background: var(--mm-white);
+    }
+
+    .calendar-race-panel .race-content,
+    .calendar-race-panel .race-details-vertical {
+      display: grid;
+      gap: 8px;
+    }
+
+    .calendar-race-panel .time-detail-container {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 9px;
+      border-radius: 10px;
+      border: 1px solid rgba(17, 18, 20, 0.1);
+      border-left: 3px solid var(--mm-red);
+      background: #fff;
+    }
+
+    .calendar-race-panel .time-icon-container {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--mm-black);
+      color: var(--mm-white);
+      flex: 0 0 auto;
+    }
+
+    .calendar-race-panel .time-icon {
+      width: 15px;
+      height: 15px;
+      font-size: 15px;
+      color: var(--mm-white);
+    }
+
+    .calendar-race-panel .time-info {
+      min-width: 0;
+      display: grid;
+      gap: 1px;
+    }
+
+    .calendar-race-panel .time-label {
+      color: var(--mm-muted);
+      font-size: 0.67rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      line-height: 1.1;
+    }
+
+    .calendar-race-panel .time-value {
+      color: var(--mm-red);
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.96rem;
+      line-height: 1.15;
+      letter-spacing: 0.2px;
+      word-break: break-word;
+    }
+
+    .calendar-race-panel .action-buttons {
+      padding: 0.62rem 0.85rem 0.82rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      border-top: 1px solid rgba(17, 18, 20, 0.08);
+      background: var(--mm-white);
+    }
+
+    .calendar-race-panel .action-buttons .race-action {
+      min-height: 40px;
+      border-radius: 10px;
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.76rem;
+      letter-spacing: 0.18px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 10px;
+      box-shadow: none;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .calendar-race-panel .action-buttons .race-action mat-icon {
+      width: 16px;
+      height: 16px;
+      font-size: 16px;
+      flex: 0 0 auto;
+    }
+
+    .calendar-race-panel .action-buttons .race-action-results {
+      background: var(--mm-red);
+      color: var(--mm-white);
+    }
+
+    .calendar-race-panel .action-buttons .race-action-details {
+      background: var(--mm-black);
+      color: var(--mm-white);
+    }
+
+    .calendar-race-panel .action-buttons .race-action:disabled {
+      opacity: 0.45;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-table {
+        font-size: 0.88rem;
+      }
+
+      .dashboard-table th,
+      .dashboard-table td {
+        padding: 0.62rem 0.46rem;
       }
     }
 
     @media (max-width: 768px) {
       .main-content {
-        gap: 10px;
+        padding: calc(var(--app-header-height) + 10px) 0 10px;
       }
-    }
 
-    /* Unified Dashboard Styling */
-    .dashboard-container {
-      padding: 2rem;
-      background: #f5f5f5;
-      min-height: 100vh;
-    }
-
-    .dashboard-header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 2rem;
-
-      h1 {
-        color: var(--primary-color);
-        font-family: 'MotoGP Bold', sans-serif;
-        margin: 0;
-        font-size: 2rem;
+      .calendar-desktop-shell {
+        display: none;
       }
-    }
 
-    .dashboard-card {
-      background: white;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
-      width: 100%;
-      max-width: var(--content-max-width);
-      margin-top: 0;
-      border: 1px solid rgba(74, 20, 140, 0.14);
-    }
-
-    .card-header {
-      color: var(--primary-color);
-      padding: 1.5rem;
-
-      mat-card-title {
-        font-family: 'MotoGP Bold' !important;
+      .calendar-mobile-list {
         display: flex;
-        align-items: center;
-        gap: 1rem;
+        gap: 6px;
       }
 
-      .event-details {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-top: 8px;
-
-        .detail-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 0.9rem;
-
-          mat-icon {
-            font-size: 1.1rem;
-            width: 1.1rem;
-            height: 1.1rem;
-          }
-        }
-
-        .location-text {
-          font-weight: 500;
-        }
-      }
-    }
-
-    /* Desktop Table Styling */
-    .desktop-view {
-      display: block;
-      padding: clamp(0.85rem, 2vw, 1.5rem);
-
-      @media (max-width: 768px) {
-        display: none;  // Hide table on mobile
+      .mobile-race-nav,
+      .calendar-race-panel .card-header,
+      .calendar-race-panel .race-main,
+      .calendar-race-panel .action-buttons {
+        padding-left: 10px;
+        padding-right: 10px;
       }
 
-      .dashboard-table {
-        width: 100%;
-        border-collapse: collapse;
-
-        th, td {
-          padding: clamp(0.7rem, 1.5vw, 1rem);
-          text-align: left;
-          border-bottom: 1px solid #eee;
-        }
-
-        th {
-          background: rgba(var(--primary-color), 0.1);
-          color: var(--primary-color);
-          font-family: 'MotoGP Bold', sans-serif;
-        }
-
-        tr:hover {
-          background: #f8f9fa;
-        }
-
-        .round-number {
-          font-family: 'MotoGP Bold', sans-serif;
-          color: var(--primary-color);
-        }
-
-        .event-info {
-
-          .event-name {
-            font-weight: 500;
-          }
-
-          .event-location {
-            color: #666;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-          }
-        }
-      }
-    }
-
-    /* Updated Mobile Card Styling */
-    .calendar-mobile-list {
-      display: none;
-      padding: 0;
-      width: 100%;
-      background: transparent;
-
-      @media (max-width: 768px) {
-        display: block;
-      }
-    }
-
-    .calendar-race-card {
-      width: 100%;
-      margin: 0.75rem 0;
-      box-sizing: border-box;
-      border-radius: 18px;
-      box-shadow: 0 4px 16px rgba(74, 20, 140, 0.10), 0 1.5px 4px rgba(74, 20, 140, 0.06);
-      overflow: visible;
-      background: transparent;
-      transition: box-shadow 0.2s, transform 0.2s;
-      position: relative;
-      padding-bottom: 0.5rem;
-      border: 1px solid #2a003f;
-      color: #fff;
-    }
-
-    .calendar-race-card .card-header {
-      background: linear-gradient(90deg, var(--primary-color), #006db3 80%);
-      color: #fff;
-      padding: 1.2rem 1.5rem 1rem 1.5rem;
-      border-top-left-radius: 18px;
-      border-top-right-radius: 18px;
-      box-shadow: none;
-      text-align: center;
-    }
-
-    .calendar-race-card .header-content {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-
-    .calendar-race-card mat-card-content,
-    .calendar-race-card .race-content,
-    .calendar-race-card .action-buttons {
-      background: #fff;
-      color: #222;
-    }
-
-    .calendar-race-card .round-badge {
-      background: rgba(255,255,255,0.18);
-      padding: 4px 16px;
-      border-radius: 16px;
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      display: inline-block;
-      letter-spacing: 0.5px;
-      color: #fff;
-    }
-
-    .calendar-race-card mat-card-title {
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin-bottom: 0.2rem;
-      letter-spacing: 0.5px;
-      color: #fff;
-    }
-
-    .calendar-race-card mat-card-subtitle {
-      color: rgba(255,255,255,0.92);
-      font-size: 0.98rem;
-      margin-top: 0.2rem;
-    }
-
-    .calendar-race-card .event-details {
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-    }
-
-    .calendar-race-card .detail-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.98rem;
-      color: #fff;
-    }
-
-    .calendar-race-card .location-text {
-      font-weight: 500;
-      color: #fff;
-    }
-
-    .calendar-race-card .race-details-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 1.1rem;
-      flex-wrap: nowrap;
-    }
-
-    .calendar-race-card .race-details-vertical {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .calendar-race-card .time-detail-container {
-      background: #f7f9fa;
-      border-radius: 8px;
-      padding: 0.3rem 0.7rem;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      min-width: 0;
-      flex: 1 1 65px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-      color: #222;
-    }
-
-    .calendar-race-card .time-icon-container {
-      background: rgba(74, 20, 140, 0.12);
-      border-radius: 50%;
-      padding: 7px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .calendar-race-card .time-icon {
-      color: var(--primary-color);
-      width: 22px;
-      height: 22px;
-      font-size: 22px;
-    }
-
-    .calendar-race-card .time-info {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      color: #222;
-    }
-
-    .calendar-race-card .time-label {
-      color: #666;
-      font-size: 0.92rem;
-      font-weight: 500;
-    }
-
-    .calendar-race-card .time-value {
-      color: var(--primary-color);
-      font-size: 1rem;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      white-space: nowrap;
-    }
-
-    .calendar-race-card mat-card-content {
-      padding: 0.5rem 1rem;
-    }
-
-    .current-race {
-      background: rgba(var(--primary-red), 0.1) !important;
-      position: relative;
-
-      &::after {
-        content: '•';
-        color: var(--primary-red);
-        position: absolute;
-        right: 1rem;
-        font-size: 2rem;
-      }
-    }
-
-    .calendar-container {
-      padding: 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .calendar-title {
-      text-align: center;
-      color: var(--primary-color);
-      margin-bottom: 2rem;
-      font-size: 2.5rem;
-    }
-
-    .race-cards {
-      display: grid;
-      gap: 1.5rem;
-    }
-
-    .race-card {
-      position: relative;
-      overflow: hidden;
-      border-radius: 20px;
-      box-shadow:
-        0 0 0 1.5px rgba(0, 0, 0, 0.08),
-        0 8px 24px rgba(0, 0, 0, 0.1);
-      transition:
-        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        box-shadow 0.3s ease;
-      position: relative;
-      background: white;
-
-      &::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border-radius: 20px;
-        box-shadow:
-          0 4px 12px rgba(0, 0, 0, 0.08),
-          0 6px 20px rgba(0, 0, 0, 0.04);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        z-index: -1;
+      .header {
+        padding: 0 8px;
       }
 
-      &:hover {
-        transform: translateY(-4px) scale(1.02);
-        box-shadow:
-          0 0 0 2px rgba(var(--primary-color), 0.15),
-          0 12px 32px rgba(0, 0, 0, 0.15);
-
-        &::after {
-          opacity: 1;
-        }
+      .header h1 {
+        font-size: 0.98rem;
+        padding-right: 40px;
       }
-
-      &:active {
-        transform: translateY(-2px) scale(1.01);
-      }
-    }
-
-    .race-header {
-      background: linear-gradient(135deg, var(--primary-color), #0d47a1);
-      padding: 1.5rem;
-      color: white;
-
-      .round-badge {
-        background: rgba(255, 255, 255, 0.15);
-        padding: 0.5rem 1.2rem;
-        border-radius: 20px;
-        font-weight: 500;
-        display: inline-block;
-        margin-bottom: 1rem;
-      }
-
-      .event-title {
-        margin: 0 0 1rem;
-        font-size: 1.8rem;
-      }
-
-      .event-details {
-        display: grid;
-        gap: 1rem;
-
-        .detail-item {
-          display: flex;
-          align-items: center;
-          gap: 0.8rem;
-          font-size: 1.1rem;
-
-          mat-icon {
-            color: #ffcc00;
-            font-size: 1.6rem;
-            width: 1.6rem;
-            height: 1.6rem;
-          }
-        }
-      }
-    }
-
-    .time-grid-container {
-      padding: 1.5rem;
-      background: #f8f9fa;
-
-      .time-grid {
-        display: grid;
-        gap: 1rem;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-
-        .time-item {
-          background: white;
-          padding: 1.2rem;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .time-icon-container {
-          background: #ffe5e5;
-          border-radius: 50%;
-          padding: 0.8rem;
-
-          .time-icon {
-            color: #d32f2f;
-            font-size: 1.8rem;
-            width: 1.8rem;
-            height: 1.8rem;
-          }
-        }
-
-        .time-label {
-          font-weight: 500;
-          color: #666;
-          font-size: 0.9rem;
-        }
-
-        .time-value {
-          font-weight: 600;
-          color: var(--primary-color);
-          font-size: 1.2rem;
-        }
-      }
-    }
-
-    .race-status {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      font-size: 0.9rem;
-
-      &.completed {
-        background: #4CAF50;
-      }
-    }
-
-    .admin-actions {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-
-      button {
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-    }
-
-    @media (min-width: 768px) {
-      .race-cards {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .event-title {
-        font-size: 2rem !important;
-      }
-
-      .time-grid {
-        grid-template-columns: repeat(3, 1fr) !important;
-      }
-    }
-
-    @media (min-width: 1200px) {
-      .race-cards {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    .calendar-race-card .action-buttons {
-      border-bottom-left-radius: 18px;
-      border-bottom-right-radius: 18px;
-      padding: 0.75rem 1rem 0.95rem;
-      justify-content: flex-end;
-      gap: 10px;
     }
 
     @media (min-width: 769px) {
       .calendar-mobile-list {
-        display: none !important;
-      }
-
-      .dashboard-card {
-        margin-bottom: 0.5rem;
+        display: none;
       }
     }
   `]
 })
-export class CalendarComponent implements OnInit, AfterViewInit {
-
-  @ViewChildren('raceCards') raceCards!: QueryList<ElementRef>;
+export class CalendarComponent implements OnInit {
   currentRaceIndex: number = 0;
+  mobileRaceIndex: number = 0;
   calendar: CalendarRace[] = [];
   championshipId: number = 0;
 
@@ -701,28 +685,52 @@ export class CalendarComponent implements OnInit, AfterViewInit {
       this.championshipId = champId;
       this.dashboardService.getCalendar(champId).subscribe({
         next: (data: CalendarRace[]) => {
-          this.calendar = data;
+          this.calendar = data ?? [];
+          this.findCurrentRace();
+          this.mobileRaceIndex = this.currentRaceIndex;
         },
         error: (err) => {
           console.error('Error fetching calendar data:', err);
           this.calendar = [];
+          this.currentRaceIndex = 0;
+          this.mobileRaceIndex = 0;
         }
       });
     });
   }
 
-  ngAfterViewInit() {
-    this.findCurrentRace();
-  }
-
   private findCurrentRace() {
+    if (!this.calendar.length) {
+      this.currentRaceIndex = 0;
+      return;
+    }
+
     const now = new Date();
-    this.currentRaceIndex = this.calendar.findIndex(race =>
+    const nextRaceIndex = this.calendar.findIndex(race =>
       new Date(race.event_date) >= now
     );
-    if (this.currentRaceIndex === -1) {
-      this.currentRaceIndex = this.calendar.length - 1; // Show last race if all past
+
+    this.currentRaceIndex = nextRaceIndex === -1 ? this.calendar.length - 1 : nextRaceIndex;
+  }
+
+  get activeMobileRace(): CalendarRace | null {
+    return this.calendar[this.mobileRaceIndex] ?? null;
+  }
+
+  goToPreviousRace(): void {
+    if (this.mobileRaceIndex > 0) {
+      this.mobileRaceIndex -= 1;
     }
+  }
+
+  goToNextRace(): void {
+    if (this.mobileRaceIndex < this.calendar.length - 1) {
+      this.mobileRaceIndex += 1;
+    }
+  }
+
+  goToCurrentRace(): void {
+    this.mobileRaceIndex = this.currentRaceIndex;
   }
 
   public getEventDateRange(eventDateString: string): { start: Date, end: Date } {
@@ -806,3 +814,6 @@ export class CalendarComponent implements OnInit, AfterViewInit {
       return date.toLocaleDateString(this.locale, { weekday: 'long' });
     }
 }
+
+
+
