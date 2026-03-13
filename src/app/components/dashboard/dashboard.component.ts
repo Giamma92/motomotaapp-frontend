@@ -107,54 +107,70 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
 
                 <!-- Top 3 Podium Section -->
                 <div class="podium-section" *ngIf="classificationData?.length">
+                  <div class="podium-intro">
+                    <div class="podium-copy">
+                      <span class="podium-kicker">Race control</span>
+                      <h3>Podio campionato</h3>
+                    </div>
+                    <div class="podium-flag" aria-hidden="true"></div>
+                  </div>
                   <div class="podium-steps">
 
                     <!-- 2nd place -->
                     <div class="step step-2" *ngIf="classificationData[1] as r2">
-                      <div class="step-top">
+                      <div class="step-plate">
+                        <span class="step-mark">2</span>
+                      </div>
+                      <div class="step-corner" aria-hidden="true">
                         <i class="fa-solid fa-crown crown-silver"></i>
                       </div>
                       <div class="step-body">
-                        <div class="pos-badge silver">
-                          <i class="fa-solid fa-2"></i>
+                        <div class="step-meta">
+                          <span class="podium-points">{{ r2?.score | number:'1.0-0' }} pts</span>
                         </div>
-                        <div class="name">
+                        <div class="name" [title]="(r2?.user_id?.first_name || '') + ' ' + (r2?.user_id?.last_name || '')">
                           {{ (r2?.user_id?.first_name || '') + ' ' + (r2?.user_id?.last_name || '') || ('dashboard.anonymousRider' | t) }}
                         </div>
-                        <div class="pts">{{ r2?.score | number:'1.0-0' }} pts</div>
                       </div>
+                      <div class="step-lane" aria-hidden="true"></div>
                     </div>
 
                     <!-- 1st place -->
                     <div class="step step-1 champion" *ngIf="classificationData[0] as r1">
-                      <div class="step-top">
+                      <div class="step-plate">
+                        <span class="step-mark">1</span>
+                      </div>
+                      <div class="step-corner" aria-hidden="true">
                         <i class="fa-solid fa-crown crown-gold"></i>
                       </div>
                       <div class="step-body">
-                        <div class="pos-badge gold">
-                          <i class="fa-solid fa-1"></i>
+                        <div class="step-meta">
+                          <span class="podium-points">{{ r1?.score | number:'1.0-0' }} pts</span>
                         </div>
-                        <div class="name">
+                        <div class="name" [title]="(r1?.user_id?.first_name || '') + ' ' + (r1?.user_id?.last_name || '')">
                           {{ (r1?.user_id?.first_name || '') + ' ' + (r1?.user_id?.last_name || '') || ('dashboard.anonymousRider' | t) }}
                         </div>
-                        <div class="pts">{{ r1?.score | number:'1.0-0' }} pts</div>
                       </div>
+                      <div class="step-lane" aria-hidden="true"></div>
                     </div>
 
                     <!-- 3rd place -->
                     <div class="step step-3" *ngIf="classificationData[2] as r3">
-                      <div class="step-top">
+                      <div class="step-plate">
+                        <span class="step-mark">3</span>
+                      </div>
+                      <div class="step-corner" aria-hidden="true">
                         <i class="fa-solid fa-crown crown-bronze"></i>
                       </div>
                       <div class="step-body">
-                        <div class="pos-badge bronze">
-                          <i class="fa-solid fa-3"></i>
+                        <div class="step-meta">
+                          <span class="podium-points">{{ r3?.score | number:'1.0-0' }} pts</span>
                         </div>
-                        <div class="name">
+                        <div class="name" [title]="(r3?.user_id?.first_name || '') + ' ' + (r3?.user_id?.last_name || '')">
                           {{ (r3?.user_id?.first_name || '') + ' ' + (r3?.user_id?.last_name || '') || ('dashboard.anonymousRider' | t) }}
                         </div>
-                        <div class="pts">{{ r3?.score | number:'1.0-0' }} pts</div>
                       </div>
+                      <div class="step-lane" aria-hidden="true"></div>
                     </div>
 
                   </div>
@@ -239,6 +255,12 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                 <p>{{ 'dashboard.standings.empty' | t }}</p>
               </div>
             </mat-card-content>
+            <mat-card-actions class="standings-actions">
+              <button mat-stroked-button class="standings-breakdown-btn" (click)="goTo('standings-breakdown')">
+                <i class="fa-solid fa-table-list"></i>
+                Dettaglio punteggi
+              </button>
+            </mat-card-actions>
           </mat-card>
 
           <mat-card class="next-race-card fullbleed-panel"
@@ -2314,13 +2336,62 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
 
     /* Podium Section */
     .podium-section {
+      position: relative;
+      overflow: hidden;
       background:
-        radial-gradient(circle at 50% -35%, rgba(200, 16, 46, 0.12), transparent 60%),
-        linear-gradient(145deg, #f7f8fb, #eef1f5);
-      border-radius: 14px;
-      padding: 0.95rem 0.85rem 0.8rem;
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+        radial-gradient(circle at 50% -30%, rgba(200, 16, 46, 0.28), transparent 44%),
+        linear-gradient(160deg, #17191f 0%, #111318 58%, #0b0d12 100%);
+      border-radius: 18px;
+      padding: 0.95rem 0.9rem 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
+    }
+    .podium-section::after {
+      content: '';
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 10px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          #ffffff 0 12px,
+          #101216 12px 24px
+        );
+      opacity: .9;
+    }
+    .podium-intro {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: .8rem;
+      margin-bottom: .65rem;
+    }
+    .podium-copy {
+      display: grid;
+      gap: .15rem;
+    }
+    .podium-kicker {
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      font-weight: 800;
+      color: rgba(255,255,255,.58);
+    }
+    .podium-copy h3 {
+      margin: 0;
+      color: #fff;
+      font-size: 1.02rem;
+      text-transform: uppercase;
+      font-family: 'MotoGP Bold', sans-serif;
+    }
+    .podium-flag {
+      width: 64px;
+      height: 28px;
+      border-radius: 999px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.16) 0 25%, transparent 25% 50%, rgba(255,255,255,.16) 50% 75%, transparent 75% 100%),
+        linear-gradient(180deg, rgba(200,16,46,.92), rgba(138,10,31,.92));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.2);
     }
 
     /* Grid layout for steps */
@@ -2328,7 +2399,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       align-items: end;
-      gap: 0.65rem;
+      gap: 0.55rem;
       max-width: 820px;
       margin: 0 auto;
     }
@@ -2338,14 +2409,36 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       --h: 10rem;
       position: relative;
       height: var(--h);
-      border-radius: 14px;
-      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,248,252,.98));
-      border: 1px solid rgba(0,0,0,.08);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 8px 18px rgba(0,0,0,.08);
+      overflow: hidden;
+      border-radius: 18px 18px 12px 12px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)),
+        linear-gradient(180deg, rgba(20,22,28,.98), rgba(31,35,43,.98));
+      border: 1px solid rgba(255,255,255,.1);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 10px 22px rgba(0,0,0,.18);
       display: flex;
       align-items: end;
       justify-content: center;
       transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .step-plate {
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 100%;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0 .7rem;
+      background: linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.02));
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .step-mark {
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 1.22rem;
+      line-height: 1;
+      color: rgba(255,255,255,.92);
+      text-shadow: 0 1px 8px rgba(0,0,0,.24);
     }
     .step:hover {
       transform: translateY(-4px);
@@ -2353,52 +2446,81 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
     }
 
     /* Heights per position */
-    .step-1 { --h: clamp(9.2rem, 21vw, 11.4rem); }
-    .step-2 { --h: clamp(7.2rem, 18vw, 9.5rem); }
-    .step-3 { --h: clamp(6.2rem, 16vw, 8.5rem); }
+    .step-1 { --h: clamp(8.6rem, 20vw, 10.6rem); }
+    .step-2 { --h: clamp(7rem, 17vw, 8.9rem); }
+    .step-3 { --h: clamp(6.4rem, 15vw, 8rem); }
 
-    /* Crown bubble */
-    .step-top {
+    .step-corner {
       position: absolute;
-      top: -13px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 0.52rem;
+      right: 0.52rem;
       display: grid;
       place-items: center;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: #fff;
-      border: 1px solid rgba(0,0,0,.08);
-      box-shadow: 0 5px 12px rgba(0,0,0,.14);
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.08);
     }
-    .step-top i { font-size: 0.95rem; }
+    .step-corner i { font-size: 0.8rem; }
 
     /* Content inside each step */
     .step-body {
       width: 100%;
-      text-align: center;
       display: grid;
-      padding: 0.5rem 0.36rem 0.66rem;
-      gap: 0.2rem;
+      justify-items: center;
+      align-content: center;
+      padding: 2.5rem 0.45rem 0.78rem;
+      gap: 0.34rem;
+      position: relative;
+      z-index: 1;
+    }
+    .step-meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 0;
+    }
+    .podium-points {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 30px;
+      padding: 0 .72rem;
+      border-radius: 999px;
+      font-size: .84rem;
+      font-weight: 900;
+      letter-spacing: .25px;
+      color: #ffffff;
+      background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
     }
     .step .name {
-      font-weight: 700;
-      color: #17181a;
-      font-size: .87rem;
-      line-height: 1.2;
-      white-space: nowrap;
+      font-weight: 800;
+      color: #ffffff;
+      font-size: .92rem;
+      line-height: 1.16;
+      width: 100%;
+      max-width: 12ch;
+      text-align: center;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       overflow: hidden;
-      text-overflow: ellipsis;
+      text-wrap: balance;
+      text-shadow: 0 1px 10px rgba(0,0,0,.18);
     }
-    .step .pts {
-      font-weight: 700;
-      font-size: .8rem;
-      color: #9c0b22;
+    .step-lane {
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 6px;
+      background: linear-gradient(90deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
     }
 
     /* Champion crown pulse */
-    .champion .step-top i {
+    .champion .step-corner i {
       animation: crownPulse 2.4s ease-in-out infinite;
     }
     @keyframes crownPulse {
@@ -2408,46 +2530,86 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
 
     /* Accents per step */
     .step-1 {
-      border-color: rgba(255, 215, 0, 0.45);
-      box-shadow: inset 0 -5px 0 #ffd700, 0 10px 24px rgba(0,0,0,.1);
+      border-color: rgba(255, 215, 0, 0.42);
+      box-shadow:
+        inset 0 -6px 0 #ffd700,
+        inset 0 0 0 1px rgba(255, 215, 0, 0.08),
+        0 14px 30px rgba(0,0,0,.24);
     }
     .step-2 {
-      border-color: rgba(192, 192, 192, 0.55);
-      box-shadow: inset 0 -4px 0 #c0c0c0, 0 8px 20px rgba(0,0,0,.08);
+      border-color: rgba(192, 192, 192, 0.4);
+      box-shadow: inset 0 -5px 0 #c0c0c0, 0 10px 22px rgba(0,0,0,.18);
     }
     .step-3 {
-      border-color: rgba(205, 127, 50, 0.5);
-      box-shadow: inset 0 -4px 0 #cd7f32, 0 8px 20px rgba(0,0,0,.08);
+      border-color: rgba(205, 127, 50, 0.42);
+      box-shadow: inset 0 -5px 0 #cd7f32, 0 10px 22px rgba(0,0,0,.18);
     }
-
-    .pos-badge {
-      font-weight: 900;
-      font-size: 1rem;
-      display: inline-block;
-      margin-bottom: 0.22rem;
+    .step-1 .step-plate {
+      background: linear-gradient(180deg, rgba(255, 215, 0, .22), rgba(255,255,255,.02));
     }
-
-    .pos-badge i {
-      font-weight: 900;
+    .step-2 .step-plate {
+      background: linear-gradient(180deg, rgba(192, 192, 192, .18), rgba(255,255,255,.02));
     }
-
-    /* Colors match crowns */
-    .pos-badge.gold   { color: #FFD700; }  /* gold */
-    .pos-badge.silver { color: #C0C0C0; }  /* silver */
-    .pos-badge.bronze { color: #CD7F32; }  /* bronze */
+    .step-3 .step-plate {
+      background: linear-gradient(180deg, rgba(205, 127, 50, .2), rgba(255,255,255,.02));
+    }
+    .step-1 .step-mark { color: #ffe27a; }
+    .step-2 .step-mark { color: #edf1f7; }
+    .step-3 .step-mark { color: #efb184; }
+    .step-1 .name {
+      font-size: .98rem;
+    }
+    .step-1 .podium-points {
+      background: linear-gradient(180deg, rgba(255, 215, 0, .22), rgba(255,255,255,.08));
+      color: #fff8d1;
+    }
 
 
     /* Mobile adjustments */
     @media (max-width:600px) {
-      .podium-section { padding: 0.75rem 0.55rem 0.62rem; }
-      .podium-steps { gap: .45rem; }
-      .step-top { width: 30px; height: 30px; top: -11px; }
-      .step .name { font-size: .74rem; }
-      .step .pts { font-size: .7rem; }
-      .step-1 { --h: 8.6rem; }
-      .step-2 { --h: 7.3rem; }
-      .step-3 { --h: 6.4rem; }
-      .pos-badge {display: none;}
+      .podium-section { padding: 0.8rem 0.55rem 0.72rem; }
+      .podium-intro { margin-bottom: .55rem; }
+      .podium-kicker { font-size: .62rem; }
+      .podium-copy h3 { font-size: .92rem; }
+      .podium-flag { width: 44px; height: 22px; }
+      .podium-steps { gap: .4rem; }
+      .step-corner {
+        width: 20px;
+        height: 20px;
+        top: .4rem;
+        right: .4rem;
+      }
+      .step-corner i { font-size: .68rem; }
+      .step-plate {
+        height: 32px;
+        padding: 0 .52rem;
+      }
+      .step-mark {
+        font-size: .98rem;
+      }
+      .step-body {
+        padding: 2.08rem 0.34rem 0.68rem;
+        gap: .26rem;
+      }
+      .step-meta {
+        justify-content: center;
+      }
+      .podium-points {
+        min-height: 24px;
+        padding: 0 .5rem;
+        font-size: .68rem;
+      }
+      .step .name {
+        max-width: 10ch;
+        font-size: .74rem;
+        line-height: 1.12;
+      }
+      .step-1 .name {
+        font-size: .8rem;
+      }
+      .step-1 { --h: 7.9rem; }
+      .step-2 { --h: 6.9rem; }
+      .step-3 { --h: 6.3rem; }
     }
 
     @keyframes pulse {
@@ -3275,14 +3437,14 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
 
     .bottom-nav {
       background: linear-gradient(180deg, #101115, #181a21);
-      border: 1px solid #2b2f39;
+      border: 0;
       border-top: 2px solid var(--moto-red);
       backdrop-filter: blur(8px);
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
-      padding: 0.4rem 0.5rem max(0.4rem, env(safe-area-inset-bottom));
-      border-radius: 14px;
-      width: min(560px, calc(100% - 16px));
-      margin: 0 auto 8px;
+      padding: 0.4rem 0.5rem max(0.55rem, env(safe-area-inset-bottom));
+      border-radius: 0;
+      width: 100%;
+      margin: 0;
       left: 0;
       right: 0;
       bottom: 0;
@@ -3392,6 +3554,23 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
 
     .standings-table .gap-value {
       color: #9c0b22 !important;
+    }
+    .standings-actions {
+      display: flex;
+      justify-content: flex-end;
+      padding: 0 1.05rem 1rem;
+    }
+    .standings-breakdown-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(17, 18, 20, 0.14);
+      color: #111214;
+      background: #fff;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    .standings-breakdown-btn i {
+      margin-right: .45rem;
+      color: #c8102e;
     }
 
     .next-race-card mat-card-content {
@@ -4129,17 +4308,15 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
         padding-inline: 12px !important;
       }
 
-      /* Compact standings on mobile: keep page still and scroll inside table */
+      /* Compact standings on mobile without forcing an oversized card */
       .standings-card:not(.mobile-hidden) mat-card-content {
-        height: calc(100dvh - var(--app-header-height) - 84px - 8px);
+        height: auto;
         min-height: 0;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
+        overflow: visible;
+        display: block;
       }
 
       .standings-card .standings-container {
-        flex: 1;
         min-height: 0;
         display: flex;
         flex-direction: column;
@@ -4147,12 +4324,21 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       }
 
       .standings-card .table-container {
-        flex: 1;
+        flex: 0 0 auto;
         min-height: 0;
-        overflow-y: auto;
+        overflow-y: visible;
         border-radius: 8px;
         border: 1px solid rgba(0, 0, 0, 0.08);
         box-shadow: none;
+      }
+
+      .standings-card mat-card-actions.standings-actions {
+        padding: 8px 12px 14px !important;
+        justify-content: center;
+      }
+
+      .standings-card .standings-breakdown-btn {
+        width: min(100%, 260px);
       }
 
       .standings-card .standings-table {
@@ -4461,11 +4647,11 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       }
 
       .bottom-nav {
-        width: calc(100% - 12px);
-        margin: 0 auto 6px;
-        border-radius: 12px;
-        border-left: 1px solid #2b2f39;
-        border-right: 1px solid #2b2f39;
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
       }
     }
 

@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
 import { BetResult, LineupsResult, RaceDetailService } from '../../services/race-detail.service';
-import { CalendarRace } from '../../services/dashboard.service';
+import { CalendarRace, DashboardService } from '../../services/dashboard.service';
 import { ChampionshipService } from '../../services/championship.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
 
@@ -109,17 +109,43 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
               <span>{{ 'admin.actions.title' | t }}</span>
             </div>
 
-            <mat-card-content>
-              <!-- Fill Missing Lineups -->
-              <div class="admin-actions-row">
-                <!--<span class="action-label">
-                  <i class="fa-solid fa-people-group"></i>
-                  {{ 'admin.actions.fillMissingLineups' | t }}
-                </span>-->
-                <button mat-raised-button color="primary" (click)="onFillMissingLineups()" [disabled]="busy">
-                  <i class="fa-solid fa-wand-magic-sparkles"></i>
-                  {{ 'admin.actions.fillNow' | t }}
-                </button>
+            <mat-card-content class="admin-panel">
+              <div class="admin-actions-grid">
+                <section class="admin-actions-row admin-actions-row-primary">
+                  <div class="action-copy">
+                    <span class="action-eyebrow">Lineup</span>
+                    <strong class="action-heading">{{ 'admin.actions.fillNow' | t }}</strong>
+                    <span class="action-note">Completa automaticamente le lineup mancanti della gara corrente.</span>
+                  </div>
+                  <button mat-raised-button color="primary" class="admin-action-button" (click)="onFillMissingLineups()" [disabled]="busy">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    {{ 'admin.actions.fillNow' | t }}
+                  </button>
+                </section>
+
+                <section class="admin-actions-row admin-actions-row-accent">
+                  <div class="action-copy">
+                    <span class="action-eyebrow">Standings</span>
+                    <strong class="action-heading">{{ 'motogp.results.updateStandings' | t }}</strong>
+                    <span class="action-note">Aggiorna la classifica solo se i dati della gara sono cambiati.</span>
+                  </div>
+                  <button mat-raised-button color="accent" class="admin-action-button" (click)="onUpdateStandings()" [disabled]="busy || !calendarRace">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    {{ 'motogp.results.updateStandings' | t }}
+                  </button>
+                </section>
+
+                <section class="admin-actions-row admin-actions-row-warn">
+                  <div class="action-copy">
+                    <span class="action-eyebrow">Override</span>
+                    <strong class="action-heading">Forza ricalcolo classifica</strong>
+                    <span class="action-note">Invalida il conteggio della gara e lo ricostruisce esplicitamente.</span>
+                  </div>
+                  <button mat-raised-button color="warn" class="admin-action-button" (click)="onForceRecalculateStandings()" [disabled]="busy || !calendarRace">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    Forza ricalcolo classifica
+                  </button>
+                </section>
               </div>
 
               <!-- Sprint bets -->
@@ -536,6 +562,80 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
     .chip .sub{ margin-top:2px; font-size:.75rem; color:#667; }
     .chip-accent-blue::before{ background:var(--accent-blue);} .chip-accent-orange::before{ background:var(--accent-orange);} .chip-accent-red::before{ background:var(--accent-red);}
 
+    .admin-panel{ padding: .9rem; }
+    .admin-actions-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap:.85rem;
+    }
+    .admin-actions-row{
+      position: relative;
+      display:flex;
+      flex-direction:column;
+      gap:.9rem;
+      padding:1rem;
+      border-radius:16px;
+      border:1px solid rgba(17,18,20,.08);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,248,250,.96));
+      box-shadow: 0 10px 22px rgba(17,18,20,.06);
+      overflow:hidden;
+    }
+    .admin-actions-row::before{
+      content:'';
+      position:absolute;
+      inset:0 auto 0 0;
+      width:5px;
+      border-radius:16px 0 0 16px;
+      background:#d9dde3;
+    }
+    .admin-actions-row-primary::before{ background:#1976d2; }
+    .admin-actions-row-accent::before{ background:#c8102e; }
+    .admin-actions-row-warn::before{ background:#ed6c02; }
+    .action-copy{
+      display:grid;
+      gap:.18rem;
+    }
+    .action-eyebrow{
+      font-size:.68rem;
+      text-transform:uppercase;
+      letter-spacing:.42px;
+      font-weight:800;
+      color:#7b8089;
+    }
+    .action-heading{
+      color:#111214;
+      font-size:.98rem;
+      line-height:1.2;
+      font-family:'MotoGP Bold', sans-serif;
+      text-transform:uppercase;
+      letter-spacing:.2px;
+    }
+    .action-note{
+      color:#5f6672;
+      font-size:.82rem;
+      line-height:1.35;
+    }
+    .admin-action-button{
+      width:100%;
+      min-height:46px;
+      justify-content:center;
+      border-radius:12px;
+      font-weight:800;
+      letter-spacing:.2px;
+      box-shadow:none;
+    }
+    .admin-action-button i{
+      margin-right:.45rem;
+    }
+    .admin-action-button.mat-mdc-raised-button:not(:disabled){
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+    .admin-action-button.mat-mdc-raised-button:not(:disabled):hover{
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(17,18,20,.12);
+      filter: saturate(1.02);
+    }
     .admin-actions{ display:grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap:1rem; padding:1rem; }
     .admin-action-block{ background:#fff; border:1px solid #eceff1; border-radius:10px; padding:1rem; position:relative; }
     .admin-action-block::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:6px; background:var(--accent-red); border-radius:10px 0 0 10px; }
@@ -581,6 +681,8 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
       .header h1{ font-size:20px; }
       .results-container{ gap:1rem; }
       .card-header{ padding:1rem; font-size:1rem; }
+      .admin-panel{ padding:.7rem; }
+      .admin-actions-grid{ grid-template-columns: 1fr; }
       .race-overview{
         grid-template-columns: 1fr;
         gap: .55rem;
@@ -594,6 +696,10 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
       .mobile-card{ padding:10px; }
       .grid{ grid-template-columns:1fr 1fr; gap:6px; }
       .chip{ padding:6px 6px 6px 10px; }
+      .admin-actions-row{ padding:.85rem; gap:.75rem; border-radius:14px; }
+      .action-heading{ font-size:.92rem; }
+      .action-note{ font-size:.78rem; }
+      .admin-action-button{ min-height:42px; }
       .race-title{
         font-size: 1.14rem;
       }
@@ -1007,6 +1113,7 @@ export class RaceDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private championshipService: ChampionshipService,
+    private dashboardService: DashboardService,
     private raceDetailService: RaceDetailService,
     private raceScheduleService: RaceScheduleService,
     private authService: AuthService,
@@ -1092,6 +1199,16 @@ export class RaceDetailComponent implements OnInit {
     });
   }
 
+  onUpdateStandings(): void {
+    if (!this.calendarRace) return;
+    this.runStandingsUpdate(false);
+  }
+
+  onForceRecalculateStandings(): void {
+    if (!this.calendarRace) return;
+    this.runStandingsUpdate(true);
+  }
+
   onSetOutcome(kind: 'SPR'|'RAC', outcome: boolean): void {
     if (!this.calendarRace) return;
     this.busy = true;
@@ -1156,7 +1273,11 @@ export class RaceDetailComponent implements OnInit {
   resultText(outcome: any): string {
     if (outcome == null) return '—';
     const s = String(outcome).trim();
-    return s || '—';
+    if (!s) return '—';
+    const normalized = s.toLowerCase();
+    if (['true', 'ok', 'win', 'won', 'success', 'correct'].includes(normalized)) return 'Scommessa vinta';
+    if (['false', 'loss', 'lost', 'fail', 'wrong'].includes(normalized)) return 'Scommessa persa';
+    return s;
   }
   private isResultPositive(outcome: any, points?: number): boolean {
     const s = (outcome ?? '').toString().toLowerCase();
@@ -1235,6 +1356,57 @@ export class RaceDetailComponent implements OnInit {
         },
         complete: () => this.busy = false
       });
+  }
+
+  private refreshRaceDetails(): void {
+    if (!this.calendarRace) return;
+
+    this.raceDetailService.getRaceDetails(this.calendarRace.championship_id, String(this.calendarRace.id), {
+      allUsers: true,
+      allCalendar: false
+    }).subscribe({
+      next: (data) => {
+        this.lineups = data.lineups ?? [];
+        this.sprints = data.sprints ?? [];
+        this.bets = data.bets ?? [];
+      },
+      error: (err) => console.error('Error refreshing race details:', err)
+    });
+  }
+
+  private runStandingsUpdate(force: boolean): void {
+    if (!this.calendarRace) return;
+
+    this.busy = true;
+    this.notificationService.showSuccess('motogp.results.fetchMotoGPResults');
+
+    this.dashboardService.fetchMotoGPResults(this.calendarRace.championship_id, this.calendarRace.id, true).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('motogp.results.fetchMotoGPResultsSuccess');
+        this.notificationService.showSuccess('motogp.results.updateStandings');
+
+        const request$ = force
+          ? this.dashboardService.recalculateStandings(this.calendarRace!.championship_id, this.calendarRace!.id)
+          : this.dashboardService.updateStandings(this.calendarRace!.championship_id, this.calendarRace!.id);
+
+        request$.subscribe({
+          next: () => {
+            this.notificationService.showSuccess('motogp.results.updateStandingsSuccess');
+            this.refreshRaceDetails();
+          },
+          error: (err) => {
+            console.error(force ? 'Error force recalculating standings:' : 'Error updating standings:', err);
+            this.notificationService.showError('motogp.results.updateStandingsFail');
+          },
+          complete: () => this.busy = false
+        });
+      },
+      error: (err) => {
+        console.error('Error fetching MotoGP results before standings update:', err);
+        this.notificationService.showError('motogp.results.fetchMotoGPResultsFail');
+        this.busy = false;
+      }
+    });
   }
 
 

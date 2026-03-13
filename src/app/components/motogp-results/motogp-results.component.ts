@@ -1369,12 +1369,26 @@ export class MotoGPResultsComponent implements OnInit {
   isAdmin(): boolean { return this.authService.isCurrentUserAdmin(); }
 
   updateStandings(): void {
-    this.notificationService.showSuccess('motogp.results.updateStandings');
-    this.dashboardService.updateStandings(this.championshipId, this.calendarId).subscribe({
-      next: () => this.notificationService.showSuccess('motogp.results.updateStandingsSuccess'),
+    this.notificationService.showSuccess('motogp.results.fetchMotoGPResults');
+    this.dashboardService.fetchMotoGPResults(this.championshipId, this.calendarId, true).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('motogp.results.fetchMotoGPResultsSuccess');
+        this.notificationService.showSuccess('motogp.results.updateStandings');
+
+        this.dashboardService.updateStandings(this.championshipId, this.calendarId).subscribe({
+          next: () => {
+            this.notificationService.showSuccess('motogp.results.updateStandingsSuccess');
+            this.loadResults();
+          },
+          error: (err: any) => {
+            console.error('Error updating standings:', err);
+            this.notificationService.showError('motogp.results.updateStandingsFail');
+          }
+        });
+      },
       error: (err: any) => {
-        console.error('Error updating standings:', err);
-        this.notificationService.showError('motogp.results.updateStandingsFail');
+        console.error('Error fetching MotoGP results before standings update:', err);
+        this.notificationService.showError('motogp.results.fetchMotoGPResultsFail');
       }
     });
   }

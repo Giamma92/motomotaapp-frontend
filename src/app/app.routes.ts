@@ -37,6 +37,8 @@ export const routes: Routes = [
   { path: 'race-detail/:id', loadComponent: () => import('./components/race-detail/race-detail.component').then(m => m.RaceDetailComponent) },
   // A route for MotoGP results page.
   { path: 'motogp-results/:championshipId/:calendarId', loadComponent: () => import('./components/motogp-results/motogp-results.component').then(m => m.MotoGPResultsComponent) },
+  // A route for championship standings breakdown page.
+  { path: 'standings-breakdown', loadComponent: () => import('./components/standings-breakdown/standings-breakdown.component').then(m => m.StandingsBreakdownComponent), canActivate: [AuthGuard] },
   // A route for a teams page.
   { path: 'teams', component: AllTeamsComponent, canActivate: [AuthGuard] },
 ];
