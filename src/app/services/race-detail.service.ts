@@ -14,6 +14,7 @@ export interface LineupsResult {
   qualifying_rider_id?: Rider;  // Rider ID for race
   inserted_at?: string;
   modified_at?: string;
+  automatically_inserted?: boolean;
 }
 
 // Define the interface for bet results

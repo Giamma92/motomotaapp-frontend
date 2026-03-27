@@ -7,15 +7,16 @@ import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-user-info',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, TranslatePipe],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, TranslatePipe, LocalizedDatePipe],
   template: `
     <div class="profile-container">
       <header class="header">
-        <button mat-icon-button (click)="goBack()" aria-label="Back">
+        <button mat-icon-button class="app-back-arrow" (click)="goBack()" aria-label="Back">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ 'profile.title' | t }}</h1>
@@ -43,7 +44,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
             </div>
             <div class="kv-row">
               <span class="kv-key"><mat-icon aria-hidden="true">schedule</mat-icon>{{ 'profile.lastAccess' | t }}</span>
-              <span class="kv-value">{{ userInfo.last_access | date:'short' }}</span>
+              <span class="kv-value">{{ userInfo.last_access | localizedDate:'datetime' }}</span>
             </div>
           </div>
 

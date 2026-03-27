@@ -9,7 +9,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '../../pipes/translate.pipe';
-import { DashboardService } from '../../services/dashboard.service';
+import { DashboardService, StandingsCalculationResponse } from '../../services/dashboard.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificationServiceService } from '../../services/notification.service';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
@@ -92,7 +92,7 @@ interface MotoGPResultsData {
   template: `
     <div class="page-container">
       <header class="header">
-        <button mat-icon-button (click)="goBack()" aria-label="Back">
+        <button mat-icon-button class="app-back-arrow" (click)="goBack()" aria-label="Back">
           <i class="fa-solid fa-arrow-left"></i>
         </button>
         <h1>{{ 'motogp.results.title' | t }}</h1>
@@ -1376,8 +1376,11 @@ export class MotoGPResultsComponent implements OnInit {
         this.notificationService.showSuccess('motogp.results.updateStandings');
 
         this.dashboardService.updateStandings(this.championshipId, this.calendarId).subscribe({
-          next: () => {
+          next: (response: StandingsCalculationResponse) => {
             this.notificationService.showSuccess('motogp.results.updateStandingsSuccess');
+            if (response?.meta?.message) {
+              this.notificationService.showSuccessMessage(response.meta.message, response.meta.partial ? 6500 : 5000);
+            }
             this.loadResults();
           },
           error: (err: any) => {

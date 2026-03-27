@@ -26,17 +26,19 @@ export class RaceAccessGuard implements CanActivate {
 
       if (!champ) return  this.router.parseUrl('/');
 
+      const config = await firstValueFrom(this.championshipService.getChampionshipConfig(champ.id));
       const race = await firstValueFrom(this.raceDetailService.getCalendarRace(champ.id, raceId));
 
       if (!race) return this.router.parseUrl('/');
 
+      const timeZone = config?.timezone;
       let result;
       if (route.routeConfig?.path?.includes('race-bet')) {
-        result = this.raceScheduleService.canShowRaceBet(race);
+        result = this.raceScheduleService.canShowRaceBet(race, timeZone);
       } else if (route.routeConfig?.path?.includes('sprint-bet')) {
-        result = this.raceScheduleService.canShowSprintBet(race);
+        result = this.raceScheduleService.canShowSprintBet(race, timeZone);
       } else if (route.routeConfig?.path?.includes('lineups')) {
-        result = this.raceScheduleService.canShowLineups(race);
+        result = this.raceScheduleService.canShowLineups(race, timeZone);
       }
 
       return result || this.router.parseUrl('/');

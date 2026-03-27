@@ -47,7 +47,7 @@ interface TranslationValue {
   template: `
     <div class="translation-container">
       <header class="header">
-        <button mat-icon-button (click)="goBack()">
+        <button mat-icon-button class="app-back-arrow" (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ 'translation.title' | t }}</h1>

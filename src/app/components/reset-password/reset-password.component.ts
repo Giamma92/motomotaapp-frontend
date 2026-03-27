@@ -26,7 +26,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   template: `
     <div class="reset-container">
       <header class="header">
-        <button mat-icon-button (click)="goBack()" aria-label="Back">
+        <button mat-icon-button class="app-back-arrow" (click)="goBack()" aria-label="Back">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ 'resetPassword.title' | t }}</h1>

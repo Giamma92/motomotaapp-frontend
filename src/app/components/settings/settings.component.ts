@@ -29,7 +29,7 @@ import { NotificationServiceService } from '../../services/notification.service'
   template: `
     <div class="settings-container">
       <header class="header">
-        <button mat-icon-button (click)="goBack()" aria-label="Back">
+        <button mat-icon-button class="app-back-arrow" (click)="goBack()" aria-label="Back">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ 'settings.title' | t }}</h1>
@@ -58,6 +58,7 @@ import { NotificationServiceService } from '../../services/notification.service'
                 </mat-option>
               </mat-select>
             </mat-form-field>
+
           </form>
 
           <p *ngIf="successMessageKey" class="success-message">{{ successMessageKey | t }}</p>

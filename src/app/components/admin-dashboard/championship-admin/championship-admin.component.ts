@@ -20,7 +20,9 @@ import { MatSort } from '@angular/material/sort';
    // Use MatSnackBar for notifications; you can replace this with your NotificationService if preferred
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
+import { LocalizedDatePipe } from '../../../pipes/localized-date.pipe';
 import { ChampionshipService } from '../../../services/championship.service';
+import { DateUtils } from '../../../utils/date-utils';
 
 // Basic interface matching your table schema
 interface Championship {
@@ -48,7 +50,8 @@ interface Championship {
     MatSortModule,
     MatDividerModule,
     MatTooltipModule,
-    TranslatePipe
+    TranslatePipe,
+    LocalizedDatePipe
   ],
   template: `
     <mat-card class="champ-admin-card" @fadeIn>
@@ -114,7 +117,7 @@ interface Championship {
             <!-- Start date column -->
             <ng-container matColumnDef="start_date">
               <th mat-header-cell *matHeaderCellDef mat-sort-header> {{ 'admin.championships.startDate' | t }} </th>
-              <td mat-cell *matCellDef="let champ">{{ champ.start_date | date:'yyyy-MM-dd' }}</td>
+              <td mat-cell *matCellDef="let champ">{{ champ.start_date | localizedDate:'date' }}</td>
             </ng-container>
 
             <!-- Year column -->
@@ -306,7 +309,10 @@ export class ChampionshipAdminComponent implements OnInit, AfterViewInit  {
 
   /** Convert Date object to ISO date string (yyyy-MM-dd) */
   private toISODate(date: Date): string {
-    return date.toISOString().split('T')[0];
-    // Alternatively use Angular DatePipe
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const isoDate = `${year}-${month}-${day}`;
+    return DateUtils.parseLocalYyyyMmDd(isoDate) ? isoDate : '';
   }
 }

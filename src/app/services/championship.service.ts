@@ -26,6 +26,7 @@ export interface ChampionshipConfig {
   bets_limit_race: number; // max bets per race
   bets_limit_sprint_race: number; // max bets per sprint race
   formation_limit_driver: number; // max lineups per pilot
+  timezone?: string;
 }
 
 @Injectable({

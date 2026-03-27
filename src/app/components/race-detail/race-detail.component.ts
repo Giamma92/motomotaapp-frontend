@@ -11,14 +11,17 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { TimeFormatPipe } from '../../pipes/time-format.pipe';
 
 import { BetResult, LineupsResult, RaceDetailService } from '../../services/race-detail.service';
-import { CalendarRace, DashboardService } from '../../services/dashboard.service';
+import { CalendarRace, DashboardService, StandingsCalculationResponse } from '../../services/dashboard.service';
 import { ChampionshipService } from '../../services/championship.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
 
 import { AuthService } from '../../services/auth.service';
 import { NotificationServiceService } from '../../services/notification.service';
+import { DateUtils } from '../../utils/date-utils';
+import { I18nService } from '../../services/i18n.service';
 
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 
@@ -35,7 +38,8 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
     MatProgressSpinnerModule,
     MatIconModule,
     FormsModule,
-    TranslatePipe
+    TranslatePipe,
+    TimeFormatPipe
   ],
   animations: [
     trigger('cardAnimation', [
@@ -52,7 +56,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
   template: `
     <div class="page-container">
       <header class="header">
-        <button mat-icon-button (click)="goBack()" aria-label="Back">
+        <button mat-icon-button class="app-back-arrow" (click)="goBack()" aria-label="Back">
           <i class="fa-solid fa-arrow-left"></i>
         </button>
         <h1>{{ 'raceDetail.title' | t }}</h1>
@@ -79,24 +83,24 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                 <h2 class="race-title">{{ raceName || ('common.na' | t) }}</h2>
                 <div class="race-date-row">
                   <i class="fa-solid fa-calendar-day"></i>
-                  <span>{{ calendarRace.event_date | date:'EEE d MMM y' }}</span>
+                  <span>{{ formatRaceDate(calendarRace.event_date) }}</span>
                 </div>
               </div>
 
               <div class="race-times-grid">
                 <div class="race-time-item" *ngIf="calendarRace.qualifications_time">
                   <span class="race-time-label">{{ 'raceDetail.info.qualiTime' | t }}</span>
-                  <span class="race-time-value">{{ calendarRace.qualifications_time }}</span>
+                  <span class="race-time-value">{{ calendarRace.qualifications_time | timeFormat }}</span>
                 </div>
 
                 <div class="race-time-item" *ngIf="calendarRace.sprint_time">
                   <span class="race-time-label">{{ 'raceDetail.info.sprintTime' | t }}</span>
-                  <span class="race-time-value">{{ calendarRace.sprint_time }}</span>
+                  <span class="race-time-value">{{ calendarRace.sprint_time | timeFormat }}</span>
                 </div>
 
                 <div class="race-time-item race-time-item-primary" *ngIf="calendarRace.event_time">
                   <span class="race-time-label">{{ 'raceDetail.info.raceTime' | t }}</span>
-                  <span class="race-time-value">{{ calendarRace.event_time }}</span>
+                  <span class="race-time-value">{{ calendarRace.event_time | timeFormat }}</span>
                 </div>
               </div>
             </div>
@@ -236,7 +240,12 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                     <table mat-table [dataSource]="lineups" class="result-table">
                       <ng-container matColumnDef="user">
                         <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.user' | t }}</th>
-                        <td mat-cell *matCellDef="let e">{{ displayUser(e.user_id) }}</td>
+                        <td mat-cell *matCellDef="let e">
+                          <div class="user-cell">
+                            <span>{{ displayUser(e.user_id) }}</span>
+                            <span class="auto-note" *ngIf="e.automatically_inserted">Auto-inserita, non fa punteggio</span>
+                          </div>
+                        </td>
                       </ng-container>
                       <ng-container matColumnDef="qualifying_rider">
                         <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.qualifyingRider' | t }}</th>
@@ -248,7 +257,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                       </ng-container>
                       <ng-container matColumnDef="modified_at">
                         <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.modifiedAt' | t }}</th>
-                        <td mat-cell *matCellDef="let e">{{ e.modified_at | date:'MM/dd HH:mm' }}</td>
+                        <td mat-cell *matCellDef="let e">{{ formatEntryDateTime(e.modified_at) }}</td>
                       </ng-container>
 
                       <tr mat-header-row *matHeaderRowDef="lineupColumns"></tr>
@@ -261,7 +270,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                       <article class="mobile-entry" *ngFor="let e of lineups; trackBy: trackByUser">
                         <header class="entry-head">
                           <span class="entry-user">{{ displayUser(e.user_id) }}</span>
-                          <span class="entry-when">{{ e.modified_at | date:'MM/dd HH:mm' }}</span>
+                          <span class="entry-when">{{ formatEntryDateTime(e.modified_at) }}</span>
                         </header>
                         <section class="entry-body">
                           <div class="kv-row">
@@ -271,6 +280,11 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                           <div class="kv-row">
                             <span class="kv-key"><mat-icon aria-hidden="true">sports_motorsports</mat-icon>{{ 'raceDetail.table.raceRider' | t }}</span>
                             <span class="kv-value">{{ getRiderDisplay(e.race_rider_id) }}</span>
+                          </div>
+                          <div class="entry-meta" *ngIf="e.automatically_inserted">
+                            <span class="meta-tag auto-tag">
+                              <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-inserita, non fa punteggio
+                            </span>
                           </div>
                         </section>
                       </article>
@@ -312,7 +326,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                       </ng-container>
                       <ng-container matColumnDef="modified_at">
                         <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.modifiedAt' | t }}</th>
-                        <td mat-cell *matCellDef="let e">{{ e.modified_at | date:'MM/dd HH:mm' }}</td>
+                        <td mat-cell *matCellDef="let e">{{ formatEntryDateTime(e.modified_at) }}</td>
                       </ng-container>
 
                       <tr mat-header-row *matHeaderRowDef="sprintColumns"></tr>
@@ -325,7 +339,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                       <article class="mobile-entry" *ngFor="let e of sprints; trackBy: trackByUser">
                         <header class="entry-head">
                           <span class="entry-user">{{ displayUser(e.user_id) }}</span>
-                          <span class="entry-when">{{ e.modified_at | date:'MM/dd HH:mm' }}</span>
+                          <span class="entry-when">{{ formatEntryDateTime(e.modified_at) }}</span>
                         </header>
                         <section class="entry-body">
                           <div class="kv-row">
@@ -379,7 +393,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                       </ng-container>
                       <ng-container matColumnDef="modified_at">
                         <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.modifiedAt' | t }}</th>
-                        <td mat-cell *matCellDef="let e">{{ e.modified_at | date:'MM/dd HH:mm' }}</td>
+                        <td mat-cell *matCellDef="let e">{{ formatEntryDateTime(e.modified_at) }}</td>
                       </ng-container>
 
                       <tr mat-header-row *matHeaderRowDef="betColumns"></tr>
@@ -392,7 +406,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                       <article class="mobile-entry" *ngFor="let e of bets; trackBy: trackByUser">
                         <header class="entry-head">
                           <span class="entry-user">{{ displayUser(e.user_id) }}</span>
-                          <span class="entry-when">{{ e.modified_at | date:'MM/dd HH:mm' }}</span>
+                          <span class="entry-when">{{ formatEntryDateTime(e.modified_at) }}</span>
                         </header>
                         <section class="entry-body">
                           <div class="kv-row">
@@ -975,6 +989,16 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
       color: #6a717c;
       white-space: nowrap;
     }
+    .user-cell {
+      display: grid;
+      gap: 2px;
+    }
+    .auto-note {
+      font-size: 0.72rem;
+      color: #8e1128;
+      font-weight: 700;
+      line-height: 1.2;
+    }
     .entry-body {
       display: grid;
       gap: 6px;
@@ -1048,6 +1072,12 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
     .meta-tag.result {
       font-weight: 700;
     }
+    .meta-tag.auto-tag {
+      border-color: rgba(200, 16, 46, 0.24);
+      color: #8e1128;
+      background: rgba(200, 16, 46, 0.06);
+      font-weight: 700;
+    }
     .meta-tag.result i {
       font-size: 0.7rem;
     }
@@ -1105,6 +1135,7 @@ export class RaceDetailComponent implements OnInit {
   showRaceBet = false;
   loading = true;
   busy = false;
+  championshipTimeZone = DateUtils.DEFAULT_CHAMPIONSHIP_TIMEZONE;
 
   sprintOutcome: boolean = true;
   raceOutcome: boolean = true;
@@ -1117,7 +1148,8 @@ export class RaceDetailComponent implements OnInit {
     private raceDetailService: RaceDetailService,
     private raceScheduleService: RaceScheduleService,
     private authService: AuthService,
-    private notificationService: NotificationServiceService
+    private notificationService: NotificationServiceService,
+    private i18nService: I18nService
   ) { this.checkScreen(); }
 
   @HostListener('window:resize') onResize(){ this.checkScreen(); }
@@ -1144,31 +1176,46 @@ export class RaceDetailComponent implements OnInit {
         next: (race) => {
           this.calendarRace = race;
           this.raceName = race?.race_id?.name ?? '';
+          this.championshipService.getChampionshipConfig(champId).subscribe({
+            next: (config) => {
+              this.championshipTimeZone = config?.timezone || DateUtils.DEFAULT_CHAMPIONSHIP_TIMEZONE;
 
-          const now = new Date();
-          const raceDate = new Date(race.event_date);
-          const dayBeforeRace = new Date(raceDate);
-          dayBeforeRace.setDate(dayBeforeRace.getDate() - 1);
+              const now = new Date();
+              const raceDate = DateUtils.buildZonedDateTime(race.event_date, '00:00:00', this.championshipTimeZone);
+              if (!raceDate) {
+                this.showLineups = this.showSprintBet = this.showRaceBet = false;
+                return;
+              }
 
-          if (now > raceDate) {
-            this.showLineups = this.showSprintBet = this.showRaceBet = true;
-          } else if (now >= dayBeforeRace) {
-            const dayISO = dayBeforeRace.toISOString().split('T')[0];
+              const dayBeforeRaceYmd = DateUtils.addDaysToYyyyMmDd(race.event_date, -1);
+              const dayBeforeRace = dayBeforeRaceYmd
+                ? DateUtils.buildZonedDateTime(dayBeforeRaceYmd, '00:00:00', this.championshipTimeZone)
+                : null;
 
-            const qualifyingTime = new Date(`${dayISO}T${race.qualifications_time || '14:00:00'}`);
-            this.showLineups = now > qualifyingTime;
+              if (now > raceDate) {
+                this.showLineups = this.showSprintBet = this.showRaceBet = true;
+              } else if (dayBeforeRace && now >= dayBeforeRace) {
+                const qualifyingTime = dayBeforeRaceYmd
+                  ? DateUtils.buildZonedDateTime(dayBeforeRaceYmd, race.qualifications_time || '14:00:00', this.championshipTimeZone)
+                  : null;
+                this.showLineups = Boolean(qualifyingTime && now > qualifyingTime);
 
-            const sprintTime = new Date(`${dayISO}T${race.sprint_time || '14:00:00'}`);
-            this.showSprintBet = now > sprintTime;
+                const sprintTime = dayBeforeRaceYmd
+                  ? DateUtils.buildZonedDateTime(dayBeforeRaceYmd, race.sprint_time || '14:00:00', this.championshipTimeZone)
+                  : null;
+                this.showSprintBet = Boolean(sprintTime && now > sprintTime);
 
-            const isRaceDay = now.toDateString() === raceDate.toDateString();
-            const eventTime = new Date(`${race.event_date}T${race.event_time || '14:00:00'}`);
-            this.showRaceBet = isRaceDay && now > eventTime;
-          } else {
-            this.showLineups = this.raceScheduleService.canShowLineups(race);
-            this.showSprintBet = this.raceScheduleService.canShowSprintBet(race);
-            this.showRaceBet = this.raceScheduleService.canShowRaceBet(race);
-          }
+                const isRaceDay = DateUtils.isSameYyyyMmDdInTimeZone(now, race.event_date, this.championshipTimeZone);
+                const eventTime = DateUtils.buildZonedDateTime(race.event_date, race.event_time || '14:00:00', this.championshipTimeZone);
+                this.showRaceBet = Boolean(isRaceDay && eventTime && now > eventTime);
+              } else {
+                this.showLineups = this.raceScheduleService.canShowLineups(race, this.championshipTimeZone);
+                this.showSprintBet = this.raceScheduleService.canShowSprintBet(race, this.championshipTimeZone);
+                this.showRaceBet = this.raceScheduleService.canShowRaceBet(race, this.championshipTimeZone);
+              }
+            },
+            error: (err) => console.error('Error fetching championship config:', err)
+          });
         },
         error: (err) => console.error('Error fetching race info:', err)
       });
@@ -1177,6 +1224,32 @@ export class RaceDetailComponent implements OnInit {
 
   // ===== ADMIN actions =====
   isAdmin(): boolean { return this.authService.isCurrentUserAdmin(); }
+
+  formatRaceDate(eventDate: string | null | undefined): string {
+    const date = DateUtils.parseLocalYyyyMmDd(eventDate);
+    if (!date) return '';
+
+    return new Intl.DateTimeFormat(this.i18nService.locale, {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    }).format(date);
+  }
+
+  formatEntryDateTime(value: string | null | undefined): string {
+    if (!value) return '';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+
+    return new Intl.DateTimeFormat(this.i18nService.locale, {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  }
 
   onFillMissingLineups(): void {
     if (!this.calendarRace) return;
@@ -1390,8 +1463,11 @@ export class RaceDetailComponent implements OnInit {
           : this.dashboardService.updateStandings(this.calendarRace!.championship_id, this.calendarRace!.id);
 
         request$.subscribe({
-          next: () => {
+          next: (response: StandingsCalculationResponse) => {
             this.notificationService.showSuccess('motogp.results.updateStandingsSuccess');
+            if (response?.meta?.message) {
+              this.notificationService.showSuccessMessage(response.meta.message, response.meta.partial ? 6500 : 5000);
+            }
             this.refreshRaceDetails();
           },
           error: (err) => {

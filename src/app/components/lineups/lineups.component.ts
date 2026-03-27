@@ -31,7 +31,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   template: `
     <div class="settings-container">
       <header class="header">
-        <button mat-icon-button (click)="goBack()">
+        <button mat-icon-button class="app-back-arrow" (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ 'lineups.title' | t }}</h1>

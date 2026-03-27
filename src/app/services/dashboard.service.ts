@@ -82,6 +82,25 @@ export interface ChampionshipRider {
   constructor_id: Constructor
 }
 
+export interface StandingsCalculationMeta {
+  phase: 'pre_qualifying' | 'qualifying_complete' | 'sprint_complete' | 'full_race_ready';
+  partial: boolean;
+  qualifyingSettled: boolean;
+  sprintSettled: boolean;
+  raceSettled: boolean;
+  message: string;
+  timeZone?: string;
+  now?: string | null;
+  qualifyingAt?: string | null;
+  sprintAt?: string | null;
+  raceAt?: string | null;
+}
+
+export interface StandingsCalculationResponse {
+  results: ChampionshipRider[];
+  meta: StandingsCalculationMeta;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -120,12 +139,12 @@ export class DashboardService {
     return this.httpService.genericGet<ChampionshipRider[]>(`championship/${championshipId}/riders`);
   }
 
-  updateStandings(championshipId: number, calendarId: number): Observable<any> {
-    return this.httpService.genericGet<ChampionshipRider[]>(`championship/${championshipId}/calendar/${calendarId}/calc-scores`);
+  updateStandings(championshipId: number, calendarId: number): Observable<StandingsCalculationResponse> {
+    return this.httpService.genericGet<StandingsCalculationResponse>(`championship/${championshipId}/calendar/${calendarId}/calc-scores`);
   }
 
-  recalculateStandings(championshipId: number, calendarId: number): Observable<any> {
-    return this.httpService.genericPost<any>(`championship/${championshipId}/calendar/${calendarId}/recalculate-scores`, {});
+  recalculateStandings(championshipId: number, calendarId: number): Observable<StandingsCalculationResponse> {
+    return this.httpService.genericPost<StandingsCalculationResponse>(`championship/${championshipId}/calendar/${calendarId}/recalculate-scores`, {});
   }
 
   fetchMotoGPResults(championshipId: number, calendarId: number, upsert: boolean): Observable<any> {

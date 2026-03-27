@@ -11,6 +11,7 @@ import { AuthService } from '../../services/auth.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationServiceService } from '../../services/notification.service';
 import { I18nService } from '../../services/i18n.service';
+import { DateUtils } from '../../utils/date-utils';
 
 @Component({
   selector: 'app-calendar',
@@ -19,7 +20,7 @@ import { I18nService } from '../../services/i18n.service';
   template: `
     <div class="page-container">
       <header class="header">
-        <button mat-icon-button (click)="goBack()">
+        <button mat-icon-button class="app-nav-back app-back-arrow" (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ 'calendar.title' | t }}</h1>
@@ -59,10 +60,10 @@ import { I18nService } from '../../services/i18n.service';
                 <td>{{ getSprintDay(race.event_date) | t }} {{ race.sprint_time ?? '15:00:00' | timeFormat }}</td>
                 <td>{{ getRaceDay(race.event_date) | t }} {{ race.event_time ?? '14:00:00' | timeFormat }}</td>
                 <td>
-                  <button mat-icon-button color="primary" (click)="goToRaceDetail(race)">
+                  <button mat-icon-button class="calendar-action-btn app-nav-icon" color="primary" (click)="goToRaceDetail(race)" aria-label="Apri dettagli gara">
                     <mat-icon>chevron_right</mat-icon>
                   </button>
-                  <button mat-icon-button color="accent" (click)="goToMotoGPResults(race)" aria-label="View MotoGP Results">
+                  <button mat-icon-button class="calendar-action-btn app-nav-icon app-nav-icon--accent" color="accent" (click)="goToMotoGPResults(race)" aria-label="View MotoGP Results">
                     <mat-icon>emoji_events</mat-icon>
                   </button>
                 </td>
@@ -77,7 +78,7 @@ import { I18nService } from '../../services/i18n.service';
         <div class="mobile-race-nav">
           <button
             mat-icon-button
-            class="nav-arrow"
+            class="nav-arrow app-nav-icon"
             (click)="goToPreviousRace()"
             [disabled]="mobileRaceIndex === 0"
             aria-label="Previous race">
@@ -87,7 +88,7 @@ import { I18nService } from '../../services/i18n.service';
             <span class="mobile-race-index">{{ mobileRaceIndex + 1 }} / {{ calendar.length }}</span>
             <button
               mat-stroked-button
-              class="current-race-btn"
+              class="current-race-btn app-nav-chip app-nav-chip--light"
               (click)="goToCurrentRace()"
               [disabled]="mobileRaceIndex === currentRaceIndex">
               Gara attuale
@@ -95,7 +96,7 @@ import { I18nService } from '../../services/i18n.service';
           </div>
           <button
             mat-icon-button
-            class="nav-arrow"
+            class="nav-arrow app-nav-icon"
             (click)="goToNextRace()"
             [disabled]="mobileRaceIndex >= calendar.length - 1"
             aria-label="Next race">
@@ -349,21 +350,23 @@ import { I18nService } from '../../services/i18n.service';
       white-space: nowrap;
     }
 
-    .dashboard-table td button[mat-icon-button] {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      margin-left: 4px;
+    .dashboard-table td .calendar-action-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      margin-left: 6px;
     }
 
-    .dashboard-table td button[mat-icon-button][color='primary'] {
-      background: var(--mm-black);
+    .dashboard-table td .calendar-action-btn[color='primary'] {
+      background: linear-gradient(180deg, #17191f 0%, #0f1015 100%);
       color: var(--mm-white);
+      border-color: rgba(255, 255, 255, 0.08);
     }
 
-    .dashboard-table td button[mat-icon-button][color='accent'] {
-      background: var(--mm-red);
+    .dashboard-table td .calendar-action-btn[color='accent'] {
+      background: linear-gradient(180deg, #d91a3a 0%, #b10f2b 100%);
       color: var(--mm-white);
+      border-color: rgba(133, 5, 28, 0.42);
     }
 
     .calendar-mobile-list {
@@ -398,32 +401,34 @@ import { I18nService } from '../../services/i18n.service';
     }
 
     .nav-arrow {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: var(--mm-black);
-      color: var(--mm-white);
-      border: 1px solid rgba(255, 255, 255, 0.14);
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
+      background: #111318;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 18px rgba(8, 11, 18, 0.14);
     }
 
     .nav-arrow[disabled] {
-      opacity: 0.38;
-      background: rgba(17, 18, 20, 0.28);
-      color: rgba(255, 255, 255, 0.9);
+      opacity: 0.45;
+      background: #111318;
+      color: rgba(255, 255, 255, 0.45);
+      box-shadow: none;
     }
 
     .current-race-btn {
-      min-height: 36px;
-      border-radius: 10px;
+      min-height: 46px;
+      border-radius: 15px;
       border-color: rgba(200, 16, 46, 0.55) !important;
-      color: var(--mm-red) !important;
+      color: var(--mm-black) !important;
       font-family: 'MotoGP Bold', sans-serif;
-      font-size: 0.74rem;
-      letter-spacing: 0.2px;
-      padding: 0 12px;
+      font-size: 0.76rem;
+      letter-spacing: 0.32px;
+      padding: 0 14px;
       line-height: 1;
       white-space: nowrap;
-      background: rgba(255, 255, 255, 0.9) !important;
+      background: linear-gradient(180deg, #ffffff 0%, #f3f4f7 100%) !important;
     }
 
     .current-race-btn[disabled] {
@@ -707,7 +712,10 @@ export class CalendarComponent implements OnInit {
 
     const now = new Date();
     const nextRaceIndex = this.calendar.findIndex(race =>
-      new Date(race.event_date) >= now
+      (() => {
+        const eventDate = DateUtils.parseLocalYyyyMmDd(race.event_date);
+        return eventDate ? eventDate >= now : false;
+      })()
     );
 
     this.currentRaceIndex = nextRaceIndex === -1 ? this.calendar.length - 1 : nextRaceIndex;
@@ -736,9 +744,9 @@ export class CalendarComponent implements OnInit {
   public getEventDateRange(eventDateString: string): { start: Date, end: Date } {
     if (!eventDateString) return { start: new Date(), end: new Date() };
 
-    const eventDate = new Date(eventDateString);
-    const startDate = new Date(eventDate);
-    startDate.setDate(eventDate.getDate() - 2);
+    const eventDate = DateUtils.parseLocalYyyyMmDd(eventDateString);
+    if (!eventDate) return { start: new Date(), end: new Date() };
+    const startDate = DateUtils.addDays(eventDate, -2);
 
     return {
       start: startDate,
@@ -768,10 +776,8 @@ export class CalendarComponent implements OnInit {
 
   getDayBefore(eventDateString: string): Date {
     if (!eventDateString) return new Date();
-    const eventDate = new Date(eventDateString);
-    const dayBefore = new Date(eventDate);
-    dayBefore.setDate(eventDate.getDate() - 1);
-    return dayBefore;
+    const eventDate = DateUtils.parseLocalYyyyMmDd(eventDateString);
+    return eventDate ? DateUtils.addDays(eventDate, -1) : new Date();
   }
 
   get locale(): string {
@@ -780,9 +786,9 @@ export class CalendarComponent implements OnInit {
 
   formatEventRange(eventDateString: string): string {
     if (!eventDateString) return '';
-    const end = new Date(eventDateString);
-    const start = new Date(end);
-    start.setDate(end.getDate() - 2);
+    const end = DateUtils.parseLocalYyyyMmDd(eventDateString);
+    if (!end) return '';
+    const start = DateUtils.addDays(end, -2);
 
     // Use browser's Intl with the current locale
     const fmt = new Intl.DateTimeFormat(this.locale, { day: 'numeric', month: 'short', year: 'numeric' });
@@ -794,20 +800,18 @@ export class CalendarComponent implements OnInit {
 
     // Day methods for schedule display
     getQualifyingDay(eventDate: string): string {
-      const date = new Date(eventDate);
-      date.setDate(date.getDate() - 1); // Qualifying is typically on Saturday
-      return this.getDayName(date);
+      const date = DateUtils.parseLocalYyyyMmDd(eventDate);
+      return date ? this.getDayName(DateUtils.addDays(date, -1)) : '';
     }
 
     getSprintDay(eventDate: string): string {
-      const date = new Date(eventDate);
-      date.setDate(date.getDate() - 1); // Sprint is typically on Saturday
-      return this.getDayName(date);
+      const date = DateUtils.parseLocalYyyyMmDd(eventDate);
+      return date ? this.getDayName(DateUtils.addDays(date, -1)) : '';
     }
 
     getRaceDay(eventDate: string): string {
-      const date = new Date(eventDate);
-      return this.getDayName(date); // Race is on Sunday
+      const date = DateUtils.parseLocalYyyyMmDd(eventDate);
+      return date ? this.getDayName(date) : '';
     }
 
     private getDayName(date: Date): string {

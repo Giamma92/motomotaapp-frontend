@@ -17,6 +17,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 import { RaceDetails } from '../../services/race-detail.service';
 import { I18nService } from '../../services/i18n.service';
 import { HostListener } from '@angular/core';
+import { DateUtils } from '../../utils/date-utils';
 
 type Tab = 'standings' | 'next' | 'team' | 'config';
 
@@ -46,16 +47,16 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
         </div>
 
         <div class="header-actions">
-          <button type="button" class="header-quick-link" (click)="goTo('calendar')" aria-label="Apri calendario">
+          <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="goTo('calendar')" aria-label="Apri calendario">
             <i class="fa-solid fa-calendar-days"></i>
             <span>Calendario</span>
           </button>
-          <button type="button" class="header-quick-link" (click)="goTo('teams')" aria-label="Apri teams">
+          <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="goTo('teams')" aria-label="Apri teams">
             <i class="fa-solid fa-people-group"></i>
             <span>Teams</span>
           </button>
 
-          <button mat-icon-button class="header-menu-btn" [matMenuTriggerFor]="menu" aria-label="Open dashboard menu">
+          <button mat-icon-button class="header-menu-btn app-nav-icon app-nav-icon--light" [matMenuTriggerFor]="menu" aria-label="Open dashboard menu">
             <i class="fa-solid fa-ellipsis-vertical"></i>
           </button>
         </div>
@@ -331,15 +332,15 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
              <mat-card-actions>
                <!-- Main Actions -->
                <div class="main-actions">
-                 <button mat-raised-button color="primary" class="main-btn main-btn-primary" (click)="goTo('race-detail', nextCalendarRace.id)">
+                 <button mat-raised-button color="primary" class="main-btn main-btn-primary app-nav-chip app-nav-chip--dark" (click)="goTo('race-detail', nextCalendarRace.id)">
                    <i class="fa-solid fa-eye"></i>
                    {{ 'dashboard.actions.viewRaceDetail' | t }}
                  </button>
-                 <button mat-raised-button color="accent" class="main-btn main-btn-secondary" (click)="goTo('motogp-results', nextCalendarRace.id)">
+                 <button mat-raised-button color="accent" class="main-btn main-btn-secondary app-nav-chip app-nav-chip--accent" (click)="goTo('motogp-results', nextCalendarRace.id)">
                    <i class="fa-solid fa-trophy"></i>
                    {{ 'dashboard.actions.viewMotoGPResults' | t }}
                  </button>
-                 <button mat-raised-button color="primary" class="main-btn main-btn-ghost" (click)="goTo('calendar')">
+                 <button mat-raised-button color="primary" class="main-btn main-btn-ghost app-nav-chip app-nav-chip--light" (click)="goTo('calendar')">
                    <i class="fa-solid fa-calendar"></i>
                    {{ 'dashboard.actions.viewAllRaces' | t }}
                  </button>
@@ -352,15 +353,15 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                    <span>{{ 'dashboard.nextRace.placeYourBets' | t }}</span>
                  </div>
                  <div class="betting-buttons">
-                   <button mat-raised-button color="warn" class="betting-btn" *ngIf="showLineupsButton" (click)="goTo('lineups', nextCalendarRace.id)">
+                   <button mat-raised-button color="warn" class="betting-btn app-nav-chip app-nav-chip--accent" *ngIf="showLineupsButton" (click)="goTo('lineups', nextCalendarRace.id)">
                      <i class="fa-solid fa-users"></i>
                      {{ 'dashboard.actions.placeLineups' | t }}
                    </button>
-                   <button mat-raised-button color="warn" class="betting-btn" *ngIf="showSprintBetButton" (click)="goTo('sprint-bet', nextCalendarRace.id)">
+                   <button mat-raised-button color="warn" class="betting-btn app-nav-chip app-nav-chip--accent" *ngIf="showSprintBetButton" (click)="goTo('sprint-bet', nextCalendarRace.id)">
                      <i class="fa-solid fa-flag-checkered"></i>
                      {{ 'dashboard.actions.placeSprintBet' | t }}
                    </button>
-                   <button mat-raised-button color="warn" class="betting-btn" *ngIf="showPlaceBetButton" (click)="goTo('race-bet', nextCalendarRace.id)">
+                   <button mat-raised-button color="warn" class="betting-btn app-nav-chip app-nav-chip--accent" *ngIf="showPlaceBetButton" (click)="goTo('race-bet', nextCalendarRace.id)">
                      <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
                      {{ 'dashboard.actions.placeRaceBet' | t }}
                    </button>
@@ -555,6 +556,15 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                         </span>
                       </div>
                     </div>
+                    <div class="config-item">
+                      <div class="config-icon">
+                        <i class="fa-solid fa-clock"></i>
+                      </div>
+                      <div class="config-info">
+                        <span class="config-label">Timezone</span>
+                        <span class="config-value">{{ championshipConfig.timezone || 'Europe/Rome' }}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -670,19 +680,19 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
     </div>
     <nav class="bottom-nav" aria-label="Primary">
       <button class="item" [class.active]="isActive('standings')" (click)="setTab('standings')" [attr.aria-label]="'dashboard.standings.title' | t">
-        <span class="icon-wrap"><i class="fa-solid fa-trophy" aria-hidden="true"></i></span>
+        <i class="fa-solid fa-trophy" aria-hidden="true"></i>
         <span class="label">{{ 'dashboard.standings.title' | t }}</span>
       </button>
       <button class="item" [class.active]="isActive('next')" (click)="setTab('next')" [attr.aria-label]="(isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t))">
-        <span class="icon-wrap"><i class="fa-solid fa-flag-checkered" aria-hidden="true"></i></span>
+        <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>
         <span class="label">{{ isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t) }}</span>
       </button>
       <button class="item" [class.active]="isActive('team')" (click)="setTab('team')" [attr.aria-label]="'dashboard.team.teamRiders' | t">
-        <span class="icon-wrap"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
+        <i class="fa-solid fa-users" aria-hidden="true"></i>
         <span class="label">{{ 'dashboard.team.teamRiders' | t }}</span>
       </button>
       <button class="item" [class.active]="isActive('config')" (click)="setTab('config')" [attr.aria-label]="'dashboard.championship.configuration' | t">
-        <span class="icon-wrap"><i class="fa-solid fa-gear" aria-hidden="true"></i></span>
+        <i class="fa-solid fa-gear" aria-hidden="true"></i>
         <span class="label">{{ 'dashboard.championship.configuration' | t }}</span>
       </button>
 
@@ -3269,63 +3279,52 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       align-items: center;
       gap: 8px;
       flex-shrink: 0;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .dashboard-header .header-quick-link {
-      height: 36px;
-      border: 0;
-      border-radius: 999px;
-      padding: 0 12px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      background: #ffffff;
-      color: #161616;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      font-family: 'MotoGP Bold', sans-serif;
-      font-size: 0.72rem;
-      letter-spacing: 0.4px;
-      text-transform: uppercase;
-      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+      min-height: 42px;
+      padding-inline: 14px;
+      gap: 8px;
     }
 
-    .dashboard-header .header-quick-link i {
-      margin-right: 0;
-      font-size: 0.88rem;
+    .dashboard-header .header-quick-link i,
+    .dashboard-header .header-quick-link mat-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      line-height: 1;
       color: #c8102e;
     }
 
     .dashboard-header .header-quick-link:hover {
-      background: #ffffff;
       border-color: rgba(200, 16, 46, 0.45);
-      color: #101114;
-      transform: translateY(-1px);
-    }
-
-    .dashboard-header .header-quick-link:hover i {
-      color: #c8102e;
     }
 
     .dashboard-header .header-menu-btn {
       flex-shrink: 0;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
+      width: 42px;
+      height: 42px;
       background: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.12);
       color: #c8102e;
+      border: 1px solid rgba(0, 0, 0, 0.1);
     }
 
     .dashboard-header .header-menu-btn i {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
       margin-right: 0;
       font-size: 1rem;
     }
 
     .dashboard-header .header-menu-btn:hover {
-      background: #ffffff;
       border-color: rgba(200, 16, 46, 0.45);
-      color: #c8102e;
     }
 
     .current-user-summary {
@@ -3436,12 +3435,12 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
     }
 
     .bottom-nav {
-      background: linear-gradient(180deg, #101115, #181a21);
+      background: linear-gradient(180deg, rgba(16, 17, 21, 0.98), rgba(24, 26, 33, 0.98));
       border: 0;
-      border-top: 2px solid var(--moto-red);
+      border-top: 1px solid rgba(200, 16, 46, 0.45);
       backdrop-filter: blur(8px);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
-      padding: 0.4rem 0.5rem max(0.55rem, env(safe-area-inset-bottom));
+      box-shadow: 0 -14px 32px rgba(0, 0, 0, 0.22);
+      padding: 0.5rem 0.55rem max(0.65rem, env(safe-area-inset-bottom));
       border-radius: 0;
       width: 100%;
       margin: 0;
@@ -3451,65 +3450,53 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
     }
 
     .bottom-nav .item {
-      color: #d9dde5;
-      border-radius: 10px;
-      min-height: 54px;
-      padding: 0.35rem 0.18rem;
-      gap: 0.24rem;
-      transition: background-color 0.2s ease, color 0.2s ease, transform 0.16s ease;
-    }
-
-    .bottom-nav .item .icon-wrap {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
-      width: 100%;
-      height: auto;
-      background: transparent;
-      border: 0;
+      flex-direction: column;
+      color: #d9dde5;
+      border-radius: 16px;
+      min-height: 50px;
+      padding: 6px 10px 6px 10px;
+      gap: 0;
+      transition: background-color 0.2s ease, color 0.2s ease, transform 0.16s ease, box-shadow 0.16s ease;
     }
 
     .bottom-nav .item i {
       margin: 0;
-      font-size: 1.02rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      font-size: 1.08rem;
       line-height: 1;
+      border-radius: 12px;
       transition: transform 0.2s ease, color 0.2s ease;
     }
 
     .bottom-nav .item .label {
-      max-width: 100%;
-      font-size: 0.64rem;
-      font-weight: 700;
-      letter-spacing: 0.45px;
-      text-transform: uppercase;
-      opacity: 0.92;
+      display: none;
     }
 
     .bottom-nav .item.active {
-      color: #fff;
-      background: linear-gradient(180deg, rgba(200, 16, 46, 0.24), rgba(200, 16, 46, 0.14));
-      transform: translateY(-1px);
-    }
-
-    .bottom-nav .item.active .icon-wrap {
-      background: transparent;
-      border: 0;
-      transform: none;
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-6px);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+      margin-bottom: 0;
     }
 
     .bottom-nav .item.active i {
-      transform: scale(1.05);
-      color: #fff;
+      transform: none;
+      color: #ffffff !important;
+      background: transparent;
+      box-shadow: none;
     }
 
     .bottom-nav .item.active .label {
-      color: #fff;
+      color: #ffffff;
       opacity: 1;
-    }
-
-    .bottom-nav .item:not(.active):hover .icon-wrap {
-      background: transparent;
-      border: 0;
     }
 
     .bottom-nav .item:not(.active):hover {
@@ -3916,17 +3903,17 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
 
     .next-race-card .main-actions .main-btn,
     .next-race-card .betting-buttons .betting-btn {
-      border-radius: 10px !important;
+      border-radius: 16px !important;
       text-transform: none;
-      letter-spacing: 0.1px;
+      letter-spacing: 0.2px;
       font-weight: 700 !important;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+      box-shadow: 0 14px 24px rgba(8, 11, 18, 0.12) !important;
       border: 1px solid rgba(0, 0, 0, 0.12);
-      min-height: 44px !important;
+      min-height: 48px !important;
       height: auto !important;
       min-width: 0 !important;
-      font-size: 0.74rem !important;
-      padding: 10px 12px !important;
+      font-size: 0.76rem !important;
+      padding: 11px 13px !important;
     }
 
     .next-race-card .main-actions .main-btn .mdc-button__label,
@@ -3940,7 +3927,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       overflow: visible;
       text-overflow: clip;
       white-space: normal;
-      line-height: 1.15;
+      line-height: 1.18;
       text-align: center;
     }
 
@@ -3955,21 +3942,22 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
 
     .next-race-card .main-actions .main-btn-primary {
       grid-column: 1 / -1;
-      background: linear-gradient(135deg, #111214, #252a33) !important;
+      background: linear-gradient(180deg, #17191f 0%, #0f1015 100%) !important;
       color: #fff !important;
+      border-color: rgba(255, 255, 255, 0.08);
     }
 
     .next-race-card .main-actions .main-btn-secondary {
-      background: linear-gradient(135deg, #d41b3a, #a80f29) !important;
+      background: linear-gradient(180deg, #d91a3a 0%, #b10f2b 100%) !important;
       color: #fff !important;
-      border: 1px solid rgba(146, 8, 33, 0.45);
+      border: 1px solid rgba(133, 5, 28, 0.42);
     }
 
     .next-race-card .main-actions .main-btn-ghost {
-      background: linear-gradient(135deg, #fff, #f5f6f8) !important;
+      background: linear-gradient(180deg, #ffffff 0%, #f3f4f7 100%) !important;
       color: #111 !important;
       border: 1px solid rgba(0, 0, 0, 0.15);
-      box-shadow: none !important;
+      box-shadow: 0 10px 18px rgba(8, 11, 18, 0.08) !important;
     }
 
     .next-race-card .betting-header {
@@ -3994,9 +3982,9 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
     }
 
     .next-race-card .betting-buttons .betting-btn {
-      background: linear-gradient(135deg, #cf1736, #9c0b22) !important;
+      background: linear-gradient(180deg, #d91a3a 0%, #b10f2b 100%) !important;
       color: #fff !important;
-      border: 0;
+      border: 1px solid rgba(133, 5, 28, 0.42);
     }
 
     .fantasy-team-card .team-title {
@@ -4265,10 +4253,11 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       }
 
       .dashboard-header .header-quick-link {
-        width: 34px;
-        min-width: 34px;
-        height: 34px;
+        width: 42px;
+        min-width: 42px;
+        height: 42px;
         padding: 0;
+        align-items: center;
         justify-content: center;
       }
 
@@ -4277,8 +4266,8 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
       }
 
       .dashboard-header .header-menu-btn {
-        width: 34px;
-        height: 34px;
+        width: 42px;
+        height: 42px;
       }
 
       .grid-content {
@@ -4631,10 +4620,10 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
 
       .next-race-card .main-actions .main-btn,
       .next-race-card .betting-buttons .betting-btn {
-        min-height: 40px !important;
+        min-height: 44px !important;
         height: auto !important;
-        font-size: 0.68rem !important;
-        padding-inline: 8px !important;
+        font-size: 0.72rem !important;
+        padding-inline: 10px !important;
       }
 
       .next-race-card .main-actions .main-btn-primary {
@@ -5027,8 +5016,8 @@ export class DashboardComponent implements OnInit {
 
   public get isCurrentRace() {
     const today = new Date();
-    const eventDate = new Date(this.nextCalendarRace?.event_date || '');
-    return today.toDateString() === eventDate.toDateString();
+    const eventDate = DateUtils.parseLocalYyyyMmDd(this.nextCalendarRace?.event_date);
+    return eventDate ? today.toDateString() === eventDate.toDateString() : false;
   }
 
   private computeButtonVisibility(): void {
@@ -5039,9 +5028,10 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    this.showLineupsButton = this.raceScheduleService.canShowLineups(this.nextCalendarRace);
-    this.showSprintBetButton = this.raceScheduleService.canShowSprintBet(this.nextCalendarRace);
-    this.showPlaceBetButton = this.raceScheduleService.canShowRaceBet(this.nextCalendarRace);
+    const timeZone = this.championshipConfig?.timezone;
+    this.showLineupsButton = this.raceScheduleService.canShowLineups(this.nextCalendarRace, timeZone);
+    this.showSprintBetButton = this.raceScheduleService.canShowSprintBet(this.nextCalendarRace, timeZone);
+    this.showPlaceBetButton = this.raceScheduleService.canShowRaceBet(this.nextCalendarRace, timeZone);
   }
 
   goTo(path: string, extras: any = {}): void {
@@ -5060,9 +5050,9 @@ export class DashboardComponent implements OnInit {
   public getEventDateRange(eventDateString: string): { start: Date, end: Date } {
     if (!eventDateString) return { start: new Date(), end: new Date() };
 
-    const eventDate = new Date(eventDateString);
-    const startDate = new Date(eventDate);
-    startDate.setDate(eventDate.getDate() - 2);
+    const eventDate = DateUtils.parseLocalYyyyMmDd(eventDateString);
+    if (!eventDate) return { start: new Date(), end: new Date() };
+    const startDate = DateUtils.addDays(eventDate, -2);
 
     return {
       start: startDate,
@@ -5165,20 +5155,18 @@ export class DashboardComponent implements OnInit {
 
   // Day methods for schedule display
   getQualifyingDay(eventDate: string): string {
-    const date = new Date(eventDate);
-    date.setDate(date.getDate() - 1); // Qualifying is typically on Saturday
-    return this.getDayName(date);
+    const date = DateUtils.parseLocalYyyyMmDd(eventDate);
+    return date ? this.getDayName(DateUtils.addDays(date, -1)) : '';
   }
 
   getSprintDay(eventDate: string): string {
-    const date = new Date(eventDate);
-    date.setDate(date.getDate() - 1); // Sprint is typically on Saturday
-    return this.getDayName(date);
+    const date = DateUtils.parseLocalYyyyMmDd(eventDate);
+    return date ? this.getDayName(DateUtils.addDays(date, -1)) : '';
   }
 
   getRaceDay(eventDate: string): string {
-    const date = new Date(eventDate);
-    return this.getDayName(date); // Race is on Sunday
+    const date = DateUtils.parseLocalYyyyMmDd(eventDate);
+    return date ? this.getDayName(date) : '';
   }
 
   private getDayName(date: Date): string {
@@ -5191,9 +5179,9 @@ export class DashboardComponent implements OnInit {
 
   formatEventRange(eventDateString: string): string {
     if (!eventDateString) return '';
-    const end = new Date(eventDateString);
-    const start = new Date(end);
-    start.setDate(end.getDate() - 2);
+    const end = DateUtils.parseLocalYyyyMmDd(eventDateString);
+    if (!end) return '';
+    const start = DateUtils.addDays(end, -2);
 
     // Use browser's Intl with the current locale
     const fmt = new Intl.DateTimeFormat(this.locale, { day: 'numeric', month: 'long', year: 'numeric' });
@@ -5290,9 +5278,11 @@ export class DashboardComponent implements OnInit {
           bets_limit_race: config.bets_limit_race, // max bets per race
           bets_limit_sprint_race: config.bets_limit_sprint_race, // max bets per sprint race
           formation_limit_driver: config.formation_limit_driver, // max lineups per pilot
+          timezone: config.timezone,
           race_scoring: this.getRaceScoringPoints(),
           sprint_scoring: this.getSprintScoringPoints()
         };;
+        this.computeButtonVisibility();
       },
       error: (err) => console.error('Failed to load championship configuration', err)
     });
