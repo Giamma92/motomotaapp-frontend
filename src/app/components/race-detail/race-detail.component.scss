@@ -1,0 +1,611 @@
+app-race-detail {
+  --accent-blue: #1976d2;
+  --accent-red: #d32f2f;
+
+  .page-container {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
+      radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
+      linear-gradient(158deg, #ffffff 0%, #f8f8f9 48%, #f1f2f4 100%);
+    color: #16181d;
+  }
+
+  .header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: var(--app-header-height);
+    padding: 0 8px;
+    background: rgba(17, 18, 20, 0.97);
+    color: #fff;
+    box-shadow: var(--shadow-md);
+    z-index: 1000;
+  }
+
+  .header h1 {
+    margin: 0;
+    flex: 1;
+    text-align: center;
+    color: #fff;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: clamp(1rem, 2.8vw, 1.35rem);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    padding-right: 42px;
+  }
+
+  .main-content {
+    width: 100%;
+    max-width: none;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: calc(var(--app-header-height) + 10px) 10px 12px;
+  }
+
+  .results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .info-card,
+  .admin-card,
+  .results-card {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    overflow: visible;
+    margin: 0;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 40px;
+    padding: 0.68rem 0.84rem;
+    border-radius: 12px 12px 0 0;
+    background: #111214;
+    color: #fff;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.98rem;
+    letter-spacing: 0.22px;
+    text-transform: uppercase;
+  }
+
+  .card-header i {
+    color: #ff6e84;
+  }
+
+  .race-overview,
+  .admin-panel,
+  .results-tabs {
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .race-overview {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 0.8rem;
+    align-items: start;
+    padding: 0.8rem 0.9rem;
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+  }
+
+  .race-overview-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.32rem;
+    min-width: 0;
+  }
+
+  .race-kicker,
+  .action-eyebrow,
+  .kv-key {
+    color: var(--text-muted);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.35px;
+    text-transform: uppercase;
+  }
+
+  .race-title {
+    margin: 0;
+    color: #111214;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: clamp(1.12rem, 2.3vw, 1.48rem);
+    letter-spacing: 0.24px;
+    line-height: 1.04;
+    text-transform: uppercase;
+  }
+
+  .race-date-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    color: #353b46;
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .race-date-row i,
+  .kv-key i,
+  .kv-key mat-icon {
+    color: #c8102e;
+  }
+
+  .race-times-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .race-time-item {
+    display: grid;
+    gap: 0.16rem;
+    min-height: 54px;
+    padding: 0.5rem 0.58rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .race-time-item-primary {
+    grid-column: 1 / -1;
+    border-color: rgba(200, 16, 46, 0.35);
+    background: linear-gradient(180deg, rgba(200, 16, 46, 0.05), rgba(200, 16, 46, 0.02));
+  }
+
+  .race-time-label {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.34px;
+    text-transform: uppercase;
+  }
+
+  .race-time-value {
+    color: #111214;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 1rem;
+  }
+
+  .admin-panel {
+    padding: 0.85rem;
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+  }
+
+  .admin-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 0.85rem;
+  }
+
+  .admin-actions-row {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 248, 250, 0.96));
+    overflow: hidden;
+  }
+
+  .admin-actions-row::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: #d9dde3;
+  }
+
+  .admin-actions-row-primary::before {
+    background: var(--accent-blue);
+  }
+
+  .admin-actions-row-accent::before {
+    background: #c8102e;
+  }
+
+  .admin-actions-row-warn::before {
+    background: #ed6c02;
+  }
+
+  .action-copy {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .action-heading {
+    color: #111214;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.96rem;
+    letter-spacing: 0.18px;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .action-note {
+    color: #5f6672;
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+
+  .admin-action-button {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    border-radius: 12px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+  }
+
+  .admin-action-button i {
+    margin-right: 0.45rem;
+  }
+
+  .qualifying-override-panel {
+    display: grid;
+    gap: 0.85rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.96);
+  }
+
+  .override-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .override-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+  }
+
+  .override-toggle i {
+    flex: 0 0 auto;
+    color: #5b6472;
+    font-size: 0.95rem;
+  }
+
+  .override-table {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .override-row {
+    display: grid;
+    grid-template-columns: minmax(140px, 1.4fr) 80px 120px 110px minmax(230px, 1.6fr);
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid rgba(17, 18, 20, 0.08);
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .override-row-head {
+    background: #f4f6fa;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .override-rider {
+    color: #111214;
+    font-family: 'MotoGP Bold', sans-serif;
+  }
+
+  .override-points {
+    color: #697180;
+    margin-left: 0.25rem;
+  }
+
+  .override-source {
+    font-weight: 700;
+    color: #4c5564;
+  }
+
+  .override-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .native-input {
+    width: 86px;
+    min-height: 38px;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid rgba(17, 18, 20, 0.16);
+    border-radius: 10px;
+    background: #fff;
+    color: #111214;
+    font: inherit;
+  }
+
+  .results-tabs {
+    overflow: hidden;
+    border-radius: 12px;
+  }
+
+  .session-results {
+    padding: 0.5rem 0.55rem 0.6rem;
+  }
+
+  .result-table {
+    width: 100%;
+    border: 1px solid rgba(17, 18, 20, 0.08);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .result-table .mat-mdc-header-row {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .result-table .mat-mdc-header-cell i,
+  .result-table .mat-mdc-header-cell mat-icon {
+    margin-right: 6px;
+    color: #ff6e84;
+    font-size: 0.75rem;
+    vertical-align: baseline;
+  }
+
+  .user-cell {
+    display: grid;
+    gap: 2px;
+  }
+
+  .auto-note {
+    color: #8e1128;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 0 0.6rem;
+    border-radius: var(--radius-pill);
+    background: #9e9e9e;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+
+  .badge.points {
+    background: rgba(200, 16, 46, 0.12);
+    border: 1px solid rgba(200, 16, 46, 0.25);
+    color: #c8102e;
+  }
+
+  .badge.badge-neutral {
+    background: #f3f4f7;
+    color: #2f3640;
+  }
+
+  .ok {
+    color: #1f8f43;
+  }
+
+  .ko {
+    color: #c8102e;
+  }
+
+  .outcome-text {
+    color: #353b46;
+    font-weight: 600;
+  }
+
+  .mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .mobile-entry {
+    display: grid;
+    gap: 6px;
+    padding: 8px 9px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .entry-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(17, 18, 20, 0.08);
+  }
+
+  .entry-user {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #111214;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.84rem;
+  }
+
+  .entry-when {
+    flex: 0 0 auto;
+    color: #6a717c;
+    font-size: 0.64rem;
+    white-space: nowrap;
+  }
+
+  .entry-body {
+    display: grid;
+    gap: 6px;
+  }
+
+  .kv-row {
+    display: grid;
+    grid-template-columns: minmax(92px, 1fr) minmax(0, 1.2fr);
+    gap: 8px;
+    align-items: center;
+  }
+
+  .kv-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .kv-key mat-icon {
+    width: 12px;
+    height: 12px;
+    line-height: 12px;
+    font-size: 12px;
+  }
+
+  .kv-value {
+    color: #16181d;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.22;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .entry-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding-top: 2px;
+  }
+
+  .meta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 22px;
+    padding: 0 8px;
+    border: 1px solid rgba(17, 18, 20, 0.15);
+    border-radius: var(--radius-pill);
+    background: #fff;
+    color: #353b46;
+    font-size: 0.64rem;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .meta-tag strong {
+    color: #111214;
+    font-family: 'MotoGP Bold', sans-serif;
+  }
+
+  .meta-tag.points,
+  .meta-tag.auto-tag {
+    border-color: rgba(200, 16, 46, 0.24);
+    background: rgba(200, 16, 46, 0.06);
+    color: #8e1128;
+    font-weight: 700;
+  }
+
+  .meta-tag.result {
+    font-weight: 700;
+  }
+
+  .meta-tag.ok-tag {
+    border-color: rgba(31, 143, 67, 0.32);
+    background: rgba(31, 143, 67, 0.08);
+    color: #1f8f43;
+  }
+
+  .meta-tag.ko-tag {
+    border-color: rgba(200, 16, 46, 0.32);
+    background: rgba(200, 16, 46, 0.08);
+    color: #c8102e;
+  }
+
+  @media (max-width: 768px) {
+    .main-content {
+      padding: calc(var(--app-header-height) + 8px) 8px 10px;
+    }
+
+    .race-overview {
+      grid-template-columns: 1fr;
+      gap: 0.55rem;
+      padding: 0.7rem 0.75rem;
+    }
+
+    .admin-panel {
+      padding: 0.75rem;
+    }
+
+    .admin-actions-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .override-header {
+      flex-direction: column;
+    }
+
+    .override-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .race-time-item {
+      min-height: 48px;
+      padding: 0.42rem 0.5rem;
+    }
+
+    .kv-row {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+
+    .kv-value {
+      text-align: left;
+      font-size: 0.78rem;
+    }
+
+    .entry-user {
+      font-size: 0.8rem;
+    }
+
+    .entry-when,
+    .meta-tag {
+      font-size: 0.61rem;
+    }
+  }
+}

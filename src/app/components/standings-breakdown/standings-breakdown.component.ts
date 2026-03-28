@@ -38,10 +38,10 @@ import { DashboardService, StandingsBreakdownRow } from '../../services/dashboar
 
             <label class="filter-field">
               <span>Partecipante</span>
-              <input
-                type="text"
-                [(ngModel)]="searchTerm"
-                placeholder="Cerca partecipante" />
+              <select [(ngModel)]="selectedParticipantId">
+                <option value="">Tutti</option>
+                <option *ngFor="let participant of participantOptions" [value]="participant.id">{{ participant.label }}</option>
+              </select>
             </label>
           </div>
         </mat-card>
@@ -342,8 +342,9 @@ export class StandingsBreakdownComponent implements OnInit {
   loading = true;
   rows: StandingsBreakdownRow[] = [];
   raceOptions: Array<{ id: number; label: string }> = [];
+  participantOptions: Array<{ id: string; label: string }> = [];
   selectedRaceId = '';
-  searchTerm = '';
+  selectedParticipantId = '';
   loggedUserId = '';
 
   constructor(
@@ -367,12 +368,17 @@ export class StandingsBreakdownComponent implements OnInit {
         next: (rows) => {
           this.rows = rows ?? [];
           this.raceOptions = this.buildRaceOptions(this.rows);
+          this.participantOptions = this.buildParticipantOptions(this.rows);
+          this.selectedRaceId = this.getLatestRaceId(this.rows);
           this.loading = false;
         },
         error: (error) => {
           console.error('Error fetching standings breakdown:', error);
           this.rows = [];
           this.raceOptions = [];
+          this.participantOptions = [];
+          this.selectedRaceId = '';
+          this.selectedParticipantId = '';
           this.loading = false;
         }
       });
@@ -380,10 +386,9 @@ export class StandingsBreakdownComponent implements OnInit {
   }
 
   get filteredRows(): StandingsBreakdownRow[] {
-    const term = this.searchTerm.trim().toLowerCase();
     return this.rows.filter(row => {
       const matchesRace = !this.selectedRaceId || String(row.calendar_id?.id) === this.selectedRaceId;
-      const matchesUser = !term || this.fullName(row).toLowerCase().includes(term);
+      const matchesUser = !this.selectedParticipantId || String(row.user_id?.id) === this.selectedParticipantId;
       return matchesRace && matchesUser;
     });
   }
@@ -429,5 +434,34 @@ export class StandingsBreakdownComponent implements OnInit {
     });
 
     return options;
+  }
+
+  private buildParticipantOptions(rows: StandingsBreakdownRow[]): Array<{ id: string; label: string }> {
+    const seen = new Set<string>();
+    const options: Array<{ id: string; label: string }> = [];
+
+    rows.forEach(row => {
+      const userId = String(row.user_id?.id || '');
+      if (!userId || seen.has(userId)) return;
+      seen.add(userId);
+      options.push({
+        id: userId,
+        label: this.fullName(row)
+      });
+    });
+
+    return options.sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  private getLatestRaceId(rows: StandingsBreakdownRow[]): string {
+    if (!rows.length) return '';
+
+    const latestRow = [...rows].sort((left, right) => {
+      const raceOrderDelta = Number(right.calendar_id?.race_order || 0) - Number(left.calendar_id?.race_order || 0);
+      if (raceOrderDelta !== 0) return raceOrderDelta;
+      return Number(right.calendar_id?.id || 0) - Number(left.calendar_id?.id || 0);
+    })[0];
+
+    return String(latestRow?.calendar_id?.id || '');
   }
 }

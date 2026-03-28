@@ -1,5 +1,5 @@
 // src/app/race-detail/race-detail.component.ts
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { TimeFormatPipe } from '../../pipes/time-format.pipe';
 
-import { BetResult, LineupsResult, RaceDetailService } from '../../services/race-detail.service';
+import { BetResult, LineupsResult, MotoGPStoredResult, RaceDetailService } from '../../services/race-detail.service';
 import { CalendarRace, DashboardService, StandingsCalculationResponse } from '../../services/dashboard.service';
 import { ChampionshipService } from '../../services/championship.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
@@ -28,6 +28,8 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
 @Component({
   selector: 'app-race-detail',
   standalone: true,
+  encapsulation: ViewEncapsulation.None,
+  styleUrl: './race-detail.component.scss',
   imports: [
     CommonModule,
     MatCardModule,
@@ -152,6 +154,52 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                 </section>
               </div>
 
+              <section class="qualifying-override-panel" *ngIf="motogpResults.length">
+                <button type="button" class="override-toggle" (click)="showQualifyingOverride = !showQualifyingOverride">
+                  <div class="action-copy">
+                    <span class="action-eyebrow">Qualifying scoring</span>
+                    <strong class="action-heading">Griglia valida per il punteggio</strong>
+                    <span class="action-note">Se DORNA applica penalita di griglia puoi correggere qui la posizione usata nel calcScore.</span>
+                  </div>
+                  <i class="fa-solid" [class.fa-chevron-down]="!showQualifyingOverride" [class.fa-chevron-up]="showQualifyingOverride"></i>
+                </button>
+
+                <div class="override-table" *ngIf="showQualifyingOverride">
+                  <div class="override-row override-row-head">
+                    <span>Pilota</span>
+                    <span>Qualifica</span>
+                    <span>Scoring</span>
+                    <span>Sorgente</span>
+                    <span>Override admin</span>
+                  </div>
+
+                  <div class="override-row" *ngFor="let result of motogpResults; trackBy: trackByMotoGPResult">
+                    <span class="override-rider">{{ getRiderDisplay(result.rider_id) }}</span>
+                    <span>{{ result.qualifying_position ?? '—' }}</span>
+                    <span>
+                      {{ result.qualifying_scoring_position ?? '—' }}
+                      <small class="override-points">({{ result.qualifying_scoring_points ?? 0 }} pt)</small>
+                    </span>
+                    <span class="override-source">{{ getQualifyingSourceLabel(result.qualifying_scoring_source) }}</span>
+                    <span class="override-actions">
+                      <input
+                        class="native-input"
+                        type="number"
+                        min="1"
+                        [ngModelOptions]="{ standalone: true }"
+                        [(ngModel)]="qualifyingScoringDrafts[result.id]"
+                      />
+                      <button mat-stroked-button color="primary" (click)="onSaveQualifyingScoring(result)" [disabled]="busy">
+                        Salva
+                      </button>
+                      <button mat-button type="button" (click)="onResetQualifyingScoring(result)" [disabled]="busy || result.qualifying_scoring_source !== 'admin_override'">
+                        Reset
+                      </button>
+                    </span>
+                  </div>
+                </div>
+              </section>
+
               <!-- Sprint bets -->
               <!--<div class="admin-actions-row">
                 <span class="action-label">
@@ -232,12 +280,12 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
 
           <!-- Tabs & Tables -->
           <mat-card class="results-card">
-            <mat-tab-group class="results-tabs">
+            <mat-tab-group class="results-tabs app-material-tabs">
               <!-- Lineups Tab -->
               <mat-tab *ngIf="showLineups" label="{{ 'raceDetail.lineups.tab' | t }}">
                 <div class="session-results">
                   <ng-container *ngIf="!isMobile">
-                    <table mat-table [dataSource]="lineups" class="result-table">
+                    <table mat-table [dataSource]="lineups" class="result-table app-material-table">
                       <ng-container matColumnDef="user">
                         <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.user' | t }}</th>
                         <td mat-cell *matCellDef="let e">
@@ -297,7 +345,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
               <mat-tab *ngIf="showSprintBet" label="{{ 'raceDetail.sprint.tab' | t }}">
                 <div class="session-results">
                   <ng-container *ngIf="!isMobile">
-                    <table mat-table [dataSource]="sprints" class="result-table">
+                    <table mat-table [dataSource]="sprints" class="result-table app-material-table">
                       <ng-container matColumnDef="user">
                         <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.user' | t }}</th>
                         <td mat-cell *matCellDef="let e">{{ displayUser(e.user_id) }}</td>
@@ -364,7 +412,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
               <mat-tab *ngIf="showRaceBet" label="{{ 'raceDetail.race.tab' | t }}">
                 <div class="session-results">
                   <ng-container *ngIf="!isMobile">
-                    <table mat-table [dataSource]="bets" class="result-table">
+                    <table mat-table [dataSource]="bets" class="result-table app-material-table">
                       <ng-container matColumnDef="user">
                         <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.user' | t }}</th>
                         <td mat-cell *matCellDef="let e">{{ displayUser(e.user_id) }}</td>
@@ -438,683 +486,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
         </div>
       </main>
     </div>
-  `,
-  styles: [`
-    :host { --accent-blue:#1976d2; --accent-orange:#ef6c00; --accent-red:#d32f2f; }
-
-    .page-container { min-height: 100vh; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; }
-    .header { position: fixed; top: 0; left: 0; width: 100%; height: var(--app-header-height); display: flex; align-items: center; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); box-shadow: 0 8px 22px rgba(0,0,0,0.22); color:#fff; z-index:1000; padding: 0 clamp(10px,2.5vw,20px); }
-    .header button i { font-size: 1.1rem; color: #fff; }
-    .header h1 { flex: 1; text-align: center; margin: 0; font-size: clamp(1rem,2.8vw,1.5rem); font-family: 'MotoGP Bold', sans-serif; }
-    .main-content { display:flex; flex-direction:column; align-items:stretch; gap: 10px; padding:0; max-width:var(--content-max-width); margin:0 auto; width:100%; }
-
-    .loading-container { display:flex; flex-direction:column; align-items:center; gap:1rem; padding:4rem; color:#fff; }
-    .results-container { width:100%; display:flex; flex-direction:column; gap:1rem; }
-
-    .info-card, .results-card, .admin-card, .mobile-card { background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 6px 20px rgba(0,0,0,0.14); color: var(--text-dark); border-left:6px solid rgba(0,0,0,.08); }
-    .card-accent-blue{ border-left-color:var(--accent-blue); } .card-accent-orange{ border-left-color:var(--accent-orange); } .card-accent-red{ border-left-color:var(--accent-red); }
-
-    .card-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color:#fff; padding:1.1rem 1.25rem; display:flex; align-items:center; gap:.75rem; font-family:'MotoGP Bold', sans-serif; font-size:1.1rem; }
-    .event-meta-chips { display:flex; gap:.6rem; padding:0.9rem 1rem 1rem; flex-wrap:wrap; }
-
-    .meta-chip { display:inline-grid; grid-template-columns:20px auto; column-gap:.5rem; align-items:center; padding:.5rem .75rem; background:#fff; color:#333; border:1px solid #eceff1; border-radius:10px; box-shadow:0 1px 2px rgba(0,0,0,.03); position:relative; }
-    .meta-chip::before { content:''; position:absolute; left:0; top:0; bottom:0; width:6px; border-radius:10px 0 0 10px; background:#e0e0e0; }
-    .meta-chip i { color:#666; }
-    .meta-chip .chip-body { display:grid; }
-    .meta-chip .val { font-weight:800; color:#222; line-height:1.1; }
-    .meta-chip .sub { margin-top:2px; font-size:.75rem; color:#667; }
-    .chip-accent-blue::before{ background:var(--accent-blue);} .chip-accent-orange::before{ background:var(--accent-orange);} .chip-accent-red::before{ background:var(--accent-red);}
-
-    .race-overview{
-      display: grid;
-      grid-template-columns: 1.25fr 1fr;
-      gap: .8rem;
-      padding: .75rem .9rem .25rem;
-      align-items: start;
-    }
-    .race-overview-main{
-      display: flex;
-      flex-direction: column;
-      gap: .32rem;
-      min-width: 0;
-    }
-    .race-kicker{
-      font-size: .72rem;
-      text-transform: uppercase;
-      letter-spacing: .38px;
-      color: #6c727e;
-      font-weight: 700;
-    }
-    .race-title{
-      margin: 0;
-      color: #111214;
-      font-family: 'MotoGP Bold', sans-serif;
-      letter-spacing: .25px;
-      text-transform: uppercase;
-      line-height: 1.02;
-      font-size: clamp(1.12rem, 2.3vw, 1.5rem);
-    }
-    .race-date-row{
-      display: inline-flex;
-      align-items: center;
-      gap: .35rem;
-      color: #353b46;
-      font-weight: 600;
-      font-size: .88rem;
-    }
-    .race-date-row i{
-      color: #c8102e;
-      font-size: .88rem;
-    }
-    .race-times-grid{
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: .42rem;
-      align-self: stretch;
-    }
-    .race-time-item{
-      border: 1px solid rgba(17, 18, 20, 0.14);
-      border-radius: 10px;
-      padding: .48rem .55rem;
-      background: #fff;
-      display: grid;
-      gap: .12rem;
-      min-height: 52px;
-    }
-    .race-time-item-primary{
-      grid-column: 1 / -1;
-      border-color: rgba(200, 16, 46, 0.35);
-      background: linear-gradient(180deg, rgba(200, 16, 46, 0.05), rgba(200, 16, 46, 0.02));
-    }
-    .race-time-label{
-      font-size: .68rem;
-      text-transform: uppercase;
-      letter-spacing: .35px;
-      color: #666d79;
-      line-height: 1.1;
-      font-weight: 700;
-    }
-    .race-time-value{
-      font-family: 'MotoGP Bold', sans-serif;
-      font-size: 1.02rem;
-      color: #111214;
-      line-height: 1.05;
-      letter-spacing: .2px;
-    }
-
-    .results-tabs ::ng-deep .mat-mdc-tab-labels { background:#fafafa; }
-    .results-tabs ::ng-deep .mat-mdc-tab-label { color:var(--primary-color); font-family:'MotoGP Bold', sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
-    .results-tabs ::ng-deep .mdc-tab--active .mdc-tab__text-label{ color:var(--primary-color)!important; }
-    .results-tabs ::ng-deep .mat-mdc-ink-bar{ background:var(--primary-color); height:3px; }
-    .session-results{ padding:1rem; }
-
-    .result-table{ width:100%; border-radius:10px; overflow:hidden; }
-    .result-table ::ng-deep .mat-mdc-header-row{ position:sticky; top:0; z-index:1; background:#f8f9fa; }
-    .result-table ::ng-deep .mat-mdc-header-cell{ color:#333; font-weight:800; padding:.9rem 1rem; }
-    .result-table ::ng-deep .mat-mdc-cell{ padding:.9rem 1rem; vertical-align:middle; }
-    .result-table ::ng-deep .mat-mdc-row:nth-child(even){ background:#fbfbfb; }
-    .result-table ::ng-deep .mat-mdc-row:hover{ background:rgba(0,0,0,.03); }
-
-    .badge{ display:inline-block; padding:.25rem .6rem; border-radius:.8rem; font-weight:800; color:#fff; font-size:.9rem; background:var(--primary-color); }
-    .badge.points{ background:#7b1fa2; } .badge.badge-neutral{ background:#9e9e9e; color:#fff; }
-
-    .ok{ color:#2e7d32; } .ko{ color:#c62828; } .outcome-text{ color:#333; font-weight:600; }
-
-    .mobile-list{ display:flex; flex-direction:column; gap:12px; }
-    .mobile-card{ border:1px solid #eceff1; border-radius:12px; padding:12px; box-shadow:0 4px 12px rgba(0,0,0,.06); background:#fff; }
-    .mobile-card-header{ display:flex; align-items:center; gap:10px; margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed #eceff1; }
-    .mobile-card-header .title-wrap{ display:flex; flex-direction:column; gap:2px; }
-    .mobile-card-header .title{ font-weight:800; color:#222; }
-    .mobile-card-header .when{ font-size:.8rem; color:#667; }
-
-    .grid{ display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:8px; }
-    .chip{ position:relative; border:1px solid #e9ecef; background:#fafafa; border-radius:10px; padding:8px 8px 8px 12px; display:grid; grid-template-columns:20px 1fr; column-gap:8px; align-items:center; }
-    .chip::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:6px; border-radius:10px 0 0 10px; background:#e0e0e0; }
-    .chip i{ color:#d32f2f; }
-    .chip .chip-body{ display:grid; grid-template-rows:auto auto; }
-    .chip .val{ font-weight:800; color:#222; line-height:1.2; }
-    .chip .sub{ margin-top:2px; font-size:.75rem; color:#667; }
-    .chip-accent-blue::before{ background:var(--accent-blue);} .chip-accent-orange::before{ background:var(--accent-orange);} .chip-accent-red::before{ background:var(--accent-red);}
-
-    .admin-panel{ padding: .9rem; }
-    .admin-actions-grid{
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap:.85rem;
-    }
-    .admin-actions-row{
-      position: relative;
-      display:flex;
-      flex-direction:column;
-      gap:.9rem;
-      padding:1rem;
-      border-radius:16px;
-      border:1px solid rgba(17,18,20,.08);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,248,250,.96));
-      box-shadow: 0 10px 22px rgba(17,18,20,.06);
-      overflow:hidden;
-    }
-    .admin-actions-row::before{
-      content:'';
-      position:absolute;
-      inset:0 auto 0 0;
-      width:5px;
-      border-radius:16px 0 0 16px;
-      background:#d9dde3;
-    }
-    .admin-actions-row-primary::before{ background:#1976d2; }
-    .admin-actions-row-accent::before{ background:#c8102e; }
-    .admin-actions-row-warn::before{ background:#ed6c02; }
-    .action-copy{
-      display:grid;
-      gap:.18rem;
-    }
-    .action-eyebrow{
-      font-size:.68rem;
-      text-transform:uppercase;
-      letter-spacing:.42px;
-      font-weight:800;
-      color:#7b8089;
-    }
-    .action-heading{
-      color:#111214;
-      font-size:.98rem;
-      line-height:1.2;
-      font-family:'MotoGP Bold', sans-serif;
-      text-transform:uppercase;
-      letter-spacing:.2px;
-    }
-    .action-note{
-      color:#5f6672;
-      font-size:.82rem;
-      line-height:1.35;
-    }
-    .admin-action-button{
-      width:100%;
-      min-height:46px;
-      justify-content:center;
-      border-radius:12px;
-      font-weight:800;
-      letter-spacing:.2px;
-      box-shadow:none;
-    }
-    .admin-action-button i{
-      margin-right:.45rem;
-    }
-    .admin-action-button.mat-mdc-raised-button:not(:disabled){
-      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
-    }
-    .admin-action-button.mat-mdc-raised-button:not(:disabled):hover{
-      transform: translateY(-1px);
-      box-shadow: 0 10px 20px rgba(17,18,20,.12);
-      filter: saturate(1.02);
-    }
-    .admin-actions{ display:grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap:1rem; padding:1rem; }
-    .admin-action-block{ background:#fff; border:1px solid #eceff1; border-radius:10px; padding:1rem; position:relative; }
-    .admin-action-block::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:6px; background:var(--accent-red); border-radius:10px 0 0 10px; }
-    .action-title{ display:flex; align-items:center; gap:.5rem; font-weight:800; color:#222; margin-bottom:.25rem; }
-    .action-desc{ font-size:.9rem; color:#667; margin-bottom:.75rem; }
-    .inline-controls{ display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
-    .native-select{ appearance:auto; padding:.5rem .75rem; border:1px solid #e0e0e0; border-radius:8px; background:#fff; color:#222; }
-
-    .mini-hint{ font-size:.75rem; color:#888; margin-top:.35rem; }
-
-    .no-results{ text-align:center; padding:2.5rem 1.25rem; }
-    .no-results-card{ background:#fff; border-radius:18px; padding:2rem; color:var(--text-dark); text-align:center; }
-    .no-results-icon{ font-size:3.2rem; color:#ccc; margin-bottom:1rem; }
-
-    .mat-mdc-card{ transition: all .3s cubic-bezier(.4,0,.2,1); }
-    .mat-mdc-card:hover{ transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
-
-    /* picklist */
-    .bet-picklist {
-      max-height: 220px;
-      overflow: auto;
-      border: 1px solid #eceff1;
-      border-radius: 10px;
-      padding: .5rem .75rem;
-      background: #fff;
-      margin: .25rem 0 1rem;
-    }
-    .bet-row {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      padding: .35rem 0;
-      border-bottom: 1px dashed #f0f2f4;
-    }
-    .bet-row:last-child { border-bottom: 0; }
-    .bet-user { font-weight: 700; color: #222; }
-    .bet-rider, .bet-pos { color: #555; }
-    .bet-outcome { margin-left: auto; }
-    .select-all { display: inline-flex; align-items: center; gap: .4rem; font-size: .9rem; color: #333; }
-
-
-    @media (max-width:768px){
-      .header h1{ font-size:20px; }
-      .results-container{ gap:1rem; }
-      .card-header{ padding:1rem; font-size:1rem; }
-      .admin-panel{ padding:.7rem; }
-      .admin-actions-grid{ grid-template-columns: 1fr; }
-      .race-overview{
-        grid-template-columns: 1fr;
-        gap: .55rem;
-        padding: .65rem .72rem .2rem;
-      }
-      .race-times-grid{
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-    @media (max-width:480px){
-      .mobile-card{ padding:10px; }
-      .grid{ grid-template-columns:1fr 1fr; gap:6px; }
-      .chip{ padding:6px 6px 6px 10px; }
-      .admin-actions-row{ padding:.85rem; gap:.75rem; border-radius:14px; }
-      .action-heading{ font-size:.92rem; }
-      .action-note{ font-size:.78rem; }
-      .admin-action-button{ min-height:42px; }
-      .race-title{
-        font-size: 1.14rem;
-      }
-      .race-time-item{
-        min-height: 48px;
-        padding: .42rem .5rem;
-      }
-      .race-time-value{
-        font-size: .98rem;
-      }
-    }
-
-    /* Dashboard-aligned theme override */
-    .page-container{
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
-        radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
-        linear-gradient(158deg, #ffffff 0%, #f8f8f9 48%, #f1f2f4 100%);
-      color: #16181d;
-    }
-    .header{
-      background: rgba(17, 18, 20, 0.97);
-      color: #fff;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
-    }
-    .header button{
-      background: #fff;
-      color: #c8102e;
-      border-radius: 50%;
-      width: 42px;
-      height: 42px;
-    }
-    .header button i{ color: #c8102e; }
-    .header h1{
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: .3px;
-      padding-right: 42px;
-    }
-    .main-content{
-      padding: calc(var(--app-header-height) + 12px) clamp(10px, 2.5vw, 22px) 18px;
-      max-width: var(--content-max-width);
-      gap: 12px;
-    }
-
-    .info-card, .results-card, .admin-card, .mobile-card{
-      border-left: 0;
-      border: 1px solid rgba(17, 18, 20, 0.12);
-      box-shadow: 0 8px 18px rgba(0,0,0,.08);
-      border-radius: 14px;
-    }
-    .card-header{
-      background: #111214;
-      color: #fff;
-      border-radius: 14px 14px 0 0;
-    }
-    .card-header i{ color: #ff6e84; }
-
-    .results-tabs ::ng-deep .mat-mdc-tab-labels{
-      background: #fff;
-      border-bottom: 1px solid rgba(17, 18, 20, 0.08);
-    }
-    .results-tabs ::ng-deep .mat-mdc-tab-label{ color: #111214; }
-    .results-tabs ::ng-deep .mdc-tab--active .mdc-tab__text-label{ color: #c8102e !important; }
-    .results-tabs ::ng-deep .mat-mdc-ink-bar{ background: #c8102e; }
-
-    .result-table ::ng-deep .mat-mdc-header-row{
-      background: #111214;
-    }
-    .result-table ::ng-deep .mat-mdc-header-cell{
-      color: #fff;
-      text-transform: uppercase;
-      font-size: .76rem;
-      letter-spacing: .35px;
-    }
-    .result-table ::ng-deep .mat-mdc-header-cell i,
-    .result-table ::ng-deep .mat-mdc-header-cell mat-icon{
-      margin-right: 6px;
-      color: #ff6e84;
-      font-size: .75rem;
-      vertical-align: baseline;
-    }
-    .result-table ::ng-deep .mat-mdc-row:hover{ background: rgba(200,16,46,.06); }
-
-    .badge.points, .points{
-      background: rgba(200,16,46,.12);
-      color: #c8102e;
-      border: 1px solid rgba(200,16,46,.25);
-    }
-    .ok{ color: #1f8f43; }
-    .ko{ color: #c8102e; }
-
-    @media (max-width:768px){
-      .main-content{
-        padding: calc(var(--app-header-height) + 10px) 8px 12px;
-      }
-      .card-header{
-        border-radius: 12px 12px 0 0;
-      }
-    }
-
-    /* Full-page compact layout (no card look) */
-    .main-content{
-      max-width: none;
-      padding: calc(var(--app-header-height) + 10px) 10px 12px;
-      gap: 8px;
-    }
-    .results-container{
-      gap: 8px;
-    }
-
-    .mat-mdc-card.info-card,
-    .mat-mdc-card.admin-card,
-    .mat-mdc-card.results-card,
-    .mat-mdc-card.mobile-card{
-      background: transparent !important;
-      border: 0 !important;
-      border-radius: 0 !important;
-      box-shadow: none !important;
-      overflow: visible !important;
-      margin: 0 !important;
-    }
-
-    .info-card .card-header,
-    .admin-card .card-header{
-      border-radius: 10px;
-      padding: .75rem .9rem;
-      min-height: 42px;
-    }
-
-    .event-meta-chips{
-      gap: .4rem;
-      padding: .55rem 0 .15rem;
-    }
-    .meta-chip{
-      min-height: 36px;
-      border-radius: 10px;
-      border-color: rgba(17, 18, 20, 0.14);
-      padding: .3rem .55rem;
-    }
-
-    .results-tabs{
-      border: 1px solid rgba(17, 18, 20, 0.10);
-      border-radius: 12px;
-      background: #fff;
-      overflow: hidden;
-    }
-    .results-tabs ::ng-deep .mat-mdc-tab-header{
-      min-height: 44px;
-    }
-    .results-tabs ::ng-deep .mdc-tab{
-      height: 42px;
-      min-width: 84px;
-      padding: 0 10px;
-    }
-
-    .session-results{
-      padding: .55rem .6rem .65rem;
-    }
-    .result-table{
-      border-radius: 10px;
-      border: 1px solid rgba(17, 18, 20, 0.08);
-    }
-    .result-table ::ng-deep .mat-mdc-header-cell,
-    .result-table ::ng-deep .mat-mdc-cell{
-      padding: .65rem .55rem;
-    }
-
-    .mobile-list{
-      gap: 6px;
-    }
-    .mobile-card{
-      border: 1px solid rgba(17, 18, 20, 0.10) !important;
-      border-radius: 10px !important;
-      background: #fff !important;
-      box-shadow: none !important;
-      padding: 9px !important;
-    }
-    .mobile-card-header{
-      margin-bottom: 6px;
-      padding-bottom: 6px;
-    }
-    .grid{
-      gap: 6px;
-    }
-    .chip{
-      border-radius: 9px;
-    }
-
-    @media (max-width:768px){
-      .main-content{
-        padding: calc(var(--app-header-height) + 8px) 8px 10px;
-      }
-      .event-meta-chips{
-        padding-top: .45rem;
-      }
-      .results-tabs{
-        border-radius: 10px;
-      }
-    }
-
-    /* Extra compact spacing */
-    .main-content{ gap: 6px !important; }
-    .results-container{ gap: 6px !important; }
-    .card-header{
-      padding: .62rem .78rem !important;
-      min-height: 38px !important;
-      font-size: .95rem !important;
-      gap: .5rem !important;
-    }
-    .event-meta-chips{
-      gap: .32rem !important;
-      padding: .42rem 0 .05rem !important;
-    }
-    .meta-chip{
-      min-height: 32px !important;
-      padding: .22rem .48rem !important;
-    }
-    .results-tabs ::ng-deep .mdc-tab{
-      height: 38px !important;
-      min-width: 76px !important;
-      padding: 0 8px !important;
-    }
-    .session-results{ padding: .42rem .5rem .5rem !important; }
-    .result-table ::ng-deep .mat-mdc-header-cell,
-    .result-table ::ng-deep .mat-mdc-cell{
-      padding: .52rem .46rem !important;
-    }
-    .mobile-list{ gap: 5px !important; }
-    .mobile-card{
-      padding: 8px !important;
-      border-radius: 9px !important;
-    }
-    .mobile-card-header{
-      margin-bottom: 5px !important;
-      padding-bottom: 5px !important;
-    }
-    .chip{ padding: 5px 6px 5px 8px !important; }
-
-    /* Tab info redesign: lineups / sprint / race (mobile) */
-    .mobile-list {
-      gap: 7px !important;
-    }
-    .mobile-entry {
-      border: 1px solid rgba(17, 18, 20, 0.12);
-      border-radius: 10px;
-      background: #fff;
-      padding: 8px 9px;
-      display: grid;
-      gap: 6px;
-    }
-    .entry-head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 8px;
-      border-bottom: 1px solid rgba(17, 18, 20, 0.08);
-      padding-bottom: 5px;
-    }
-    .entry-user {
-      min-width: 0;
-      font-family: 'MotoGP Bold', sans-serif;
-      font-size: 0.84rem;
-      color: #111214;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .entry-when {
-      flex: 0 0 auto;
-      font-size: 0.64rem;
-      color: #6a717c;
-      white-space: nowrap;
-    }
-    .user-cell {
-      display: grid;
-      gap: 2px;
-    }
-    .auto-note {
-      font-size: 0.72rem;
-      color: #8e1128;
-      font-weight: 700;
-      line-height: 1.2;
-    }
-    .entry-body {
-      display: grid;
-      gap: 6px;
-    }
-    .kv-row {
-      display: grid;
-      grid-template-columns: minmax(92px, 1fr) minmax(0, 1.2fr);
-      gap: 8px;
-      align-items: center;
-    }
-    .kv-key {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.63rem;
-      letter-spacing: 0.25px;
-      text-transform: uppercase;
-      color: #5e6672;
-      font-family: 'MotoGP Bold', sans-serif;
-    }
-    .kv-key i,
-    .kv-key mat-icon {
-      color: #c8102e;
-      font-size: 0.72rem;
-      width: 12px;
-      text-align: center;
-      flex: 0 0 auto;
-    }
-    .kv-key mat-icon {
-      height: 12px;
-      line-height: 12px;
-    }
-    .kv-value {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: #16181d;
-      line-height: 1.22;
-      text-align: right;
-      overflow-wrap: anywhere;
-    }
-    .entry-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      padding-top: 2px;
-    }
-    .meta-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      min-height: 22px;
-      padding: 0 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(17, 18, 20, 0.15);
-      background: #fff;
-      color: #353b46;
-      font-size: 0.64rem;
-      line-height: 1;
-      white-space: nowrap;
-    }
-    .meta-tag strong {
-      font-family: 'MotoGP Bold', sans-serif;
-      font-weight: 700;
-      color: #111214;
-    }
-    .meta-tag.points {
-      border-color: rgba(200, 16, 46, 0.24);
-      color: #8e1128;
-      background: rgba(200, 16, 46, 0.06);
-    }
-    .meta-tag.result {
-      font-weight: 700;
-    }
-    .meta-tag.auto-tag {
-      border-color: rgba(200, 16, 46, 0.24);
-      color: #8e1128;
-      background: rgba(200, 16, 46, 0.06);
-      font-weight: 700;
-    }
-    .meta-tag.result i {
-      font-size: 0.7rem;
-    }
-    .meta-tag.ok-tag {
-      border-color: rgba(31, 143, 67, 0.32);
-      color: #1f8f43;
-      background: rgba(31, 143, 67, 0.08);
-    }
-    .meta-tag.ko-tag {
-      border-color: rgba(200, 16, 46, 0.32);
-      color: #c8102e;
-      background: rgba(200, 16, 46, 0.08);
-    }
-
-    @media (max-width: 480px) {
-      .mobile-entry {
-        padding: 7px 8px;
-      }
-      .entry-user {
-        font-size: 0.8rem;
-      }
-      .entry-when {
-        font-size: 0.6rem;
-      }
-      .kv-row {
-        grid-template-columns: 1fr;
-        gap: 2px;
-      }
-      .kv-value {
-        text-align: left;
-        font-size: 0.78rem;
-      }
-      .meta-tag {
-        font-size: 0.61rem;
-      }
-    }
-  `]
+  `
 })
 export class RaceDetailComponent implements OnInit {
   raceId: string | null = null;
@@ -1127,6 +499,9 @@ export class RaceDetailComponent implements OnInit {
   lineups: LineupsResult[] = [];
   sprints: BetResult[] = [];
   bets: BetResult[] = [];
+  motogpResults: MotoGPStoredResult[] = [];
+  qualifyingScoringDrafts: Record<number, number | null> = {};
+  showQualifyingOverride = false;
 
   isMobile = false;
   calendarRace: CalendarRace | null = null;
@@ -1166,6 +541,7 @@ export class RaceDetailComponent implements OnInit {
           this.lineups = data.lineups ?? [];
           this.sprints = data.sprints ?? [];
           this.bets = data.bets ?? [];
+          this.setMotoGPResults(data.motogpResults ?? []);
           this.loading = false;
         },
         error: (err) => { console.error('Error fetching race details:', err); this.loading = false; }
@@ -1179,40 +555,9 @@ export class RaceDetailComponent implements OnInit {
           this.championshipService.getChampionshipConfig(champId).subscribe({
             next: (config) => {
               this.championshipTimeZone = config?.timezone || DateUtils.DEFAULT_CHAMPIONSHIP_TIMEZONE;
-
-              const now = new Date();
-              const raceDate = DateUtils.buildZonedDateTime(race.event_date, '00:00:00', this.championshipTimeZone);
-              if (!raceDate) {
-                this.showLineups = this.showSprintBet = this.showRaceBet = false;
-                return;
-              }
-
-              const dayBeforeRaceYmd = DateUtils.addDaysToYyyyMmDd(race.event_date, -1);
-              const dayBeforeRace = dayBeforeRaceYmd
-                ? DateUtils.buildZonedDateTime(dayBeforeRaceYmd, '00:00:00', this.championshipTimeZone)
-                : null;
-
-              if (now > raceDate) {
-                this.showLineups = this.showSprintBet = this.showRaceBet = true;
-              } else if (dayBeforeRace && now >= dayBeforeRace) {
-                const qualifyingTime = dayBeforeRaceYmd
-                  ? DateUtils.buildZonedDateTime(dayBeforeRaceYmd, race.qualifications_time || '14:00:00', this.championshipTimeZone)
-                  : null;
-                this.showLineups = Boolean(qualifyingTime && now > qualifyingTime);
-
-                const sprintTime = dayBeforeRaceYmd
-                  ? DateUtils.buildZonedDateTime(dayBeforeRaceYmd, race.sprint_time || '14:00:00', this.championshipTimeZone)
-                  : null;
-                this.showSprintBet = Boolean(sprintTime && now > sprintTime);
-
-                const isRaceDay = DateUtils.isSameYyyyMmDdInTimeZone(now, race.event_date, this.championshipTimeZone);
-                const eventTime = DateUtils.buildZonedDateTime(race.event_date, race.event_time || '14:00:00', this.championshipTimeZone);
-                this.showRaceBet = Boolean(isRaceDay && eventTime && now > eventTime);
-              } else {
-                this.showLineups = this.raceScheduleService.canShowLineups(race, this.championshipTimeZone);
-                this.showSprintBet = this.raceScheduleService.canShowSprintBet(race, this.championshipTimeZone);
-                this.showRaceBet = this.raceScheduleService.canShowRaceBet(race, this.championshipTimeZone);
-              }
+              this.showLineups = true;
+              this.showSprintBet = this.raceScheduleService.canShowSprintBetResults(race, this.championshipTimeZone);
+              this.showRaceBet = this.raceScheduleService.canShowRaceBetResults(race, this.championshipTimeZone);
             },
             error: (err) => console.error('Error fetching championship config:', err)
           });
@@ -1260,7 +605,10 @@ export class RaceDetailComponent implements OnInit {
         this.notificationService.showSuccess('admin.actions.fillSuccess');
         // refresh
         this.raceDetailService.getRaceDetails(this.calendarRace!.championship_id, String(this.calendarRace!.id)).subscribe({
-          next: (data) => { this.lineups = data.lineups ?? []; },
+          next: (data) => {
+            this.lineups = data.lineups ?? [];
+            this.setMotoGPResults(data.motogpResults ?? []);
+          },
           error: () => {}
         });
       },
@@ -1298,6 +646,7 @@ export class RaceDetailComponent implements OnInit {
           next: (data) => {
             this.sprints = data.sprints ?? [];
             this.bets = data.bets ?? [];
+            this.setMotoGPResults(data.motogpResults ?? []);
           },
           error: () => {}
         });
@@ -1417,6 +766,7 @@ export class RaceDetailComponent implements OnInit {
               next: (data) => {
                 this.sprints = data.sprints ?? [];
                 this.bets = data.bets ?? [];
+                this.setMotoGPResults(data.motogpResults ?? []);
                 // clear selections after refresh
                 if (kind === 'SPR') this.selectedSprintIds.clear();
                 else this.selectedRaceIds.clear();
@@ -1431,6 +781,69 @@ export class RaceDetailComponent implements OnInit {
       });
   }
 
+  onSaveQualifyingScoring(result: MotoGPStoredResult): void {
+    if (!this.calendarRace) return;
+
+    const nextValue = this.qualifyingScoringDrafts[result.id];
+    if (nextValue == null || !Number.isFinite(Number(nextValue)) || Number(nextValue) <= 0) {
+      this.notificationService.showErrorMessage('Inserisci una posizione valida maggiore di zero.');
+      return;
+    }
+
+    this.busy = true;
+    this.raceDetailService.updateQualifyingScoring(
+      this.calendarRace.championship_id,
+      this.calendarRace.id,
+      Number((result.rider_id as any)?.id ?? result.rider_id),
+      Number(nextValue)
+    ).subscribe({
+      next: () => {
+        this.notificationService.showSuccessMessage('Posizione scoring qualifica aggiornata.');
+        this.refreshRaceDetails();
+      },
+      error: (err) => {
+        console.error('Error updating qualifying scoring:', err);
+        this.notificationService.showErrorMessage('Errore durante l\'aggiornamento della posizione scoring.');
+      },
+      complete: () => this.busy = false
+    });
+  }
+
+  onResetQualifyingScoring(result: MotoGPStoredResult): void {
+    if (!this.calendarRace) return;
+
+    this.busy = true;
+    this.raceDetailService.updateQualifyingScoring(
+      this.calendarRace.championship_id,
+      this.calendarRace.id,
+      Number((result.rider_id as any)?.id ?? result.rider_id),
+      null
+    ).subscribe({
+      next: () => {
+        this.notificationService.showSuccessMessage('Override admin rimosso.');
+        this.refreshRaceDetails();
+      },
+      error: (err) => {
+        console.error('Error resetting qualifying scoring:', err);
+        this.notificationService.showErrorMessage('Errore durante il reset dell\'override.');
+      },
+      complete: () => this.busy = false
+    });
+  }
+
+  getQualifyingSourceLabel(source: MotoGPStoredResult['qualifying_scoring_source']): string {
+    switch (source) {
+      case 'admin_override':
+        return 'Override admin';
+      case 'api_grid':
+        return 'Griglia API';
+      case 'raw_qualifying':
+        return 'Qualifica';
+      default:
+        return '—';
+    }
+  }
+
   private refreshRaceDetails(): void {
     if (!this.calendarRace) return;
 
@@ -1442,6 +855,7 @@ export class RaceDetailComponent implements OnInit {
         this.lineups = data.lineups ?? [];
         this.sprints = data.sprints ?? [];
         this.bets = data.bets ?? [];
+        this.setMotoGPResults(data.motogpResults ?? []);
       },
       error: (err) => console.error('Error refreshing race details:', err)
     });
@@ -1485,6 +899,19 @@ export class RaceDetailComponent implements OnInit {
     });
   }
 
+  private setMotoGPResults(results: MotoGPStoredResult[]): void {
+    this.motogpResults = [...results].sort((a, b) => {
+      const posA = a.qualifying_position ?? a.qualifying_scoring_position ?? Number.MAX_SAFE_INTEGER;
+      const posB = b.qualifying_position ?? b.qualifying_scoring_position ?? Number.MAX_SAFE_INTEGER;
+      return posA - posB;
+    });
+    this.qualifyingScoringDrafts = this.motogpResults.reduce((acc, result) => {
+      acc[result.id] = result.qualifying_scoring_position ?? result.qualifying_position ?? null;
+      return acc;
+    }, {} as Record<number, number | null>);
+  }
+
 
   trackByUser = (_: number, item: { user_id: any }) => item?.user_id?.id ?? item?.user_id?.email ?? _;
+  trackByMotoGPResult = (_: number, item: MotoGPStoredResult) => item.id;
 }

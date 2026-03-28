@@ -12,26 +12,28 @@ export class RaceScheduleService {
   constructor() {}
 
   /**
-   * Lineups are visible from 00:00 on D‑3 until the day before the race (D‑1)
-   * at the qualification time. Requires both event_date and qualifications_time.
+   * Lineups are available from 00:00 on D‑3 until 23:59:59.999 on D‑2
+   * (the Friday before the race for the usual MotoGP weekend).
    */
   canShowLineups(
     nextRace: CalendarRace | null | undefined,
     timeZone: string = this.defaultTimezone,
     now: Date = new Date()
   ): boolean {
-    if (!nextRace?.event_date || !nextRace.qualifications_time) {
+    if (!nextRace?.event_date) {
       return false;
     }
 
     const tz = DateUtils.normalizeTimeZone(timeZone);
     const startDate = DateUtils.addDaysToYyyyMmDd(nextRace.event_date, -3);
-    const endDate = DateUtils.addDaysToYyyyMmDd(nextRace.event_date, -1);
+    const endDate = DateUtils.addDaysToYyyyMmDd(nextRace.event_date, -2);
     if (!startDate || !endDate) return false;
 
     const start = DateUtils.buildZonedDateTime(startDate, this.defaultTime, tz);
-    const end = DateUtils.buildZonedDateTime(endDate, nextRace.qualifications_time, tz);
+    const end = DateUtils.buildZonedDateTime(endDate, '23:59:59', tz);
     if (!start || !end) return false;
+
+    end.setMilliseconds(999);
 
     return now >= start && now <= end;
   }
@@ -83,18 +85,45 @@ export class RaceScheduleService {
 
     // Open 30 minutes after the sprint (on D‑1)
     const start = new Date(sprintTime.getTime() + 30 * 60 * 1000);
-
-    let end: Date;
-    if (DateUtils.parseHms(nextRace.event_time ?? this.defaultTime).hours <= 14) {
-      // For races at or before 14:00, end at 00:00 on race day
-      end = DateUtils.buildZonedDateTime(nextRace.event_date, this.defaultTime, tz)!;
-    } else {
-      // For races after 14:00, end at 13:59:59.999 on race day
-      end = DateUtils.buildZonedDateTime(nextRace.event_date, '13:59:59', tz)!;
-      end.setMilliseconds(999);
-    }
+    const end = this.getRaceDayCutoff(nextRace, tz);
+    if (!end) return false;
 
     return now >= start && now <= end;
+  }
+
+  /**
+   * Sprint bet results become visible as soon as the sprint bet button closes.
+   */
+  canShowSprintBetResults(
+    nextRace: CalendarRace | null | undefined,
+    timeZone: string = this.defaultTimezone,
+    now: Date = new Date()
+  ): boolean {
+    if (!nextRace?.event_date) return false;
+
+    const tz = DateUtils.normalizeTimeZone(timeZone);
+    const sprintTime = this.getSprintTime(nextRace, tz);
+    if (!sprintTime) return false;
+
+    const visibleFrom = new Date(sprintTime.getTime() - 30 * 60 * 1000);
+    return now >= visibleFrom;
+  }
+
+  /**
+   * Race bet results become visible as soon as the race bet button closes.
+   */
+  canShowRaceBetResults(
+    nextRace: CalendarRace | null | undefined,
+    timeZone: string = this.defaultTimezone,
+    now: Date = new Date()
+  ): boolean {
+    if (!nextRace?.event_date) return false;
+
+    const tz = DateUtils.normalizeTimeZone(timeZone);
+    const visibleFrom = this.getRaceDayCutoff(nextRace, tz);
+    if (!visibleFrom) return false;
+
+    return now >= visibleFrom;
   }
 
   /** Returns the event start time on race day, or midnight if no time is provided. */
@@ -130,5 +159,20 @@ export class RaceScheduleService {
       nextRace.sprint_time ?? this.defaultTime,
       timeZone
     );
+  }
+
+  private getRaceDayCutoff(nextRace: CalendarRace | null | undefined, timeZone: string = this.defaultTimezone): Date | null {
+    if (!nextRace?.event_date) return null;
+
+    const eventHours = DateUtils.parseHms(nextRace.event_time ?? this.defaultTime).hours;
+    if (eventHours <= 14) {
+      return DateUtils.buildZonedDateTime(nextRace.event_date, this.defaultTime, timeZone);
+    }
+
+    const cutoff = DateUtils.buildZonedDateTime(nextRace.event_date, '13:59:59', timeZone);
+    if (!cutoff) return null;
+
+    cutoff.setMilliseconds(999);
+    return cutoff;
   }
 }

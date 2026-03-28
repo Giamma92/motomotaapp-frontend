@@ -1,0 +1,60 @@
+.page-container {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% -15%, rgba(200, 16, 46, 0.13), transparent 40%),
+    radial-gradient(circle at 100% -10%, rgba(0, 0, 0, 0.035), transparent 34%),
+    linear-gradient(160deg, #ffffff 0%, #fafafa 46%, #f2f3f5 100%);
+  color: var(--text-dark);
+  padding: calc(var(--app-header-height) + 12px) clamp(12px, 2.8vw, 28px) clamp(18px, 4vw, 36px);
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--app-header-height);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 clamp(10px, 2.5vw, 20px);
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+  color: var(--text-dark);
+  z-index: 1000;
+}
+
+.header button {
+  color: var(--text-dark);
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.header h1 {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  font-size: clamp(1rem, 2.8vw, 1.5rem);
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-dark);
+}
+
+.main-content {
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+@media (min-width: 769px) {
+  .page-container {
+    padding-top: calc(var(--app-header-height) + 18px);
+  }
+}

@@ -1,5 +1,5 @@
 // src/app/lineups/lineups.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -18,6 +18,8 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 @Component({
   selector: 'app-lineups',
   standalone: true,
+  encapsulation: ViewEncapsulation.None,
+  styleUrl: './lineups.component.scss',
   imports: [
     CommonModule,
     MatSelectModule,
@@ -89,197 +91,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
         </mat-card-actions>
       </mat-card>
     </div>
-  `,
-  styles: [`
-    @font-face {
-      font-family: 'MotoGP-Bold';
-      src: url('/assets/fonts/MotoGP-Bold.woff2') format('woff2');
-    }
-
-    .header-content {
-      width: 100%;
-      padding: 24px 16px;
-      background: white;
-      border-bottom: 3px solid var(--primary-color);
-      margin-bottom: 24px;
-      background-color: whitesmoke;
-    }
-
-    .race-title {
-      font-family: 'MotoGP-Bold', sans-serif;
-      font-size: 1.8rem;
-      color: var(--primary-color);
-      letter-spacing: 1.5px;
-      text-align: center;
-      text-transform: uppercase;
-    }
-
-    .session-info {
-      font-family: 'MotoGP Regular';
-      font-size: 1rem;
-      color: #666;
-      text-align: center;
-      letter-spacing: 0.8px;
-      font-weight: 500;
-    }
-
-    .settings-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      padding: 20px;
-    }
-    .settings-card {
-      width: 100%;
-      max-width: 500px;
-      padding: 20px;
-    }
-    .header {
-      width: 100%;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      h1 {
-        margin: 0;
-        color: white;
-      }
-    }
-    mat-card-header {
-      padding: 0px !important;
-      margin-bottom: 24px !important;
-
-      mat-card-title {
-        font-size: 1.25rem !important;
-        font-weight: 500 !important;
-      }
-    }
-    .full-width {
-      width: 100%;
-      margin-bottom: 20px;
-    }
-    mat-card-actions {
-      display: flex;
-      justify-content: flex-end;
-      padding: 16px 0 0 0;
-    }
-
-    /* Dashboard-aligned compact full-page layout */
-    .settings-container {
-      display: block;
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
-        radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
-        linear-gradient(158deg, #ffffff 0%, #f8f8f9 48%, #f1f2f4 100%);
-      padding: calc(var(--app-header-height) + 10px) 10px 12px;
-      color: #16181d;
-    }
-
-    .header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: var(--app-header-height);
-      margin: 0;
-      padding: 0 8px;
-      background: rgba(17, 18, 20, 0.97);
-      color: #fff;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
-      z-index: 1000;
-      gap: 8px;
-    }
-
-    .header button {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: #fff;
-      color: #c8102e;
-    }
-
-    .header h1 {
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: .3px;
-      font-size: clamp(1rem, 2.7vw, 1.3rem);
-      padding-right: 42px;
-      text-align: center;
-      flex: 1;
-    }
-
-    .settings-card {
-      max-width: none;
-      width: 100%;
-      padding: 0;
-      background: transparent !important;
-      border: 0 !important;
-      box-shadow: none !important;
-      border-radius: 0 !important;
-      overflow: visible !important;
-      margin: 0;
-    }
-
-    .header-content {
-      background: #111214;
-      color: #fff;
-      border: 0;
-      border-radius: 10px;
-      margin: 0 0 8px;
-      padding: .62rem .78rem;
-    }
-
-    .race-title {
-      color: #fff;
-      font-size: 1.08rem;
-      letter-spacing: .4px;
-      margin: 0;
-    }
-
-    .session-info {
-      color: rgba(255, 255, 255, 0.88);
-      font-size: .85rem;
-      letter-spacing: .2px;
-    }
-
-    mat-card-header {
-      margin-bottom: 0 !important;
-      padding: 0 !important;
-    }
-
-    mat-card-content {
-      background: #fff;
-      border: 1px solid rgba(17, 18, 20, 0.12);
-      border-radius: 10px;
-      padding: .55rem .62rem .45rem !important;
-    }
-
-    .full-width {
-      margin-bottom: 6px;
-    }
-
-    mat-card-actions {
-      padding: 8px 0 0;
-      justify-content: flex-end;
-    }
-
-    mat-card-actions button {
-      min-height: 38px;
-      border-radius: 9px;
-      padding: 0 12px;
-      background: #c8102e !important;
-      color: #fff !important;
-    }
-
-    @media (max-width: 768px) {
-      .settings-container {
-        padding: calc(var(--app-header-height) + 8px) 8px 10px;
-      }
-    }
-  `]
+  `
 })
 export class LineupsComponent implements OnInit {
   lineupsForm: FormGroup;

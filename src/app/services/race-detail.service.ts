@@ -31,11 +31,28 @@ export interface BetResult {
   outcome?: string;
 }
 
+export interface MotoGPStoredResult {
+  id: number;
+  championship_id: number;
+  calendar_id: number;
+  rider_id: Rider;
+  qualifying_position?: number | null;
+  qualifying_points?: number | null;
+  qualifying_scoring_position?: number | null;
+  qualifying_scoring_points?: number | null;
+  qualifying_scoring_source?: 'raw_qualifying' | 'api_grid' | 'admin_override' | string | null;
+  sprint_position?: number | null;
+  sprint_points?: number | null;
+  race_position?: number | null;
+  race_points?: number | null;
+}
+
 // Combined interface for race details
 export interface RaceDetails {
   lineups: LineupsResult[];
   sprints: BetResult[];
   bets: BetResult[];
+  motogpResults: MotoGPStoredResult[];
 }
 
 @Injectable({
@@ -86,6 +103,18 @@ export class RaceDetailService {
     return this.httpService.genericPost(
       `championship/${championshipId}/races/${calendarId}/bets/${kindPath}/outcome`,
       { outcome, betIds }   // <-- include selected IDs
+    );
+  }
+
+  updateQualifyingScoring(
+    championshipId: number,
+    calendarId: number,
+    riderId: number,
+    qualifyingScoringPosition: number | null
+  ) {
+    return this.httpService.genericPost(
+      `championship/${championshipId}/races/${calendarId}/qualifying-scoring`,
+      { riderId, qualifyingScoringPosition }
     );
   }
 

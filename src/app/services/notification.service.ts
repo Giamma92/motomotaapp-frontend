@@ -24,6 +24,13 @@ export class NotificationServiceService {
     });
   }
 
+  showErrorMessage(message: string, duration: number = 5000): void {
+    this.snackBar.open(message, 'Close', {
+      duration: duration,
+      panelClass: ['error-snackbar']
+    });
+  }
+
   private show(key: string, params: Record<string, string | number> = {}, duration: number = 4000, panelClass: string = 'success-snackbar'): void{
     const message = this.i18n.translate(key, params);
     this.snackBar.open(message, 'Close', {
