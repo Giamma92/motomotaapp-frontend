@@ -832,15 +832,44 @@ export class DashboardComponent implements OnInit {
   }
 
   hasCompletedLineup(raceId: number): boolean {
-    return Boolean(this.racesDetails?.lineups?.some(lineup => Number((lineup.calendar_id as any)?.id ?? lineup.calendar_id) === raceId));
+    return Boolean(this.racesDetails?.lineups?.some(lineup => this.extractCalendarId(lineup.calendar_id) === raceId));
   }
 
   hasCompletedSprintBet(raceId: number): boolean {
-    return Boolean(this.racesDetails?.sprints?.some(bet => Number((bet.calendar_id as any)?.id ?? bet.calendar_id) === raceId));
+    return Boolean(this.racesDetails?.sprints?.some(bet => this.extractCalendarId(bet.calendar_id) === raceId));
   }
 
   hasCompletedRaceBet(raceId: number): boolean {
-    return Boolean(this.racesDetails?.bets?.some(bet => Number((bet.calendar_id as any)?.id ?? bet.calendar_id) === raceId));
+    return Boolean(this.racesDetails?.bets?.some(bet => this.extractCalendarId(bet.calendar_id) === raceId));
+  }
+
+  private extractCalendarId(value: any): number | null {
+    if (value == null) {
+      return null;
+    }
+
+    if (typeof value === 'number') {
+      return Number.isFinite(value) ? value : null;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    if (typeof value === 'object') {
+      const directId = this.extractCalendarId(value.id);
+      if (directId != null) {
+        return directId;
+      }
+
+      const nestedCalendarId = this.extractCalendarId(value.calendar_id);
+      if (nestedCalendarId != null) {
+        return nestedCalendarId;
+      }
+    }
+
+    return null;
   }
 
   getPrimaryActionRoute(): string {
