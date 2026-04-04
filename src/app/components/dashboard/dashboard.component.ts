@@ -275,6 +275,42 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
              </mat-card-header>
              <mat-card-content>
                <div class="race-content">
+                  <section class="action-hero" *ngIf="nextCalendarRace">
+                    <div class="action-hero-copy">
+                      <span class="action-kicker">Next action</span>
+                      <h3>{{ getPrimaryActionTitle() }}</h3>
+                      <p>{{ getPrimaryActionDescription() }}</p>
+                    </div>
+                    <div class="action-hero-meta">
+                      <span class="action-pill" [class.action-pill-warn]="!hasCompletedLineup(nextCalendarRace.id)">
+                        Schieramento: {{ hasCompletedLineup(nextCalendarRace.id) ? 'ok' : 'manca' }}
+                      </span>
+                      <span class="action-pill" [class.action-pill-warn]="showSprintBetButton && !hasCompletedSprintBet(nextCalendarRace.id)">
+                        Sprint: {{ hasCompletedSprintBet(nextCalendarRace.id) ? 'ok' : 'manca' }}
+                      </span>
+                      <span class="action-pill" [class.action-pill-warn]="showPlaceBetButton && !hasCompletedRaceBet(nextCalendarRace.id)">
+                        Gara: {{ hasCompletedRaceBet(nextCalendarRace.id) ? 'ok' : 'manca' }}
+                      </span>
+                      <span class="action-pill">
+                        {{ getRaceWindowStatus() }}
+                      </span>
+                    </div>
+                    <div class="action-hero-actions">
+                      <button mat-raised-button color="warn" class="main-btn app-nav-chip app-nav-chip--accent" (click)="goTo(getPrimaryActionRoute(), nextCalendarRace.id)">
+                        <i class="fa-solid fa-bolt"></i>
+                        {{ getPrimaryActionLabel() }}
+                      </button>
+                      <button
+                        *ngIf="getPrimaryActionRoute() !== 'race-detail'"
+                        mat-stroked-button
+                        class="main-btn main-btn-ghost app-nav-chip app-nav-chip--light"
+                        (click)="goTo('race-detail', nextCalendarRace.id)">
+                        <i class="fa-solid fa-list-check"></i>
+                        Apri hub gara
+                      </button>
+                    </div>
+                  </section>
+
                   <section class="race-info-section race-overview">
                     <div class="race-overview-main">
                       <h2 class="grand-prix-name">{{ nextCalendarRace.race_id.name }}</h2>
@@ -338,12 +374,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                </div>
              </mat-card-content>
              <mat-card-actions>
-               <!-- Main Actions -->
                <div class="main-actions">
-                 <button mat-raised-button color="primary" class="main-btn main-btn-primary app-nav-chip app-nav-chip--dark" (click)="goTo('race-detail', nextCalendarRace.id)">
-                   <i class="fa-solid fa-eye"></i>
-                   {{ 'dashboard.actions.viewRaceDetail' | t }}
-                 </button>
                  <button mat-raised-button color="accent" class="main-btn main-btn-secondary app-nav-chip app-nav-chip--accent" (click)="goTo('motogp-results', nextCalendarRace.id)">
                    <i class="fa-solid fa-trophy"></i>
                    {{ 'dashboard.actions.viewMotoGPResults' | t }}
@@ -352,28 +383,6 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                    <i class="fa-solid fa-calendar"></i>
                    {{ 'dashboard.actions.viewAllRaces' | t }}
                  </button>
-               </div>
-
-               <!-- Betting Actions -->
-               <div class="betting-actions" *ngIf="showLineupsButton || showSprintBetButton || showPlaceBetButton">
-                 <div class="betting-header">
-                   <i class="fa-solid fa-dice"></i>
-                   <span>{{ 'dashboard.nextRace.placeYourBets' | t }}</span>
-                 </div>
-                 <div class="betting-buttons">
-                   <button mat-raised-button color="warn" class="betting-btn app-nav-chip app-nav-chip--accent" *ngIf="showLineupsButton" (click)="goTo('lineups', nextCalendarRace.id)">
-                     <i class="fa-solid fa-users"></i>
-                     {{ 'dashboard.actions.placeLineups' | t }}
-                   </button>
-                   <button mat-raised-button color="warn" class="betting-btn app-nav-chip app-nav-chip--accent" *ngIf="showSprintBetButton" (click)="goTo('sprint-bet', nextCalendarRace.id)">
-                     <i class="fa-solid fa-flag-checkered"></i>
-                     {{ 'dashboard.actions.placeSprintBet' | t }}
-                   </button>
-                   <button mat-raised-button color="warn" class="betting-btn app-nav-chip app-nav-chip--accent" *ngIf="showPlaceBetButton" (click)="goTo('race-bet', nextCalendarRace.id)">
-                     <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
-                     {{ 'dashboard.actions.placeRaceBet' | t }}
-                   </button>
-                 </div>
                </div>
              </mat-card-actions>
           </mat-card>
@@ -820,6 +829,58 @@ export class DashboardComponent implements OnInit {
     this.showLineupsButton = this.raceScheduleService.canShowLineups(this.nextCalendarRace, timeZone);
     this.showSprintBetButton = this.raceScheduleService.canShowSprintBet(this.nextCalendarRace, timeZone);
     this.showPlaceBetButton = this.raceScheduleService.canShowRaceBet(this.nextCalendarRace, timeZone);
+  }
+
+  hasCompletedLineup(raceId: number): boolean {
+    return Boolean(this.racesDetails?.lineups?.some(lineup => Number((lineup.calendar_id as any)?.id ?? lineup.calendar_id) === raceId));
+  }
+
+  hasCompletedSprintBet(raceId: number): boolean {
+    return Boolean(this.racesDetails?.sprints?.some(bet => Number((bet.calendar_id as any)?.id ?? bet.calendar_id) === raceId));
+  }
+
+  hasCompletedRaceBet(raceId: number): boolean {
+    return Boolean(this.racesDetails?.bets?.some(bet => Number((bet.calendar_id as any)?.id ?? bet.calendar_id) === raceId));
+  }
+
+  getPrimaryActionRoute(): string {
+    if (!this.nextCalendarRace) return 'calendar';
+    if (this.showLineupsButton && !this.hasCompletedLineup(this.nextCalendarRace.id)) return 'lineups';
+    if (this.showSprintBetButton && !this.hasCompletedSprintBet(this.nextCalendarRace.id)) return 'sprint-bet';
+    if (this.showPlaceBetButton && !this.hasCompletedRaceBet(this.nextCalendarRace.id)) return 'race-bet';
+    return 'race-detail';
+  }
+
+  getPrimaryActionLabel(): string {
+    if (!this.nextCalendarRace) return 'Apri calendario';
+    const route = this.getPrimaryActionRoute();
+    if (route === 'lineups') return 'Completa schieramento';
+    if (route === 'sprint-bet') return 'Inserisci sprint bet';
+    if (route === 'race-bet') return 'Inserisci race bet';
+    return 'Vedi risultati gara';
+  }
+
+  getPrimaryActionTitle(): string {
+    if (!this.nextCalendarRace) return 'Nessuna gara imminente';
+    if (this.showLineupsButton && !this.hasCompletedLineup(this.nextCalendarRace.id)) return 'Ti manca ancora lo schieramento';
+    if (this.showSprintBetButton && !this.hasCompletedSprintBet(this.nextCalendarRace.id)) return 'Sprint bet ancora da completare';
+    if (this.showPlaceBetButton && !this.hasCompletedRaceBet(this.nextCalendarRace.id)) return 'Race bet ancora da completare';
+    return 'Sei allineato sulla prossima gara';
+  }
+
+  getPrimaryActionDescription(): string {
+    if (!this.nextCalendarRace) return 'Appena sara disponibile una nuova gara, troverai qui la prossima azione utile.';
+    if (this.showLineupsButton && !this.hasCompletedLineup(this.nextCalendarRace.id)) return 'Imposta subito qualifica e gara per evitare errori dell’ultimo minuto.';
+    if (this.showSprintBetButton && !this.hasCompletedSprintBet(this.nextCalendarRace.id)) return 'Hai la finestra sprint aperta: completa ora la giocata con punti e posizione.';
+    if (this.showPlaceBetButton && !this.hasCompletedRaceBet(this.nextCalendarRace.id)) return 'La finestra race bet e aperta. Chiudi la gara in pochi tap.';
+    return 'Hai gia completato le azioni principali disponibili. Puoi aprire il dettaglio gara per controllare tutto.';
+  }
+
+  getRaceWindowStatus(): string {
+    if (this.showLineupsButton) return 'Finestra schieramenti aperta';
+    if (this.showSprintBetButton) return 'Finestra sprint aperta';
+    if (this.showPlaceBetButton) return 'Finestra race aperta';
+    return 'Prossima finestra chiusa';
   }
 
   goTo(path: string, extras: any = {}): void {

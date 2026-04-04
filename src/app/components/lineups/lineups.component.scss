@@ -95,6 +95,148 @@ app-lineups {
     margin-bottom: 0.4rem;
   }
 
+  .lineup-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .status-chip {
+    display: inline-grid;
+    gap: 2px;
+    padding: 10px 12px;
+    border: 1px solid rgba(17, 18, 20, 0.1);
+    border-radius: 12px;
+    background: #f7f8fa;
+    min-width: 132px;
+  }
+
+  .status-label,
+  .summary-label {
+    color: #616875;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .selection-section {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .selection-heading h3,
+  .lineup-summary h3 {
+    margin: 0 0 4px;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.94rem;
+  }
+
+  .selection-heading p {
+    margin: 0;
+    color: #616875;
+    font-size: 0.82rem;
+  }
+
+  .rider-picks {
+    display: grid;
+    gap: 10px;
+  }
+
+  .rider-card {
+    width: 100%;
+    border: 1px solid rgba(17, 18, 20, 0.12);
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px;
+    text-align: left;
+    display: grid;
+    gap: 10px;
+    transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+  }
+
+  .rider-card.selected {
+    border-color: rgba(200, 16, 46, 0.5);
+    box-shadow: 0 10px 20px rgba(200, 16, 46, 0.08);
+  }
+
+  .rider-card.blocked {
+    opacity: 0.6;
+  }
+
+  .rider-card-main {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .rider-number {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #111214;
+    color: #fff;
+    font-family: 'MotoGP Bold', sans-serif;
+  }
+
+  .rider-copy {
+    display: grid;
+    gap: 2px;
+  }
+
+  .rider-copy span {
+    color: #616875;
+    font-size: 0.79rem;
+  }
+
+  .rider-card-tags,
+  .summary-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag,
+  .summary-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: #f2f4f7;
+    color: #313744;
+    font-size: 0.76rem;
+  }
+
+  .tag-danger {
+    background: rgba(200, 16, 46, 0.08);
+    color: #a30d25;
+  }
+
+  .lineup-summary {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(17, 18, 20, 0.04), rgba(17, 18, 20, 0.01));
+    border: 1px solid rgba(17, 18, 20, 0.08);
+  }
+
+  .summary-item {
+    display: grid;
+    gap: 4px;
+    align-items: start;
+    border-radius: 12px;
+    padding: 10px 12px;
+    min-width: 180px;
+  }
+
   .full-width .mat-mdc-form-field-subscript-wrapper {
     padding-top: 0.2rem;
   }
@@ -102,6 +244,8 @@ app-lineups {
   mat-card-actions {
     display: flex;
     justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
     padding: 8px 0 0;
   }
 

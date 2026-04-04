@@ -73,39 +73,184 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
         </div>
 
         <div *ngIf="!loading" class="results-container">
-          <!-- Info Card -->
-          <mat-card class="info-card card-accent-blue" *ngIf="calendarRace">
-            <div class="card-header">
-              <i class="fa-solid fa-circle-info"></i>
-              <span>{{ 'raceDetail.info.title' | t }}</span>
-            </div>
-            <div class="race-overview">
-              <div class="race-overview-main">
-                <div class="race-kicker">{{ 'raceDetail.info.raceName' | t }}</div>
-                <h2 class="race-title">{{ raceName || ('common.na' | t) }}</h2>
-                <div class="race-date-row">
-                  <i class="fa-solid fa-calendar-day"></i>
-                  <span>{{ formatRaceDate(calendarRace.event_date) }}</span>
-                </div>
+          <section class="page-race-hero" *ngIf="calendarRace">
+            <div class="page-race-hero-main">
+              <div class="race-kicker">{{ 'raceDetail.info.raceName' | t }}</div>
+              <h2 class="race-title">{{ raceName || ('common.na' | t) }}</h2>
+              <div class="race-date-row">
+                <i class="fa-solid fa-calendar-day"></i>
+                <span>{{ formatRaceDate(calendarRace.event_date) }}</span>
               </div>
-
-              <div class="race-times-grid">
-                <div class="race-time-item" *ngIf="calendarRace.qualifications_time">
-                  <span class="race-time-label">{{ 'raceDetail.info.qualiTime' | t }}</span>
-                  <span class="race-time-value">{{ calendarRace.qualifications_time | timeFormat }}</span>
-                </div>
-
-                <div class="race-time-item" *ngIf="calendarRace.sprint_time">
-                  <span class="race-time-label">{{ 'raceDetail.info.sprintTime' | t }}</span>
-                  <span class="race-time-value">{{ calendarRace.sprint_time | timeFormat }}</span>
-                </div>
-
-                <div class="race-time-item race-time-item-primary" *ngIf="calendarRace.event_time">
-                  <span class="race-time-label">{{ 'raceDetail.info.raceTime' | t }}</span>
-                  <span class="race-time-value">{{ calendarRace.event_time | timeFormat }}</span>
-                </div>
+              <div class="page-race-hero-meta">
+                <span class="hero-meta-pill">
+                  <i class="fa-solid fa-stopwatch"></i>
+                  {{ 'raceDetail.info.qualiTime' | t }} {{ calendarRace.qualifications_time ? (calendarRace.qualifications_time | timeFormat) : '—' }}
+                </span>
+                <span class="hero-meta-pill">
+                  <i class="fa-solid fa-flag-checkered"></i>
+                  {{ 'raceDetail.info.sprintTime' | t }} {{ calendarRace.sprint_time ? (calendarRace.sprint_time | timeFormat) : '—' }}
+                </span>
+                <span class="hero-meta-pill hero-meta-pill-primary">
+                  <i class="fa-solid fa-motorcycle"></i>
+                  {{ 'raceDetail.info.raceTime' | t }} {{ calendarRace.event_time ? (calendarRace.event_time | timeFormat) : '—' }}
+                </span>
               </div>
             </div>
+          </section>
+
+          <mat-card class="info-card card-accent-blue personal-race-card" *ngIf="calendarRace">
+            <details class="card-collapsible" open>
+              <summary class="card-collapse-toggle">
+                <div class="card-header">
+                  <i class="fa-solid fa-bolt"></i>
+                  <span>Il tuo race hub</span>
+                </div>
+                <div class="card-collapse-meta">
+                  <span class="meta-tag" [class.ok-tag]="!!myLineup" [class.ko-tag]="!myLineup">L {{ myLineup ? 'ok' : 'x' }}</span>
+                  <span class="meta-tag" [class.ok-tag]="!!mySprintBet" [class.ko-tag]="!mySprintBet">S {{ mySprintBet ? 'ok' : 'x' }}</span>
+                  <span class="meta-tag" [class.ok-tag]="!!myRaceBet" [class.ko-tag]="!myRaceBet">R {{ myRaceBet ? 'ok' : 'x' }}</span>
+                  <i class="fa-solid fa-chevron-down card-collapse-chevron"></i>
+                </div>
+              </summary>
+              <div class="card-collapse-body">
+                <div class="personal-race-grid">
+                  <div class="personal-summary">
+                    <span class="summary-kicker">Stato personale</span>
+                    <h2>{{ personalCompletionLabel }}</h2>
+                    <p>{{ completionDetails }}</p>
+                    <div class="personal-tags">
+                      <span class="meta-tag" [class.ok-tag]="!!myLineup" [class.ko-tag]="!myLineup">Schieramento {{ myLineup ? 'ok' : 'manca' }}</span>
+                      <span class="meta-tag" [class.ok-tag]="!!mySprintBet" [class.ko-tag]="!mySprintBet">Sprint {{ mySprintBet ? 'ok' : 'manca' }}</span>
+                      <span class="meta-tag" [class.ok-tag]="!!myRaceBet" [class.ko-tag]="!myRaceBet">Race {{ myRaceBet ? 'ok' : 'manca' }}</span>
+                    </div>
+                  </div>
+                  <div class="personal-actions">
+                    <button mat-raised-button color="primary" (click)="goToContextAction('lineups')" [disabled]="!canEditLineup()">
+                      {{ myLineup ? 'Modifica schieramento' : 'Completa schieramento' }}
+                    </button>
+                    <button mat-raised-button color="accent" (click)="goToContextAction('sprint')" [disabled]="!canEditSprintBet()">
+                      {{ mySprintBet ? 'Modifica sprint bet' : 'Inserisci sprint bet' }}
+                    </button>
+                    <button mat-raised-button color="warn" (click)="goToContextAction('race')" [disabled]="!canEditRaceBet()">
+                      {{ myRaceBet ? 'Modifica race bet' : 'Inserisci race bet' }}
+                    </button>
+                  </div>
+                </div>
+                <div class="personal-breakdown">
+                  <details class="hub-section" [attr.open]="!myLineup ? true : null">
+                    <summary class="hub-section-summary">
+                      <div class="hub-section-main">
+                        <span class="summary-label">Schieramento</span>
+                        <strong>{{ myLineup ? 'Schieramento salvato' : 'Schieramento mancante' }}</strong>
+                      </div>
+                      <div class="hub-section-meta">
+                        <span class="bet-status-pill" [class.ok-tag]="!!myLineup" [class.ko-tag]="!myLineup">
+                          <i [class]="myLineup ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+                          {{ myLineup ? 'Completo' : 'Manca' }}
+                        </span>
+                        <i class="fa-solid fa-chevron-down hub-chevron"></i>
+                      </div>
+                    </summary>
+                    <div class="hub-section-body">
+                      <div class="hub-score-strip">
+                        <span class="hub-score-pill" [class.pending-pill]="getLineupQualifyingScore() === null" [class.score-zero]="getLineupQualifyingScore() === 0" [class.score-positive]="(getLineupQualifyingScore() ?? -1) > 0">
+                          Qualifica
+                          <strong>{{ getLineupQualifyingScore() === null ? 'In attesa' : formatSignedPoints(getLineupQualifyingScore()!) }}</strong>
+                        </span>
+                        <span class="hub-score-pill" [class.pending-pill]="getLineupRaceScore() === null" [class.score-zero]="getLineupRaceScore() === 0" [class.score-positive]="(getLineupRaceScore() ?? -1) > 0">
+                          Gara
+                          <strong>{{ getLineupRaceScore() === null ? 'In attesa' : formatSignedPoints(getLineupRaceScore()!) }}</strong>
+                        </span>
+                        <span class="hub-score-pill hub-score-pill-total" [class.pending-pill]="getLineupTotalScore() === null" [class.score-zero]="getLineupTotalScore() === 0" [class.score-positive]="(getLineupTotalScore() ?? -1) > 0">
+                          Totale
+                          <strong>{{ getLineupTotalScore() === null ? 'In attesa' : formatSignedPoints(getLineupTotalScore()!) }}</strong>
+                        </span>
+                      </div>
+                      <div class="breakdown-item compact-breakdown-item">
+                        <span class="summary-label">Pilota qualifica</span>
+                        <strong>{{ myLineup ? getRiderDisplay(myLineup.qualifying_rider_id) : 'Non ancora scelto' }}</strong>
+                      </div>
+                      <div class="breakdown-item compact-breakdown-item">
+                        <span class="summary-label">Pilota gara</span>
+                        <strong>{{ myLineup ? getRiderDisplay(myLineup.race_rider_id) : 'Non ancora scelto' }}</strong>
+                      </div>
+                    </div>
+                  </details>
+
+                  <details class="hub-section bet-breakdown" [class.bet-breakdown-pending]="mySprintBet && !hasBetOutcome(mySprintBet)" [class.bet-breakdown-win]="mySprintBet && isBetSuccessful(mySprintBet)" [class.bet-breakdown-loss]="mySprintBet && hasBetOutcome(mySprintBet) && !isBetSuccessful(mySprintBet)">
+                    <summary class="hub-section-summary">
+                      <div class="hub-section-main">
+                        <span class="summary-label">Sprint bet</span>
+                        <strong>{{ mySprintBet ? (displayRiderName(mySprintBet.rider_id) + ' · P' + mySprintBet.position) : 'Non ancora inserita' }}</strong>
+                      </div>
+                      <div class="hub-section-meta">
+                        <span class="bet-status-pill" *ngIf="mySprintBet" [class.ok-tag]="isBetSuccessful(mySprintBet)" [class.ko-tag]="hasBetOutcome(mySprintBet) && !isBetSuccessful(mySprintBet)" [class.pending-tag]="!hasBetOutcome(mySprintBet)">
+                          <i [class]="getBetStatusIcon(mySprintBet)"></i>
+                          {{ getBetStatusLabel(mySprintBet) }}
+                        </span>
+                        <span class="bet-status-pill" *ngIf="mySprintBet">{{ mySprintBet.points }} pt</span>
+                        <span class="bet-status-pill ko-tag" *ngIf="!mySprintBet">
+                          <i class="fa-solid fa-circle-xmark"></i>
+                          Manca
+                        </span>
+                        <i class="fa-solid fa-chevron-down hub-chevron"></i>
+                      </div>
+                    </summary>
+                    <div class="hub-section-body" *ngIf="mySprintBet; else emptySprintBet">
+                      <div class="bet-points-row">
+                        <span class="bet-points-value">{{ getBetStatusLabel(mySprintBet) }}</span>
+                        <span class="bet-points-note">{{ getBetDeltaLabel(mySprintBet) }} · {{ displayRiderName(mySprintBet.rider_id) }} · Posizione {{ mySprintBet.position }}</span>
+                      </div>
+                    </div>
+                  </details>
+
+                  <ng-template #emptySprintBet>
+                    <div class="hub-section-body">
+                      <div class="breakdown-item compact-breakdown-item">
+                        <span class="summary-label">Sprint bet</span>
+                        <strong>Non ancora inserita</strong>
+                      </div>
+                    </div>
+                  </ng-template>
+
+                  <details class="hub-section bet-breakdown" [class.bet-breakdown-pending]="myRaceBet && !hasBetOutcome(myRaceBet)" [class.bet-breakdown-win]="myRaceBet && isBetSuccessful(myRaceBet)" [class.bet-breakdown-loss]="myRaceBet && hasBetOutcome(myRaceBet) && !isBetSuccessful(myRaceBet)">
+                    <summary class="hub-section-summary">
+                      <div class="hub-section-main">
+                        <span class="summary-label">Race bet</span>
+                        <strong>{{ myRaceBet ? (displayRiderName(myRaceBet.rider_id) + ' · P' + myRaceBet.position) : 'Non ancora inserita' }}</strong>
+                      </div>
+                      <div class="hub-section-meta">
+                        <span class="bet-status-pill" *ngIf="myRaceBet" [class.ok-tag]="isBetSuccessful(myRaceBet)" [class.ko-tag]="hasBetOutcome(myRaceBet) && !isBetSuccessful(myRaceBet)" [class.pending-tag]="!hasBetOutcome(myRaceBet)">
+                          <i [class]="getBetStatusIcon(myRaceBet)"></i>
+                          {{ getBetStatusLabel(myRaceBet) }}
+                        </span>
+                        <span class="bet-status-pill" *ngIf="myRaceBet">{{ myRaceBet.points }} pt</span>
+                        <span class="bet-status-pill ko-tag" *ngIf="!myRaceBet">
+                          <i class="fa-solid fa-circle-xmark"></i>
+                          Manca
+                        </span>
+                        <i class="fa-solid fa-chevron-down hub-chevron"></i>
+                      </div>
+                    </summary>
+                    <div class="hub-section-body" *ngIf="myRaceBet; else emptyRaceBet">
+                      <div class="bet-points-row">
+                        <span class="bet-points-value">{{ getBetStatusLabel(myRaceBet) }}</span>
+                        <span class="bet-points-note">{{ getBetDeltaLabel(myRaceBet) }} · {{ displayRiderName(myRaceBet.rider_id) }} · Posizione {{ myRaceBet.position }}</span>
+                      </div>
+                    </div>
+                  </details>
+
+                  <ng-template #emptyRaceBet>
+                    <div class="hub-section-body">
+                      <div class="breakdown-item compact-breakdown-item">
+                        <span class="summary-label">Race bet</span>
+                        <strong>Non ancora inserita</strong>
+                      </div>
+                    </div>
+                  </ng-template>
+                </div>
+              </div>
+            </details>
           </mat-card>
 
           <!-- Admin Actions (REPLACE the whole previous admin-card) -->
@@ -280,6 +425,18 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
 
           <!-- Tabs & Tables -->
           <mat-card class="results-card">
+            <details class="card-collapsible" open>
+              <summary class="card-collapse-toggle">
+                <div class="card-header">
+                  <i class="fa-solid fa-users-viewfinder"></i>
+                  <span>Risultati partecipanti</span>
+                </div>
+                <div class="card-collapse-meta">
+                  <span class="meta-tag">{{ getVisibleResultsSummary() }}</span>
+                  <i class="fa-solid fa-chevron-down card-collapse-chevron"></i>
+                </div>
+              </summary>
+              <div class="card-collapse-body">
             <mat-tab-group class="results-tabs app-material-tabs">
               <!-- Lineups Tab -->
               <mat-tab *ngIf="showLineups" label="{{ 'raceDetail.lineups.tab' | t }}">
@@ -475,6 +632,8 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                 </div>
               </mat-tab>
             </mat-tab-group>
+              </div>
+            </details>
           </mat-card>
 
           <div *ngIf="!showLineups && !showSprintBet && !showRaceBet" class="no-results">
@@ -596,6 +755,59 @@ export class RaceDetailComponent implements OnInit {
     }).format(date);
   }
 
+  get myLineup(): LineupsResult | null {
+    const userId = this.authService.getUserId();
+    return this.lineups.find(lineup => lineup?.user_id?.id === userId) ?? null;
+  }
+
+  get mySprintBet(): BetResult | null {
+    const userId = this.authService.getUserId();
+    return this.sprints.find(bet => bet?.user_id?.id === userId) ?? null;
+  }
+
+  get myRaceBet(): BetResult | null {
+    const userId = this.authService.getUserId();
+    return this.bets.find(bet => bet?.user_id?.id === userId) ?? null;
+  }
+
+  get personalCompletionLabel(): string {
+    const completed = [this.myLineup, this.mySprintBet, this.myRaceBet].filter(Boolean).length;
+    if (completed === 3) return 'Hai completato tutto';
+    if (completed === 0) return 'Ti manca ancora tutto';
+    return `${completed}/3 azioni completate`;
+  }
+
+  get completionDetails(): string {
+    return 'Controlla qui sotto cosa hai gia salvato e cosa ti manca ancora per questa gara.';
+  }
+
+  getVisibleResultsSummary(): string {
+    const sections: string[] = [];
+    if (this.showLineups) sections.push(`L ${this.lineups.length}`);
+    if (this.showSprintBet) sections.push(`S ${this.sprints.length}`);
+    if (this.showRaceBet) sections.push(`R ${this.bets.length}`);
+    return sections.length ? sections.join(' · ') : 'Nessun risultato disponibile';
+  }
+
+  canEditLineup(): boolean {
+    return this.calendarRace ? this.raceScheduleService.canShowLineups(this.calendarRace, this.championshipTimeZone) : false;
+  }
+
+  canEditSprintBet(): boolean {
+    return this.calendarRace ? this.raceScheduleService.canShowSprintBet(this.calendarRace, this.championshipTimeZone) : false;
+  }
+
+  canEditRaceBet(): boolean {
+    return this.calendarRace ? this.raceScheduleService.canShowRaceBet(this.calendarRace, this.championshipTimeZone) : false;
+  }
+
+  goToContextAction(kind: 'lineups' | 'sprint' | 'race'): void {
+    if (!this.raceId) return;
+    if (kind === 'lineups') this.router.navigate(['/lineups', this.raceId]);
+    if (kind === 'sprint') this.router.navigate(['/sprint-bet', this.raceId]);
+    if (kind === 'race') this.router.navigate(['/race-bet', this.raceId]);
+  }
+
   onFillMissingLineups(): void {
     if (!this.calendarRace) return;
     this.busy = true;
@@ -700,6 +912,61 @@ export class RaceDetailComponent implements OnInit {
     if (['true', 'ok', 'win', 'won', 'success', 'correct'].includes(normalized)) return 'Scommessa vinta';
     if (['false', 'loss', 'lost', 'fail', 'wrong'].includes(normalized)) return 'Scommessa persa';
     return s;
+  }
+  hasBetOutcome(bet: BetResult | null | undefined): boolean {
+    if (!bet) return false;
+    const outcome = bet.outcome;
+    return outcome !== null && outcome !== undefined && String(outcome).trim() !== '';
+  }
+  isBetSuccessful(bet: BetResult | null | undefined): boolean {
+    if (!bet) return false;
+    return this.isResultPositive(bet.outcome, bet.points);
+  }
+  getBetStatusLabel(bet: BetResult | null | undefined): string {
+    if (!bet) return 'Non inserita';
+    if (!this.hasBetOutcome(bet)) return 'In attesa';
+    return this.isBetSuccessful(bet) ? 'Vinta' : 'Persa';
+  }
+  getBetStatusIcon(bet: BetResult | null | undefined): string {
+    if (!bet || !this.hasBetOutcome(bet)) return 'fa-regular fa-clock';
+    return this.isBetSuccessful(bet) ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark';
+  }
+  getBetDelta(bet: BetResult | null | undefined): number | null {
+    if (!bet || !this.hasBetOutcome(bet)) return null;
+    const stake = Math.abs(Number(bet.points || 0));
+    return this.isBetSuccessful(bet) ? stake : -Math.floor(stake / 2);
+  }
+  getBetDeltaLabel(bet: BetResult | null | undefined): string {
+    const delta = this.getBetDelta(bet);
+    if (delta === null) return 'In attesa';
+    return `${this.getBetStatusLabel(bet)} ${this.formatSignedPoints(delta)}`;
+  }
+  getLineupQualifyingScore(): number | null {
+    const riderId = Number((this.myLineup?.qualifying_rider_id as any)?.id ?? this.myLineup?.qualifying_rider_id);
+    if (!riderId) return null;
+    const result = this.findMotoGpResultByRider(riderId);
+    if (!result) return null;
+    return Number(result.qualifying_scoring_points ?? result.qualifying_points ?? 0);
+  }
+  getLineupRaceScore(): number | null {
+    const riderId = Number((this.myLineup?.race_rider_id as any)?.id ?? this.myLineup?.race_rider_id);
+    if (!riderId) return null;
+    const result = this.findMotoGpResultByRider(riderId);
+    if (!result) return null;
+    return Number(result.race_points ?? 0);
+  }
+  getLineupTotalScore(): number | null {
+    const qualifyingScore = this.getLineupQualifyingScore();
+    const raceScore = this.getLineupRaceScore();
+    if (qualifyingScore === null && raceScore === null) return null;
+    return Number(qualifyingScore ?? 0) + Number(raceScore ?? 0);
+  }
+  formatSignedPoints(value: number): string {
+    return `${value > 0 ? '+' : ''}${value} pt`;
+  }
+  private findMotoGpResultByRider(riderId: number): MotoGPStoredResult | null {
+    if (!riderId) return null;
+    return this.motogpResults.find(result => Number((result.rider_id as any)?.id ?? result.rider_id) === riderId) ?? null;
   }
   private isResultPositive(outcome: any, points?: number): boolean {
     const s = (outcome ?? '').toString().toLowerCase();

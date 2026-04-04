@@ -15,14 +15,59 @@
       </div>
     </mat-card-header>
     <mat-card-content>
+      <section class="bet-overview">
+        <div class="overview-chip">
+          <span class="overview-label">Punti residui</span>
+          <strong>{{ remainingPoints }}</strong>
+        </div>
+        <div class="overview-chip">
+          <span class="overview-label">Gia piazzate su gara</span>
+          <strong>{{ betsPlacedThisRace }} / {{ maxBetsPerRace }}</strong>
+        </div>
+        <div class="overview-chip">
+          <span class="overview-label">Limite per pilota</span>
+          <strong>{{ maxBetsPerPilot }}</strong>
+        </div>
+      </section>
+
+      <section class="rider-picker">
+        <div class="picker-copy">
+          <h3>Scegli il pilota</h3>
+          <p>Le opzioni non disponibili restano visibili, cosi capisci subito il motivo del blocco.</p>
+        </div>
+        <div class="rider-grid">
+          <button
+            type="button"
+            class="rider-card"
+            *ngFor="let rider of availableRiders"
+            [class.selected]="selectedRiderId === rider.rider_id.id"
+            [class.unavailable]="isRiderUnavailable(rider)"
+            (click)="selectRiderCard(rider.rider_id.id)"
+          >
+            <div class="rider-card-main">
+              <span class="rider-number">#{{ rider.rider_id.number }}</span>
+              <div class="rider-copy">
+                <strong>{{ rider.rider_id.first_name }} {{ rider.rider_id.last_name }}</strong>
+                <span>{{ getRiderUsageCount(rider.rider_id.id) }} usi su {{ maxBetsPerPilot }}</span>
+              </div>
+            </div>
+            <div class="rider-card-tags">
+              <span class="tag">{{ getRiderRemainingUses(rider.rider_id.id) }} slot rimasti</span>
+              <span class="tag tag-warning" *ngIf="getRiderDisabledReason(rider) as reason">{{ reason }}</span>
+            </div>
+          </button>
+        </div>
+      </section>
+
       <form [formGroup]="betForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="fill" class="full-width">
           <mat-label>{{ 'bets.rider' | t }}</mat-label>
           <mat-select formControlName="rider_id" required>
             <mat-option [value]="" disabled>{{ 'bets.selectRider' | t }}</mat-option>
             <ng-container *ngFor="let rider of riders">
-              <mat-option *ngIf="!removeRaceRider || rider.rider_id.id !== existingLineup?.race_rider_id?.id" [value]="rider.rider_id.id">
+              <mat-option [value]="rider.rider_id.id" [disabled]="isRiderUnavailable(rider)">
                 {{ rider.rider_id.first_name }} {{ rider.rider_id.last_name }} (#{{ rider.rider_id.number }})
+                <ng-container *ngIf="getRiderDisabledReason(rider) as reason"> · {{ reason }}</ng-container>
               </mat-option>
             </ng-container>
           </mat-select>
@@ -52,6 +97,24 @@
           {{ 'bets.maxBetsReached' | t:{max: maxBetsPerRace} }}
         </div>
       </form>
+
+      <section class="bet-summary" *ngIf="selectedRiderId || lastSavedBetSummary">
+        <h3>Riepilogo giocata</h3>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span class="summary-label">Pilota</span>
+            <strong>{{ lastSavedBetSummary?.riderName || getSelectedRiderLabel() }}</strong>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Posizione</span>
+            <strong>{{ lastSavedBetSummary?.position || betForm.get('position')?.value || 'Da inserire' }}</strong>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Punti</span>
+            <strong>{{ lastSavedBetSummary?.points || betForm.get('points')?.value || 0 }}</strong>
+          </div>
+        </div>
+      </section>
     </mat-card-content>
     <mat-card-actions>
       <button mat-raised-button
@@ -78,6 +141,13 @@
               matTooltip="{{ 'bets.viewExistingBetsTooltip' | t }}">
         <mat-icon>history</mat-icon>
         {{ 'bets.viewExistingBets' | t }}
+      </button>
+      <button mat-stroked-button
+              color="primary"
+              class="action-button"
+              (click)="router.navigate(['/race-detail', raceId])">
+        <mat-icon>visibility</mat-icon>
+        Vai al dettaglio gara
       </button>
     </mat-card-actions>
   </mat-card>

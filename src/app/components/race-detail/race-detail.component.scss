@@ -4,6 +4,7 @@ app-race-detail {
 
   .page-container {
     min-height: 100vh;
+    padding: 0;
     background:
       radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
       radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
@@ -44,13 +45,85 @@ app-race-detail {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: calc(var(--app-header-height) + 10px) 10px 12px;
+    padding: calc(var(--app-header-height) + 2px) 10px 12px;
   }
 
   .results-container {
     display: flex;
     flex-direction: column;
     gap: 8px;
+  }
+
+  .page-race-hero {
+    position: relative;
+    padding: 1rem;
+    border-radius: 18px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top right, rgba(200, 16, 46, 0.18), transparent 34%),
+      linear-gradient(145deg, rgba(17, 18, 20, 0.98), rgba(35, 39, 46, 0.94));
+    color: #fff;
+    box-shadow: 0 18px 38px rgba(17, 18, 20, 0.16);
+  }
+
+  .page-race-hero::after {
+    content: '';
+    position: absolute;
+    inset: auto -18% -42% auto;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent 68%);
+    pointer-events: none;
+  }
+
+  .page-race-hero-main {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .page-race-hero .race-kicker,
+  .page-race-hero .race-date-row,
+  .page-race-hero .race-date-row i {
+    color: rgba(255, 255, 255, 0.82);
+  }
+
+  .page-race-hero .race-title {
+    color: #fff;
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    line-height: 1;
+  }
+
+  .page-race-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 0.2rem;
+  }
+
+  .hero-meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  .hero-meta-pill i {
+    color: #ff6e84;
+  }
+
+  .hero-meta-pill-primary {
+    background: rgba(255, 110, 132, 0.12);
+    border-color: rgba(255, 110, 132, 0.24);
   }
 
   .info-card,
@@ -80,6 +153,108 @@ app-race-detail {
 
   .card-header i {
     color: #ff6e84;
+  }
+
+  .card-collapsible {
+    display: block;
+    border-radius: 14px;
+  }
+
+  .card-collapse-toggle {
+    position: relative;
+    display: block;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .card-collapse-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  .card-collapse-meta {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+
+  .card-collapse-chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    transition: transform 0.2s ease;
+  }
+
+  .card-collapsible[open] .card-collapse-chevron {
+    transform: rotate(180deg);
+  }
+
+  .card-collapse-body {
+    display: grid;
+    gap: 8px;
+  }
+
+  .card-collapsible .card-header {
+    width: 100%;
+    min-height: 48px;
+    padding-right: 132px;
+    border-radius: 14px 14px 0 0;
+    box-sizing: border-box;
+  }
+
+  .card-collapsible:not([open]) .card-header {
+    border-radius: 14px;
+  }
+
+  .card-collapsible .card-collapse-meta .meta-tag {
+    min-height: 24px;
+    padding: 0 7px;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.63rem;
+  }
+
+  .card-collapsible .card-collapse-meta .meta-tag.ok-tag {
+    background: rgba(31, 143, 67, 0.18);
+    border-color: rgba(120, 214, 151, 0.28);
+    color: #d9fbe5;
+  }
+
+  .card-collapsible .card-collapse-meta .meta-tag.ko-tag {
+    background: rgba(200, 16, 46, 0.18);
+    border-color: rgba(255, 176, 188, 0.28);
+    color: #ffe2e7;
+  }
+
+  .results-card .card-collapsible .card-header {
+    padding-right: 108px;
+  }
+
+  .results-card .card-collapse-meta {
+    right: 10px;
+    max-width: 120px;
+    gap: 4px;
+  }
+
+  .results-card .card-collapse-meta .meta-tag {
+    max-width: 78px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.58rem;
+    padding: 0 6px;
   }
 
   .race-overview,
@@ -555,9 +730,261 @@ app-race-detail {
     color: #c8102e;
   }
 
+  .personal-race-card {
+    margin-bottom: 12px;
+  }
+
+  .personal-race-grid,
+  .personal-breakdown {
+    display: grid;
+    gap: 12px;
+  }
+
+  .personal-race-grid {
+    grid-template-columns: minmax(0, 1.5fr) minmax(240px, 0.9fr);
+    margin-bottom: 12px;
+  }
+
+  .summary-kicker,
+  .summary-label {
+    color: #6a717c;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .personal-summary h2 {
+    margin: 6px 0;
+    font-family: 'MotoGP Bold', sans-serif;
+  }
+
+  .personal-summary p {
+    margin: 0;
+    color: #404652;
+  }
+
+  .personal-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .personal-actions {
+    display: grid;
+    gap: 8px;
+  }
+
+  .hub-section {
+    border: 1px solid rgba(17, 18, 20, 0.08);
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .hub-section-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .hub-section-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .hub-section-main {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .hub-section-main strong {
+    color: #111214;
+    line-height: 1.25;
+  }
+
+  .hub-section-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .hub-chevron {
+    color: #667085;
+    transition: transform 0.2s ease;
+  }
+
+  .hub-section[open] .hub-chevron {
+    transform: rotate(180deg);
+  }
+
+  .hub-section-body {
+    display: grid;
+    gap: 8px;
+    padding: 0 12px 12px;
+    border-top: 1px solid rgba(17, 18, 20, 0.06);
+  }
+
+  .hub-score-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 8px;
+  }
+
+  .hub-score-pill {
+    display: grid;
+    gap: 2px;
+    min-width: 92px;
+    min-height: 54px;
+    padding: 8px 12px;
+    border: 1px solid rgba(17, 18, 20, 0.08);
+    border-radius: 16px;
+    background: #f8fafc;
+    color: #475467;
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 1.1;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+
+  .hub-score-pill strong {
+    color: #111214;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.01em;
+  }
+
+  .hub-score-pill-total {
+    background: rgba(200, 16, 46, 0.06);
+    border-color: rgba(200, 16, 46, 0.18);
+  }
+
+  .hub-score-pill.pending-pill {
+    background: rgba(255, 244, 229, 0.9);
+    border-color: rgba(237, 108, 2, 0.22);
+    color: #b54708;
+  }
+
+  .hub-score-pill.score-positive {
+    background: linear-gradient(180deg, rgba(31, 143, 67, 0.12), rgba(239, 252, 244, 0.95));
+    border-color: rgba(31, 143, 67, 0.22);
+    color: #1f8f43;
+  }
+
+  .hub-score-pill.score-positive strong {
+    color: #146c2e;
+  }
+
+  .hub-score-pill.score-zero {
+    background: linear-gradient(180deg, rgba(200, 16, 46, 0.1), rgba(255, 241, 243, 0.96));
+    border-color: rgba(200, 16, 46, 0.22);
+    color: #c8102e;
+  }
+
+  .hub-score-pill.score-zero strong {
+    color: #a30d26;
+  }
+
+  .breakdown-item {
+    display: grid;
+    gap: 4px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(17, 18, 20, 0.08);
+    background: #fff;
+  }
+
+  .bet-breakdown {
+    border-width: 2px;
+  }
+
+  .bet-breakdown-win {
+    border-color: rgba(31, 143, 67, 0.3);
+    background: linear-gradient(180deg, rgba(31, 143, 67, 0.08), rgba(255, 255, 255, 0.98));
+  }
+
+  .bet-breakdown-loss {
+    border-color: rgba(200, 16, 46, 0.3);
+    background: linear-gradient(180deg, rgba(200, 16, 46, 0.08), rgba(255, 255, 255, 0.98));
+  }
+
+  .bet-breakdown-pending {
+    border-color: rgba(237, 108, 2, 0.28);
+    background: linear-gradient(180deg, rgba(237, 108, 2, 0.08), rgba(255, 255, 255, 0.98));
+  }
+
+  .bet-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 0 10px;
+    border: 1px solid rgba(17, 18, 20, 0.08);
+    border-radius: 999px;
+    background: #fff;
+    color: #344054;
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .bet-status-pill.pending-tag {
+    border-color: rgba(237, 108, 2, 0.3);
+    background: rgba(255, 244, 229, 0.9);
+    color: #b54708;
+  }
+
+  .bet-points-row {
+    display: grid;
+    gap: 2px;
+  }
+
+  .bet-points-value {
+    color: #111214;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: 0.02em;
+  }
+
+  .bet-points-note {
+    color: #5f6672;
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .compact-breakdown-item {
+    padding: 10px 0 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
   @media (max-width: 768px) {
     .main-content {
-      padding: calc(var(--app-header-height) + 8px) 8px 10px;
+      padding: calc(var(--app-header-height) + 2px) 8px 10px;
+    }
+
+    .page-race-hero {
+      padding: 0.9rem 0.85rem;
+      border-radius: 16px;
+    }
+
+    .page-race-hero-meta {
+      gap: 6px;
+    }
+
+    .hero-meta-pill {
+      width: 100%;
+      justify-content: flex-start;
+      min-height: 32px;
+      font-size: 0.72rem;
     }
 
     .race-overview {
@@ -572,6 +999,62 @@ app-race-detail {
 
     .admin-actions-grid {
       grid-template-columns: 1fr;
+    }
+
+    .personal-race-grid,
+    .personal-breakdown {
+      grid-template-columns: 1fr;
+    }
+
+    .card-collapse-toggle {
+      display: block;
+    }
+
+    .card-collapsible .card-header {
+      min-height: 50px;
+      padding-right: 84px;
+      font-size: 0.92rem;
+    }
+
+    .card-collapse-meta {
+      right: 10px;
+      gap: 4px;
+    }
+
+    .card-collapsible .card-collapse-meta .meta-tag {
+      min-height: 22px;
+      padding: 0 6px;
+      font-size: 0.58rem;
+    }
+
+    .card-collapse-chevron {
+      width: 26px;
+      height: 26px;
+    }
+
+    .results-card .card-collapsible .card-header {
+      padding-right: 72px;
+      font-size: 0.86rem;
+    }
+
+    .results-card .card-collapse-meta {
+      max-width: 88px;
+    }
+
+    .results-card .card-collapse-meta .meta-tag {
+      max-width: 52px;
+      font-size: 0.52rem;
+      padding: 0 5px;
+    }
+
+    .hub-section-summary {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .hub-section-meta {
+      width: 100%;
+      justify-content: flex-start;
     }
 
     .override-header {

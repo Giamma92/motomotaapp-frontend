@@ -101,9 +101,131 @@ mat-card-content {
   margin-bottom: 6px;
 }
 
+.bet-overview,
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.overview-chip,
+.summary-item {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f7f8fa;
+  border: 1px solid rgba(17, 18, 20, 0.08);
+}
+
+.overview-label,
+.summary-label {
+  color: #616875;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.rider-picker,
+.bet-summary {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.picker-copy h3,
+.bet-summary h3 {
+  margin: 0 0 4px;
+  font-family: 'MotoGP Bold', sans-serif;
+  font-size: 0.94rem;
+}
+
+.picker-copy p {
+  margin: 0;
+  color: #616875;
+  font-size: 0.82rem;
+}
+
+.rider-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.rider-card {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(17, 18, 20, 0.1);
+  background: #fff;
+  text-align: left;
+}
+
+.rider-card.selected {
+  border-color: rgba(200, 16, 46, 0.45);
+  box-shadow: 0 10px 20px rgba(200, 16, 46, 0.08);
+}
+
+.rider-card.unavailable {
+  opacity: 0.72;
+}
+
+.rider-card-main {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.rider-number {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #111214;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'MotoGP Bold', sans-serif;
+}
+
+.rider-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.rider-copy span {
+  color: #616875;
+  font-size: 0.79rem;
+}
+
+.rider-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #f2f4f7;
+  color: #313744;
+  font-size: 0.76rem;
+}
+
+.tag-warning {
+  background: rgba(200, 16, 46, 0.08);
+  color: #a30d25;
+}
+
 mat-card-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 8px;
   padding: 8px 0 0;
   min-height: 0;

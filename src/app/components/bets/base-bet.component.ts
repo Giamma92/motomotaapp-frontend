@@ -34,6 +34,7 @@ export abstract class BaseBetComponent implements OnInit {
   existingBetsAllCalendar: any[] = [];
   existingLineup: LineupsResult|null = null;
   existingBetsPointsSum = 0;
+  lastSavedBetSummary: { riderName: string; position: number; points: number } | null = null;
 
   constructor(
     protected fb: FormBuilder,
@@ -85,6 +86,11 @@ export abstract class BaseBetComponent implements OnInit {
         next: () => {
           this.loading = false;
           this.notificationService.showSuccess('bets.submitSuccess');
+          this.lastSavedBetSummary = {
+            riderName: this.getSelectedRiderLabel(),
+            position: Number(this.betForm.get('position')?.value),
+            points: Number(this.betForm.get('points')?.value)
+          };
           this.loadRaceBetsAndUpdateValidations();
           this.loadAllCalendarBetsAndUpdateRiders();
           //this.router.navigate(['/race-detail', this.raceId]);
@@ -92,7 +98,12 @@ export abstract class BaseBetComponent implements OnInit {
         error: (err) => {
           this.loading = false;
           console.error('Submission failed', err);
-          this.notificationService.showError('bets.submitFail');
+          const backendMessage = err?.error?.details?.message || err?.error?.error;
+          if (backendMessage) {
+            this.notificationService.showErrorMessage(backendMessage);
+          } else {
+            this.notificationService.showError('bets.submitFail');
+          }
         }
       });
     }
@@ -121,33 +132,86 @@ export abstract class BaseBetComponent implements OnInit {
   }
 
   private updateRiders() {
-    const ridersToRemove: number[] = [];
+    // Keep all riders visible in UI. Availability is handled by disabled state and reason labels.
+  }
 
-    this.riders.forEach(rider => {
-      // Count bets for current rider
-      const countBetsPerRider = this.existingBetsAllCalendar.reduce((acc, bet) => {
-        return (bet.rider_id == rider.rider_id.id) ? acc + 1 : acc;
-      }, 0);
+  get remainingPoints(): number {
+    return Math.max(this.maxPointsPerBet - this.existingBetsPointsSum, 0);
+  }
 
-      // Check if exceeds max bets per pilot
-      if (countBetsPerRider > this.maxBetsPerPilot) {
-        ridersToRemove.push(rider.rider_id.id);
+  get betsPlacedThisRace(): number {
+    return this.existingBetsCurrentRace.length;
+  }
+
+  get selectedRiderId(): number | null {
+    const raw = this.betForm.get('rider_id')?.value;
+    const riderId = Number(raw);
+    return Number.isFinite(riderId) ? riderId : null;
+  }
+
+  get availableRiders(): ChampionshipRider[] {
+    return this.riders;
+  }
+
+  getRiderUsageCount(riderId: number): number {
+    return this.existingBetsAllCalendar.reduce((acc, bet) => {
+      const betCalendarId = Number((bet.calendar_id as any)?.id ?? bet.calendar_id);
+      if (betCalendarId === Number(this.raceId) && Number((bet.rider_id as any)?.id ?? bet.rider_id) === riderId) {
+        return acc;
       }
-    });
 
-    /**Remove the race rider setted in the current lineup */
+      const existingId = typeof bet.rider_id === 'object' ? bet.rider_id?.id : bet.rider_id;
+      return Number(existingId) === riderId ? acc + 1 : acc;
+    }, 0);
+  }
+
+  getRiderRemainingUses(riderId: number): number {
+    return Math.max(this.maxBetsPerPilot - this.getRiderUsageCount(riderId), 0);
+  }
+
+  isRiderUnavailable(rider: ChampionshipRider): boolean {
+    const riderId = rider.rider_id.id;
     if (this.removeRaceRider && this.existingLineup) {
-      const raceRider: any = (this.existingLineup as any).race_rider_id;
-      if (raceRider !== undefined && raceRider !== null) {
-        const raceRiderId: number = typeof raceRider === 'object' ? raceRider.id : raceRider;
-        ridersToRemove.push(raceRiderId);
+      const raceRider = this.existingLineup.race_rider_id as any;
+      const lineupRaceRiderId = typeof raceRider === 'object' ? raceRider?.id : raceRider;
+      if (Number(lineupRaceRiderId) === riderId) {
+        return true;
       }
     }
 
-    // Filter out riders that reached max bets using Array.filter
-    this.riders = this.riders.filter(rider =>
-      !ridersToRemove.includes(rider.rider_id.id)
-    );
+    return this.getRiderUsageCount(riderId) >= this.maxBetsPerPilot && this.selectedRiderId !== riderId;
+  }
+
+  getRiderDisabledReason(rider: ChampionshipRider): string | null {
+    const riderId = rider.rider_id.id;
+    if (this.removeRaceRider && this.existingLineup) {
+      const raceRider = this.existingLineup.race_rider_id as any;
+      const lineupRaceRiderId = typeof raceRider === 'object' ? raceRider?.id : raceRider;
+      if (Number(lineupRaceRiderId) === riderId) {
+        return 'Gia usato come pilota gara nello schieramento';
+      }
+    }
+
+    if (this.getRiderUsageCount(riderId) >= this.maxBetsPerPilot && this.selectedRiderId !== riderId) {
+      return 'Hai raggiunto il limite massimo su questo pilota';
+    }
+
+    return null;
+  }
+
+  selectRiderCard(riderId: number): void {
+    const rider = this.riders.find(entry => entry.rider_id.id === riderId);
+    if (!rider || this.isRiderUnavailable(rider)) {
+      return;
+    }
+
+    this.betForm.get('rider_id')?.setValue(riderId);
+    this.betForm.updateValueAndValidity();
+  }
+
+  getSelectedRiderLabel(): string {
+    const rider = this.riders.find(entry => entry.rider_id.id === this.selectedRiderId);
+    return rider ? `${rider.rider_id.first_name} ${rider.rider_id.last_name} #${rider.rider_id.number}` : 'Pilota non selezionato';
   }
 
   loadLineupRace(): void {

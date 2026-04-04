@@ -48,14 +48,57 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
           </div>
         </mat-card-header>
         <mat-card-content>
+          <section class="lineup-status" *ngIf="championshipConfig">
+            <div class="status-chip">
+              <span class="status-label">Limite pilota</span>
+              <strong>{{ maxLineupsPerPilot }}</strong>
+            </div>
+            <div class="status-chip">
+              <span class="status-label">Schieramento attuale</span>
+              <strong>{{ existingLineupForRace ? 'Salvato' : 'Da completare' }}</strong>
+            </div>
+          </section>
+
           <form [formGroup]="lineupsForm" (ngSubmit)="onSubmit()">
+            <section class="selection-section">
+              <div class="selection-heading">
+                <h3>I tuoi piloti disponibili</h3>
+                <p>Scegli dalle card e controlla subito quanti utilizzi restano prima del submit.</p>
+              </div>
+
+              <div class="rider-picks">
+                <button
+                  type="button"
+                  class="rider-card"
+                  *ngFor="let rider of riders"
+                  [class.selected]="lineupsForm.get('qualifying_rider_id')?.value === rider.id || lineupsForm.get('race_rider_id')?.value === rider.id"
+                  [class.blocked]="isRiderBlocked(rider.id)"
+                  (click)="selectRider(rider.id)"
+                >
+                  <div class="rider-card-main">
+                    <span class="rider-number">#{{ rider.number }}</span>
+                    <div class="rider-copy">
+                      <strong>{{ rider.first_name }} {{ rider.last_name }}</strong>
+                      <span>{{ getRiderUsageSummary(rider.id) }}</span>
+                    </div>
+                  </div>
+                  <div class="rider-card-tags">
+                    <span class="tag" [class.tag-danger]="isRiderAtLimit(rider.id)">
+                      {{ getRemainingUses(rider.id) }} utilizzi rimasti
+                    </span>
+                    <span class="tag" *ngIf="lineupsForm.get('qualifying_rider_id')?.value === rider.id">Qualifica</span>
+                    <span class="tag" *ngIf="lineupsForm.get('race_rider_id')?.value === rider.id">Gara</span>
+                  </div>
+                </button>
+              </div>
+            </section>
 
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>{{ 'lineups.qualifyingRider' | t }}</mat-label>
               <mat-select formControlName="qualifying_rider_id" required (selectionChange)="lineupsForm.updateValueAndValidity()">
                 <mat-option [value]="" disabled>{{ 'lineups.selectRider' | t }}</mat-option>
-                <mat-option *ngFor="let rider of riders" [value]="rider.id">
-                  {{ rider.first_name }} {{ rider.last_name }} (#{{ rider.number }})
+                <mat-option *ngFor="let rider of riders" [value]="rider.id" [disabled]="isRiderBlocked(rider.id) && lineupsForm.get('qualifying_rider_id')?.value !== rider.id">
+                  {{ rider.first_name }} {{ rider.last_name }} (#{{ rider.number }}) · {{ getRiderUsageSummary(rider.id) }}
                 </mat-option>
               </mat-select>
               <mat-error *ngIf="lineupsForm.get('qualifying_rider_id')?.hasError('duplicateRider')">
@@ -64,21 +107,34 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               <mat-error *ngIf="lineupsForm.get('qualifying_rider_id')?.hasError('riderLimitExceeded')">
                 {{ 'lineups.error.riderLimitExceeded' | t }}
               </mat-error>
-
             </mat-form-field>
 
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>{{ 'lineups.raceRider' | t }}</mat-label>
               <mat-select formControlName="race_rider_id" required (selectionChange)="lineupsForm.updateValueAndValidity()">
                 <mat-option [value]="" disabled>{{ 'lineups.selectRider' | t }}</mat-option>
-                <mat-option *ngFor="let rider of riders" [value]="rider.id">
-                  {{ rider.first_name }} {{ rider.last_name }} (#{{ rider.number }})
+                <mat-option *ngFor="let rider of riders" [value]="rider.id" [disabled]="isRiderBlocked(rider.id) && lineupsForm.get('race_rider_id')?.value !== rider.id">
+                  {{ rider.first_name }} {{ rider.last_name }} (#{{ rider.number }}) · {{ getRiderUsageSummary(rider.id) }}
                 </mat-option>
               </mat-select>
               <mat-error *ngIf="lineupsForm.get('race_rider_id')?.hasError('riderLimitExceeded')">
                 {{ 'lineups.error.riderLimitExceeded' | t }}
               </mat-error>
             </mat-form-field>
+
+            <section class="lineup-summary" *ngIf="selectedQualifyingRider || selectedRaceRider">
+              <h3>Riepilogo schieramento</h3>
+              <div class="summary-grid">
+                <div class="summary-item">
+                  <span class="summary-label">Pilota qualifica</span>
+                  <strong>{{ selectedQualifyingRider ? (selectedQualifyingRider.first_name + ' ' + selectedQualifyingRider.last_name + ' #' + selectedQualifyingRider.number) : 'Da selezionare' }}</strong>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">Pilota gara</span>
+                  <strong>{{ selectedRaceRider ? (selectedRaceRider.first_name + ' ' + selectedRaceRider.last_name + ' #' + selectedRaceRider.number) : 'Da selezionare' }}</strong>
+                </div>
+              </div>
+            </section>
           </form>
         </mat-card-content>
         <mat-card-actions>
@@ -88,6 +144,9 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                   (click)="onSubmit()">
             {{ loading ? ('lineups.submitting' | t) : ('lineups.save' | t) }}
           </button>
+          <button mat-stroked-button type="button" (click)="goToRaceDetail()">
+            Vai al dettaglio gara
+          </button>
         </mat-card-actions>
       </mat-card>
     </div>
@@ -95,14 +154,15 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 })
 export class LineupsComponent implements OnInit {
   lineupsForm: FormGroup;
-  loading: boolean = false;
+  loading = false;
   riders: Rider[] = [];
   existingLineupsAllCalendar: LineupsResult[] = [];
-  maxLineupsPerPilot: number = 9999;
+  existingLineupForRace: LineupsResult | null = null;
+  maxLineupsPerPilot = 9999;
   championshipConfig: ChampionshipConfig | null = null;
-  private champId: number = 0;
-  private raceId: string|null = '';
-  raceTitle: string = '';
+  private champId = 0;
+  private raceId: string | null = '';
+  raceTitle = '';
 
   constructor(
     private fb: FormBuilder,
@@ -113,7 +173,7 @@ export class LineupsComponent implements OnInit {
     private raceDetailService: RaceDetailService,
     private httpService: HttpService,
     private notificationService: NotificationServiceService
-) {
+  ) {
     this.lineupsForm = this.fb.group({
       race_rider_id: ['', Validators.required],
       qualifying_rider_id: ['', Validators.required]
@@ -134,10 +194,6 @@ export class LineupsComponent implements OnInit {
     });
   }
 
-  /**
-   * Loads the championship configuration to get the formation_limit_driver value
-   * This determines the maximum number of lineups allowed per rider
-   */
   loadChampionshipConfig(championshipId: number): void {
     this.championshipService.getChampionshipConfig(championshipId).subscribe({
       next: (config) => {
@@ -176,9 +232,10 @@ export class LineupsComponent implements OnInit {
     this.raceDetailService.getLineupRace(champId, this.raceId ?? '0').subscribe({
       next: (existingLineups: LineupsResult[]) => {
         const existingLineup = existingLineups[0];
+        this.existingLineupForRace = existingLineup ?? null;
         this.lineupsForm.patchValue({
-          race_rider_id: existingLineup?.race_rider_id || this.riders[0]?.id,
-          qualifying_rider_id: existingLineup?.qualifying_rider_id || this.riders[1]?.id
+          race_rider_id: this.normalizeRiderId(existingLineup?.race_rider_id) || this.riders[0]?.id,
+          qualifying_rider_id: this.normalizeRiderId(existingLineup?.qualifying_rider_id) || this.riders[1]?.id
         });
       },
       error: (err) => console.error('Error loading existing lineup', err)
@@ -189,31 +246,9 @@ export class LineupsComponent implements OnInit {
     this.httpService.genericGet<LineupsResult[]>(`championship/${this.champId}/lineups/0?allCalendar=true`).subscribe({
       next: (existingBets) => {
         this.existingLineupsAllCalendar = existingBets;
-        this.updateRiders();
       },
       error: (err) => console.error('Error loading existing bets', err)
     });
-  }
-
-  private updateRiders() {
-    const ridersToRemove: number[] = [];
-
-    this.riders.forEach(rider => {
-      // Count lineups for current rider
-      const countLineupsPerRider = this.existingLineupsAllCalendar.reduce((acc, lineup) => {
-        return (lineup.qualifying_rider_id?.id == rider.id || lineup.race_rider_id?.id == rider.id) ? acc + 1 : acc;
-      }, 0);
-
-      // Check if exceeds max lineups per pilot
-      if (countLineupsPerRider >= this.maxLineupsPerPilot) {
-        ridersToRemove.push(rider.id);
-      }
-    });
-
-    // Filter out riders that reached max lineups using Array.filter
-    this.riders = this.riders.filter(rider =>
-      !ridersToRemove.includes(rider.id)
-    );
   }
 
   onSubmit(): void {
@@ -228,18 +263,22 @@ export class LineupsComponent implements OnInit {
         next: () => {
           this.loading = false;
           this.notificationService.showSuccess('lineups.submitSuccess');
-          this.goToRaceDetail();
+          this.loadExistingLineupAndUpdateForm(this.champId);
+          this.loadAllLineupsAndUpdateRiders();
         },
         error: (err) => {
           this.loading = false;
           console.error('Submission failed', err);
-          this.notificationService.showError('lineups.submitFail');
+          const backendMessage = err?.error?.details?.message || err?.error?.error;
+          if (backendMessage) {
+            this.notificationService.showErrorMessage(backendMessage);
+          } else {
+            this.notificationService.showError('lineups.submitFail');
+          }
         }
       });
     }
   }
-
-
 
   goToRaceDetail(): void {
     this.router.navigate(['/race-detail', this.raceId]);
@@ -249,23 +288,65 @@ export class LineupsComponent implements OnInit {
     this.router.navigate(['/']);
   }
 
+  get selectedQualifyingRider(): Rider | undefined {
+    return this.riders.find(rider => rider.id === Number(this.lineupsForm.get('qualifying_rider_id')?.value));
+  }
+
+  get selectedRaceRider(): Rider | undefined {
+    return this.riders.find(rider => rider.id === Number(this.lineupsForm.get('race_rider_id')?.value));
+  }
+
+  getRemainingUses(riderId: number): number {
+    return Math.max(this.maxLineupsPerPilot - this.countRiderInLineups(riderId), 0);
+  }
+
+  getRiderUsageSummary(riderId: number): string {
+    const used = this.countRiderInLineups(riderId);
+    return `${used} usi totali su ${this.maxLineupsPerPilot}`;
+  }
+
+  isRiderAtLimit(riderId: number): boolean {
+    return this.countRiderInLineups(riderId) >= this.maxLineupsPerPilot;
+  }
+
+  isRiderBlocked(riderId: number): boolean {
+    return this.isRiderAtLimit(riderId)
+      && this.lineupsForm.get('qualifying_rider_id')?.value !== riderId
+      && this.lineupsForm.get('race_rider_id')?.value !== riderId;
+  }
+
+  selectRider(riderId: number): void {
+    if (this.isRiderBlocked(riderId)) return;
+
+    const qualifyingControl = this.lineupsForm.get('qualifying_rider_id');
+    const raceControl = this.lineupsForm.get('race_rider_id');
+
+    if (!qualifyingControl?.value) {
+      qualifyingControl?.setValue(riderId);
+    } else if (!raceControl?.value || raceControl?.value === riderId) {
+      raceControl?.setValue(riderId);
+    } else if (qualifyingControl.value === riderId) {
+      qualifyingControl.setValue('');
+    } else {
+      raceControl?.setValue(riderId);
+    }
+
+    this.lineupsForm.updateValueAndValidity();
+  }
+
   private riderSelectionValidator(form: FormGroup) {
-    const raceId = form.get('race_rider_id')?.value;
-    const qualId = form.get('qualifying_rider_id')?.value;
+    const raceId = Number(form.get('race_rider_id')?.value);
+    const qualId = Number(form.get('qualifying_rider_id')?.value);
     const isDuplicate = raceId && qualId && raceId === qualId;
 
-    // Check for duplicate riders
     const qualControl = form.get('qualifying_rider_id');
     if (isDuplicate) {
       qualControl?.setErrors({ ...qualControl?.errors, duplicateRider: true });
-    } else {
-      if (qualControl?.errors?.['duplicateRider']) {
-        const { duplicateRider, ...remainingErrors } = qualControl.errors;
-        qualControl.setErrors(Object.keys(remainingErrors).length ? remainingErrors : null);
-      }
+    } else if (qualControl?.errors?.['duplicateRider']) {
+      const { duplicateRider, ...remainingErrors } = qualControl.errors;
+      qualControl.setErrors(Object.keys(remainingErrors).length ? remainingErrors : null);
     }
 
-    // Check for rider limit exceeded
     if (this.championshipConfig && this.existingLineupsAllCalendar.length > 0) {
       this.checkRiderLimit(form, raceId, qualId);
     }
@@ -273,51 +354,46 @@ export class LineupsComponent implements OnInit {
     return null;
   }
 
-  /**
-   * Validates that selected riders don't exceed the maximum number of lineups allowed per rider
-   * This checks against the formation_limit_driver configuration from the championship
-   */
   private checkRiderLimit(form: FormGroup, raceId: number, qualId: number): void {
     const raceControl = form.get('race_rider_id');
     const qualControl = form.get('qualifying_rider_id');
 
-    // Count existing lineups for each selected rider
     const raceRiderCount = this.countRiderInLineups(raceId);
     const qualRiderCount = this.countRiderInLineups(qualId);
 
-    // Check if adding this lineup would exceed the limit
     if (raceId && raceRiderCount >= this.maxLineupsPerPilot) {
       raceControl?.setErrors({ ...raceControl?.errors, riderLimitExceeded: true });
-    } else {
-      if (raceControl?.errors?.['riderLimitExceeded']) {
-        const { riderLimitExceeded, ...remainingErrors } = raceControl.errors;
-        raceControl.setErrors(Object.keys(remainingErrors).length ? remainingErrors : null);
-      }
+    } else if (raceControl?.errors?.['riderLimitExceeded']) {
+      const { riderLimitExceeded, ...remainingErrors } = raceControl.errors;
+      raceControl.setErrors(Object.keys(remainingErrors).length ? remainingErrors : null);
     }
 
     if (qualId && qualRiderCount >= this.maxLineupsPerPilot) {
       qualControl?.setErrors({ ...qualControl?.errors, riderLimitExceeded: true });
-    } else {
-      if (qualControl?.errors?.['riderLimitExceeded']) {
-        const { riderLimitExceeded, ...remainingErrors } = qualControl.errors;
-        qualControl.setErrors(Object.keys(remainingErrors).length ? remainingErrors : null);
-      }
+    } else if (qualControl?.errors?.['riderLimitExceeded']) {
+      const { riderLimitExceeded, ...remainingErrors } = qualControl.errors;
+      qualControl.setErrors(Object.keys(remainingErrors).length ? remainingErrors : null);
     }
   }
 
-  /**
-   * Counts how many times a rider appears in all lineups (both qualifying and race positions)
-   * @param riderId The ID of the rider to count
-   * @returns The number of lineups where this rider appears
-   */
   private countRiderInLineups(riderId: number): number {
     if (!riderId) return 0;
 
     return this.existingLineupsAllCalendar.reduce((count, lineup) => {
-      const isQualifyingRider = (lineup.qualifying_rider_id as any) == riderId;
-      const isRaceRider = (lineup.race_rider_id as any) == riderId;
+      const lineupCalendarId = Number((lineup.calendar_id as any)?.id ?? lineup.calendar_id);
+      if (lineupCalendarId === Number(this.raceId)) {
+        return count;
+      }
+
+      const isQualifyingRider = this.normalizeRiderId(lineup.qualifying_rider_id) === riderId;
+      const isRaceRider = this.normalizeRiderId(lineup.race_rider_id) === riderId;
       return (isQualifyingRider || isRaceRider) ? count + 1 : count;
     }, 0);
   }
 
+  private normalizeRiderId(rider: any): number | null {
+    if (!rider) return null;
+    if (typeof rider === 'number') return rider;
+    return Number(rider.id) || null;
+  }
 }
