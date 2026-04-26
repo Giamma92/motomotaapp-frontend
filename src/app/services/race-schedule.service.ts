@@ -20,7 +20,7 @@ export class RaceScheduleService {
     timeZone: string = this.defaultTimezone,
     now: Date = new Date()
   ): boolean {
-    if (!nextRace?.event_date) {
+    if (!nextRace?.event_date || nextRace.cancelled) {
       return false;
     }
 
@@ -47,7 +47,7 @@ export class RaceScheduleService {
     timeZone: string = this.defaultTimezone,
     now: Date = new Date()
   ): boolean {
-    if (!nextRace?.event_date) return false;
+    if (!nextRace?.event_date || nextRace.cancelled) return false;
 
     const tz = DateUtils.normalizeTimeZone(timeZone);
 
@@ -76,7 +76,7 @@ export class RaceScheduleService {
     timeZone: string = this.defaultTimezone,
     now: Date = new Date()
   ): boolean {
-    if (!nextRace?.event_date) return false;
+    if (!nextRace?.event_date || nextRace.cancelled) return false;
 
     const tz = DateUtils.normalizeTimeZone(timeZone);
     const eventTime = this.getEventTime(nextRace, tz);
@@ -99,7 +99,7 @@ export class RaceScheduleService {
     timeZone: string = this.defaultTimezone,
     now: Date = new Date()
   ): boolean {
-    if (!nextRace?.event_date) return false;
+    if (!nextRace?.event_date || nextRace.cancelled) return false;
 
     const tz = DateUtils.normalizeTimeZone(timeZone);
     const sprintTime = this.getSprintTime(nextRace, tz);
@@ -117,7 +117,7 @@ export class RaceScheduleService {
     timeZone: string = this.defaultTimezone,
     now: Date = new Date()
   ): boolean {
-    if (!nextRace?.event_date) return false;
+    if (!nextRace?.event_date || nextRace.cancelled) return false;
 
     const tz = DateUtils.normalizeTimeZone(timeZone);
     const visibleFrom = this.getRaceDayCutoff(nextRace, tz);
@@ -128,7 +128,7 @@ export class RaceScheduleService {
 
   /** Returns the event start time on race day, or midnight if no time is provided. */
   getEventTime(nextRace: CalendarRace | null | undefined, timeZone: string = this.defaultTimezone): Date | null {
-    if (!nextRace?.event_date) return null;
+    if (!nextRace?.event_date || nextRace.cancelled) return null;
     return DateUtils.buildZonedDateTime(
       nextRace.event_date,
       nextRace.event_time ?? this.defaultTime,
@@ -138,7 +138,7 @@ export class RaceScheduleService {
 
   /** Returns the qualifications time on race day (if provided). */
   getQualificationsTime(nextRace: CalendarRace | null | undefined, timeZone: string = this.defaultTimezone): Date | null {
-    if (!nextRace?.event_date) return null;
+    if (!nextRace?.event_date || nextRace.cancelled) return null;
     return DateUtils.buildZonedDateTime(
       nextRace.event_date,
       nextRace.qualifications_time ?? this.defaultTime,
@@ -151,7 +151,7 @@ export class RaceScheduleService {
    * Returns a Date at D‑1 with sprint_time or midnight if missing.
    */
   getSprintTime(nextRace: CalendarRace | null | undefined, timeZone: string = this.defaultTimezone): Date | null {
-    if (!nextRace?.event_date) return null;
+    if (!nextRace?.event_date || nextRace.cancelled) return null;
     const sprintDate = DateUtils.addDaysToYyyyMmDd(nextRace.event_date, -1);
     if (!sprintDate) return null;
     return DateUtils.buildZonedDateTime(
@@ -162,7 +162,7 @@ export class RaceScheduleService {
   }
 
   private getRaceDayCutoff(nextRace: CalendarRace | null | undefined, timeZone: string = this.defaultTimezone): Date | null {
-    if (!nextRace?.event_date) return null;
+    if (!nextRace?.event_date || nextRace.cancelled) return null;
 
     const eventHours = DateUtils.parseHms(nextRace.event_time ?? this.defaultTime).hours;
     if (eventHours <= 14) {

@@ -66,9 +66,10 @@ mat-card-header {
   width: 100%;
   background: #111214;
   color: #fff;
-  border-radius: 10px;
-  padding: .62rem .78rem;
+  border-radius: 16px;
+  padding: .72rem .86rem;
   margin-bottom: 8px;
+  box-shadow: 0 12px 28px rgba(17, 18, 20, 0.18);
 }
 
 .race-title {
@@ -92,7 +93,7 @@ mat-card-header {
 mat-card-content {
   background: #fff;
   border: 1px solid rgba(17, 18, 20, 0.12);
-  border-radius: 10px;
+  border-radius: 16px;
   padding: .55rem .62rem .45rem !important;
 }
 
@@ -134,6 +135,20 @@ mat-card-content {
   margin-bottom: 12px;
 }
 
+.rider-picker {
+  padding: 10px;
+  border: 1px solid rgba(17, 18, 20, 0.08);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+}
+
+.picker-copy {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .picker-copy h3,
 .bet-summary h3 {
   margin: 0 0 4px;
@@ -149,15 +164,35 @@ mat-card-content {
 
 .rider-grid {
   display: grid;
-  gap: 10px;
+  gap: 8px;
+  max-height: min(42vh, 390px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(200, 16, 46, 0.45) rgba(17, 18, 20, 0.08);
+}
+
+.rider-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.rider-grid::-webkit-scrollbar-track {
+  background: rgba(17, 18, 20, 0.06);
+  border-radius: 999px;
+}
+
+.rider-grid::-webkit-scrollbar-thumb {
+  background: rgba(200, 16, 46, 0.5);
+  border-radius: 999px;
 }
 
 .rider-card {
   width: 100%;
   display: grid;
-  gap: 10px;
-  padding: 12px;
-  border-radius: 14px;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 13px;
   border: 1px solid rgba(17, 18, 20, 0.1);
   background: #fff;
   text-align: left;
@@ -179,8 +214,8 @@ mat-card-content {
 }
 
 .rider-number {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: 12px;
   background: #111214;
   color: #fff;
@@ -266,6 +301,99 @@ mat-card-actions button:last-child {
 @media (max-width: 768px) {
   .settings-container {
     padding: calc(var(--app-header-height) + 8px) 8px 10px;
+    overflow-x: hidden;
+  }
+
+  mat-card-header {
+    width: calc(100% + 16px);
+    margin-left: -8px;
+    margin-right: -8px;
+  }
+
+  .header-content {
+    border-radius: 0 0 20px 20px;
+    margin-bottom: 10px;
+    padding: 0.92rem 1rem 0.82rem;
+  }
+
+  .race-title {
+    font-size: 1rem;
+  }
+
+  .session-info {
+    font-size: 0.8rem;
+  }
+
+  mat-card-content {
+    padding: 0.56rem !important;
+  }
+
+  .bet-overview {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .overview-chip {
+    padding: 8px 6px;
+    text-align: center;
+  }
+
+  .overview-label {
+    font-size: 0.58rem;
+    line-height: 1.15;
+  }
+
+  .rider-picker {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .picker-copy {
+    display: grid;
+    gap: 2px;
+  }
+
+  .picker-copy h3 {
+    font-size: 0.88rem;
+  }
+
+  .picker-copy p {
+    font-size: 0.74rem;
+  }
+
+  .rider-grid {
+    max-height: clamp(245px, 38vh, 340px);
+    gap: 7px;
+    padding-right: 2px;
+  }
+
+  .rider-card {
+    padding: 9px;
+  }
+
+  .rider-card-main {
+    gap: 9px;
+  }
+
+  .rider-number {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+  }
+
+  .rider-copy strong {
+    font-size: 0.86rem;
+  }
+
+  .rider-copy span,
+  .tag {
+    font-size: 0.68rem;
+  }
+
+  .tag {
+    min-height: 24px;
+    padding: 0 8px;
   }
 
   mat-card-actions {

@@ -44,10 +44,13 @@ import { RaceDetails } from '../../services/race-detail.service';
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let race of calendar" [class.current-race]="race === calendar[currentRaceIndex]">
+              <tr *ngFor="let race of calendar" [class.current-race]="race === calendar[currentRaceIndex]" [class.cancelled-race]="race.cancelled">
                 <td class="round-number">{{ race.race_order }}</td>
                 <td class="event-info">
-                  <div class="event-name">{{ race.race_id.name }}</div>
+                  <div class="event-name">
+                    {{ race.race_id.name }}
+                    <span class="cancelled-pill" *ngIf="race.cancelled">Cancellata</span>
+                  </div>
                   <div class="event-location">
                     <mat-icon>location_on</mat-icon>
                     {{ race.race_id.location }}
@@ -78,8 +81,9 @@ import { RaceDetails } from '../../services/race-detail.service';
       <div class="calendar-mobile-list" *ngIf="calendar.length > 0">
         <section class="calendar-mobile-hero" *ngIf="featuredMobileRace as race">
           <div class="mobile-hero-copy">
-            <span class="mobile-hero-kicker">{{ getMobileRaceStateLabel(race) }}</span>
-            <h2>{{ race.race_id.name }}</h2>
+              <span class="mobile-hero-kicker">{{ getMobileRaceStateLabel(race) }}</span>
+              <span class="cancelled-pill cancelled-pill-mobile" *ngIf="race.cancelled">Gara cancellata</span>
+              <h2>{{ race.race_id.name }}</h2>
             <p>{{ formatEventRange(race.event_date) }} · {{ race.race_id.location }}</p>
             <div class="mobile-hero-status">
               <span class="status-pill" [class.status-pill-complete]="hasCompletedLineup(race)" [class.status-pill-missing]="!hasCompletedLineup(race)">L {{ hasCompletedLineup(race) ? 'ok' : 'x' }}</span>
@@ -131,7 +135,8 @@ import { RaceDetails } from '../../services/race-detail.service';
             [attr.open]="isRacePanelInitiallyOpen(i) ? true : null"
             [class.calendar-race-panel--featured]="i === currentRaceIndex"
             [class.calendar-race-panel--past]="i < currentRaceIndex"
-            [class.calendar-race-panel--future]="i > currentRaceIndex">
+            [class.calendar-race-panel--future]="i > currentRaceIndex"
+            [class.calendar-race-panel--cancelled]="race.cancelled">
             <summary class="card-header race-panel-toggle">
               <div class="header-content">
                 <div class="header-topline">
@@ -140,6 +145,7 @@ import { RaceDetails } from '../../services/race-detail.service';
                     <span class="race-state-pill" [class.race-state-pill--current]="i === currentRaceIndex" [class.race-state-pill--past]="i < currentRaceIndex" [class.race-state-pill--future]="i > currentRaceIndex">
                       {{ getMobileRaceStateLabel(race, i) }}
                     </span>
+                    <span class="cancelled-pill" *ngIf="race.cancelled">Cancellata</span>
                     <span class="panel-chevron" aria-hidden="true">
                       <mat-icon>expand_more</mat-icon>
                     </span>
@@ -344,6 +350,11 @@ import { RaceDetails } from '../../services/race-detail.service';
       background: linear-gradient(90deg, rgba(200, 16, 46, 0.1), rgba(200, 16, 46, 0.02));
     }
 
+    .dashboard-table tr.cancelled-race {
+      background: repeating-linear-gradient(135deg, rgba(17, 18, 20, 0.05) 0 8px, rgba(17, 18, 20, 0.02) 8px 16px);
+      opacity: 0.74;
+    }
+
     .dashboard-table td.round-number {
       width: 72px;
       text-align: center;
@@ -357,6 +368,27 @@ import { RaceDetails } from '../../services/race-detail.service';
       color: var(--mm-black);
       line-height: 1.24;
       margin-bottom: 2px;
+    }
+
+    .cancelled-pill {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      margin-left: 0.4rem;
+      padding: 0.18rem 0.48rem;
+      border-radius: 999px;
+      background: #111214;
+      color: #fff;
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+
+    .cancelled-pill-mobile {
+      margin-left: 0;
+      margin-bottom: 0.15rem;
     }
 
     .event-location {
@@ -755,6 +787,11 @@ import { RaceDetails } from '../../services/race-detail.service';
       color: rgba(255, 255, 255, 0.74);
     }
 
+    .calendar-race-panel--cancelled {
+      opacity: 0.78;
+      filter: grayscale(0.25);
+    }
+
     .calendar-race-panel .panel-chevron {
       display: inline-flex;
       align-items: center;
@@ -1077,6 +1114,7 @@ export class CalendarComponent implements OnInit {
     const now = new Date();
     const nextRaceIndex = this.calendar.findIndex(race =>
       (() => {
+        if (race.cancelled) return false;
         const eventDate = DateUtils.parseLocalYyyyMmDd(race.event_date);
         return eventDate ? eventDate >= now : false;
       })()
@@ -1159,6 +1197,8 @@ export class CalendarComponent implements OnInit {
     }
 
     getRaceCompletionLabel(race: CalendarRace): string {
+      if (race.cancelled) return 'Cancellata';
+
       const completed = [
         this.hasCompletedLineup(race),
         this.hasCompletedSprintBet(race),
@@ -1171,6 +1211,8 @@ export class CalendarComponent implements OnInit {
     }
 
     getMobileRaceStateLabel(race: CalendarRace, index?: number): string {
+      if (race.cancelled) return 'Cancellata';
+
       const safeIndex = index ?? this.calendar.findIndex(item => item.id === race.id);
       if (safeIndex === this.currentRaceIndex) {
         return this.isRaceInPast(race) ? 'Ultima gara' : 'Prossima gara';

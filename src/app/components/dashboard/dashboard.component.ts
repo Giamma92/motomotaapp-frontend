@@ -314,6 +314,10 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
                   <section class="race-info-section race-overview">
                     <div class="race-overview-main">
                       <h2 class="grand-prix-name">{{ nextCalendarRace.race_id.name }}</h2>
+                      <span class="cancelled-race-banner" *ngIf="nextCalendarRace.cancelled">
+                        <i class="fa-solid fa-ban"></i>
+                        Gara cancellata
+                      </span>
                       <div class="race-meta-inline" [attr.aria-label]="'Race meta'">
                         <span class="meta-pill meta-pill--compact">
                           <i class="fa-solid fa-calendar-days"></i>
@@ -874,6 +878,7 @@ export class DashboardComponent implements OnInit {
 
   getPrimaryActionRoute(): string {
     if (!this.nextCalendarRace) return 'calendar';
+    if (this.nextCalendarRace.cancelled) return 'race-detail';
     if (this.showLineupsButton && !this.hasCompletedLineup(this.nextCalendarRace.id)) return 'lineups';
     if (this.showSprintBetButton && !this.hasCompletedSprintBet(this.nextCalendarRace.id)) return 'sprint-bet';
     if (this.showPlaceBetButton && !this.hasCompletedRaceBet(this.nextCalendarRace.id)) return 'race-bet';
@@ -882,6 +887,7 @@ export class DashboardComponent implements OnInit {
 
   getPrimaryActionLabel(): string {
     if (!this.nextCalendarRace) return 'Apri calendario';
+    if (this.nextCalendarRace.cancelled) return 'Apri gara cancellata';
     const route = this.getPrimaryActionRoute();
     if (route === 'lineups') return 'Completa schieramento';
     if (route === 'sprint-bet') return 'Inserisci sprint bet';
@@ -891,6 +897,7 @@ export class DashboardComponent implements OnInit {
 
   getPrimaryActionTitle(): string {
     if (!this.nextCalendarRace) return 'Nessuna gara imminente';
+    if (this.nextCalendarRace.cancelled) return 'Gara cancellata';
     if (this.showLineupsButton && !this.hasCompletedLineup(this.nextCalendarRace.id)) return 'Ti manca ancora lo schieramento';
     if (this.showSprintBetButton && !this.hasCompletedSprintBet(this.nextCalendarRace.id)) return 'Sprint bet ancora da completare';
     if (this.showPlaceBetButton && !this.hasCompletedRaceBet(this.nextCalendarRace.id)) return 'Race bet ancora da completare';
@@ -899,6 +906,7 @@ export class DashboardComponent implements OnInit {
 
   getPrimaryActionDescription(): string {
     if (!this.nextCalendarRace) return 'Appena sara disponibile una nuova gara, troverai qui la prossima azione utile.';
+    if (this.nextCalendarRace.cancelled) return 'Questa gara e stata segnata come cancellata: azioni e calcolo classifica sono bloccati.';
     if (this.showLineupsButton && !this.hasCompletedLineup(this.nextCalendarRace.id)) return 'Imposta subito qualifica e gara per evitare errori dell’ultimo minuto.';
     if (this.showSprintBetButton && !this.hasCompletedSprintBet(this.nextCalendarRace.id)) return 'Hai la finestra sprint aperta: completa ora la giocata con punti e posizione.';
     if (this.showPlaceBetButton && !this.hasCompletedRaceBet(this.nextCalendarRace.id)) return 'La finestra race bet e aperta. Chiudi la gara in pochi tap.';
@@ -906,6 +914,7 @@ export class DashboardComponent implements OnInit {
   }
 
   getRaceWindowStatus(): string {
+    if (this.nextCalendarRace?.cancelled) return 'Gara cancellata';
     if (this.showLineupsButton) return 'Finestra schieramenti aperta';
     if (this.showSprintBetButton) return 'Finestra sprint aperta';
     if (this.showPlaceBetButton) return 'Finestra race aperta';

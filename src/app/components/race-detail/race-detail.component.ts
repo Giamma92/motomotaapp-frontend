@@ -76,6 +76,10 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
           <section class="page-race-hero" *ngIf="calendarRace">
             <div class="page-race-hero-main">
               <div class="race-kicker">{{ 'raceDetail.info.raceName' | t }}</div>
+              <span class="cancelled-race-banner" *ngIf="calendarRace.cancelled">
+                <i class="fa-solid fa-ban"></i>
+                Gara cancellata
+              </span>
               <h2 class="race-title">{{ raceName || ('common.na' | t) }}</h2>
               <div class="race-date-row">
                 <i class="fa-solid fa-calendar-day"></i>
@@ -295,6 +299,18 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                   <button mat-raised-button color="warn" class="admin-action-button" (click)="onForceRecalculateStandings()" [disabled]="busy || !calendarRace">
                     <i class="fa-solid fa-rotate-right"></i>
                     Forza ricalcolo classifica
+                  </button>
+                </section>
+
+                <section class="admin-actions-row admin-actions-row-danger">
+                  <div class="action-copy">
+                    <span class="action-eyebrow">Calendario</span>
+                    <strong class="action-heading">{{ calendarRace?.cancelled ? 'Riattiva gara' : 'Segna gara cancellata' }}</strong>
+                    <span class="action-note">Mostra la gara come cancellata e blocca lineup, bet e calcolo classifica.</span>
+                  </div>
+                  <button mat-raised-button color="warn" class="admin-action-button" (click)="onToggleRaceCancelled()" [disabled]="busy || !calendarRace">
+                    <i class="fa-solid" [class.fa-rotate-left]="calendarRace?.cancelled" [class.fa-ban]="!calendarRace?.cancelled"></i>
+                    {{ calendarRace?.cancelled ? 'Riattiva gara' : 'Segna cancellata' }}
                   </button>
                 </section>
               </div>
@@ -813,8 +829,20 @@ export class RaceDetailComponent implements OnInit {
     this.busy = true;
     this.notificationService.showSuccess('admin.actions.fillStarted');
     this.raceDetailService.fillMissingLineups(this.calendarRace.championship_id, this.calendarRace.id).subscribe({
-      next: () => {
-        this.notificationService.showSuccess('admin.actions.fillSuccess');
+      next: (result) => {
+        const inserted = Number(result?.inserted ?? 0);
+        const missingUsers = Number(result?.missingUsers ?? 0);
+        const withoutPreviousLineup = Number(result?.withoutPreviousLineup ?? 0);
+
+        if (inserted > 0) {
+          this.notificationService.showSuccessMessage(`Inserite ${inserted} lineup automatiche.`);
+        } else if (missingUsers === 0) {
+          this.notificationService.showSuccessMessage('Tutti gli utenti hanno gia una lineup per questa gara.');
+        } else if (withoutPreviousLineup > 0) {
+          this.notificationService.showSuccessMessage(`Nessuna lineup inserita: ${withoutPreviousLineup} utenti non hanno lineup precedenti da copiare.`);
+        } else {
+          this.notificationService.showSuccess('admin.actions.fillSuccess');
+        }
         // refresh
         this.raceDetailService.getRaceDetails(this.calendarRace!.championship_id, String(this.calendarRace!.id)).subscribe({
           next: (data) => {
@@ -840,6 +868,25 @@ export class RaceDetailComponent implements OnInit {
   onForceRecalculateStandings(): void {
     if (!this.calendarRace) return;
     this.runStandingsUpdate(true);
+  }
+
+  onToggleRaceCancelled(): void {
+    if (!this.calendarRace) return;
+
+    const nextCancelled = !this.calendarRace.cancelled;
+    this.busy = true;
+    this.dashboardService.setCalendarRaceCancelled(this.calendarRace.championship_id, this.calendarRace.id, nextCancelled).subscribe({
+      next: (race) => {
+        this.calendarRace = race;
+        this.raceName = race?.race_id?.name ?? this.raceName;
+        this.notificationService.showSuccessMessage(nextCancelled ? 'Gara segnata come cancellata.' : 'Gara riattivata.');
+      },
+      error: (err) => {
+        console.error(err);
+        this.notificationService.showErrorMessage('Errore durante l\'aggiornamento dello stato gara. Verifica che la colonna calendar.cancelled esista nel database.');
+      },
+      complete: () => this.busy = false
+    });
   }
 
   onSetOutcome(kind: 'SPR'|'RAC', outcome: boolean): void {

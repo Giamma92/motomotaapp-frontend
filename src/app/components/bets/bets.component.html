@@ -33,13 +33,14 @@
       <section class="rider-picker">
         <div class="picker-copy">
           <h3>Scegli il pilota</h3>
-          <p>Le opzioni non disponibili restano visibili, cosi capisci subito il motivo del blocco.</p>
+          <p>Scorri solo la lista piloti: posizione, punti e pulsanti restano subito sotto controllo.</p>
         </div>
-        <div class="rider-grid">
+        <div class="rider-grid" role="list" aria-label="Lista piloti selezionabili">
           <button
             type="button"
             class="rider-card"
             *ngFor="let rider of availableRiders"
+            role="listitem"
             [class.selected]="selectedRiderId === rider.rider_id.id"
             [class.unavailable]="isRiderUnavailable(rider)"
             (click)="selectRiderCard(rider.rider_id.id)"

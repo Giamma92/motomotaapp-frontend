@@ -20,6 +20,7 @@ export interface StandingsBreakdownRow {
     id: number;
     race_order: number;
     event_date: string;
+    cancelled?: boolean;
     race_id: {
       name: string;
       location: string;
@@ -51,6 +52,7 @@ export interface CalendarRace {
   qualifications_time?: string; // ISO string for the qualification start time
   sprint_time?: string;         // ISO string for the sprint start time
   race_order: number;
+  cancelled?: boolean;
 }
 
 export interface Rider {
@@ -125,6 +127,10 @@ export class DashboardService {
 
   getNextRace(championshipId: number): Observable<CalendarRace> {
     return this.httpService.genericGet<CalendarRace>(`championship/${championshipId}/next-race`);
+  }
+
+  setCalendarRaceCancelled(championshipId: number, calendarId: number, cancelled: boolean): Observable<CalendarRace> {
+    return this.httpService.genericPatch<CalendarRace>(`championship/${championshipId}/calendar/${calendarId}/cancelled`, { cancelled });
   }
 
   getAllFantasyTeams(championshipId: number): Observable<FantasyTeam[]> {

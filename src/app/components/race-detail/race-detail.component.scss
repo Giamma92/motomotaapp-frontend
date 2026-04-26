@@ -398,6 +398,26 @@ app-race-detail {
     background: #ed6c02;
   }
 
+  .admin-actions-row-danger::before {
+    background: #7f1d1d;
+  }
+
+  .cancelled-race-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: fit-content;
+    margin: 0.35rem 0 0.15rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 999px;
+    background: #111214;
+    color: #fff;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.18px;
+    text-transform: uppercase;
+  }
+
   .action-copy {
     display: grid;
     gap: 0.2rem;

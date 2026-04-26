@@ -55,6 +55,13 @@ export interface RaceDetails {
   motogpResults: MotoGPStoredResult[];
 }
 
+export interface FillMissingLineupsResult {
+  inserted: number;
+  missingUsers: number;
+  withoutPreviousLineup: number;
+  message?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -86,7 +93,7 @@ export class RaceDetailService {
   // Bulk copy last race lineups for users missing current race lineups
   fillMissingLineups(championshipId: number, calendarId: number) {
     // Supabase Edge Function endpoint URL (adjust base)
-    return this.httpService.genericGet(`championship/${championshipId}/races/${calendarId}/fill-missing-lineups`);
+    return this.httpService.genericGet<FillMissingLineupsResult>(`championship/${championshipId}/races/${calendarId}/fill-missing-lineups`);
   }
 
   // Bulk set bet outcomes (SPR or RAC) to true/false for current race

@@ -47,6 +47,11 @@ export class HttpService {
     return this.http.post<T>(`${this.apiUrl}/${url}`, payload, { headers });
   }
 
+  genericPatch<T>(url: string, payload: any): Observable<T> {
+    const headers = this.authService.getAuthHeader();
+    return this.http.patch<T>(`${this.apiUrl}/${url}`, payload, { headers });
+  }
+
   /**
    * Generic DELETE request
    * @param url - The URL to make the request to
