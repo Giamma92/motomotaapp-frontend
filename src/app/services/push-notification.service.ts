@@ -1,119 +1,151 @@
-import { Injectable, OnDestroy, NgZone } from '@angular/core';
-import { SwPush } from '@angular/service-worker';
+import { Injectable, NgZone } from '@angular/core';
 import { HttpService } from './http.service';
 import { AuthService } from './auth.service';
-import { Subject, firstValueFrom } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
+
+export interface PushStatus {
+  swAvailable: boolean;
+  swRegistered: boolean;
+  swReady: boolean;
+  permission: NotificationPermission | 'unsupported';
+  subscribed: boolean;
+  error: string | null;
+}
 
 @Injectable({
   providedIn: 'root'
 })
-export class PushNotificationService implements OnDestroy {
-  private currentEndpoint?: string;
+export class PushNotificationService {
   private cachedPublicKey?: string;
+  private currentSub?: PushSubscription;
 
-  private subscribedSubject = new Subject<boolean>();
-  subscribed$ = this.subscribedSubject.asObservable();
-
-  get isSwEnabled(): boolean {
-    return this.swPush.isEnabled;
-  }
-
-  get isSubscribed(): boolean {
-    return !!this.currentEndpoint;
-  }
+  private statusSubject = new BehaviorSubject<PushStatus>({
+    swAvailable: 'serviceWorker' in navigator,
+    swRegistered: false,
+    swReady: false,
+    permission: 'unsupported',
+    subscribed: false,
+    error: null
+  });
+  status$ = this.statusSubject.asObservable();
 
   constructor(
-    private swPush: SwPush,
     private httpService: HttpService,
     private authService: AuthService,
     private zone: NgZone
   ) {
-    if (!this.authService.getToken() || !this.swPush.isEnabled) return;
-    this.checkExistingSubscription();
-    this.cacheVapidKey();
+    if (!this.authService.getToken()) return;
+    this.init();
   }
 
-  private async checkExistingSubscription(): Promise<void> {
+  private async init(): Promise<void> {
+    const swOk = 'serviceWorker' in navigator;
+    if (!swOk) return;
+
+    const perm = Notification.permission as NotificationPermission;
+    this.updateStatus({ permission: perm });
+
+    // Pre-cache VAPID key early so requestSubscription has no async dependency
+    this.cacheVapidKey();
+
+    // Check existing subscription
     try {
-      const sub = await firstValueFrom(this.swPush.subscription);
+      const reg = await navigator.serviceWorker.ready;
+      this.updateStatus({ swReady: true });
+
+      const sub = await reg.pushManager.getSubscription();
       if (sub) {
-        this.currentEndpoint = sub.endpoint;
-        this.zone.run(() => this.subscribedSubject.next(true));
+        this.currentSub = sub;
+        this.updateStatus({ subscribed: true });
       }
     } catch {
-      // no existing subscription
+      // SW not ready yet
     }
   }
 
   private async cacheVapidKey(): Promise<void> {
     try {
-      const resp = await firstValueFrom(
-        this.httpService.genericGet<{ publicKey: string }>('push/vapid-public-key')
-      );
+      const resp = await this.httpService.genericGet<{ publicKey: string }>('push/vapid-public-key').toPromise();
       this.cachedPublicKey = resp?.publicKey;
     } catch {
-      // will retry on requestSubscription
+      // will retry
     }
   }
 
   async requestSubscription(): Promise<boolean> {
-    if (!this.swPush.isEnabled) return false;
-    if (this.currentEndpoint) return true;
-
-    if (!this.cachedPublicKey) {
-      try {
-        const resp = await firstValueFrom(
-          this.httpService.genericGet<{ publicKey: string }>('push/vapid-public-key')
-        );
-        this.cachedPublicKey = resp?.publicKey;
-      } catch {
-        return false;
-      }
+    const status = this.statusSubject.value;
+    if (!status.swAvailable) {
+      this.updateStatus({ error: 'Service Worker non supportato' });
+      return false;
     }
+    if (status.subscribed && this.currentSub) return true;
 
     try {
-      const newSub = await this.swPush.requestSubscription({
-        serverPublicKey: this.cachedPublicKey
+      // 1) Wait for SW to be ready (this is fine, it resolves immediately if already active)
+      const reg = await navigator.serviceWorker.ready;
+      this.updateStatus({ swReady: true });
+
+      // 2) Get or fetch VAPID key
+      let key = this.cachedPublicKey;
+      if (!key) {
+        const resp = await this.httpService.genericGet<{ publicKey: string }>('push/vapid-public-key').toPromise();
+        key = resp?.publicKey;
+        this.cachedPublicKey = key;
+      }
+      if (!key) {
+        this.updateStatus({ error: 'Chiave VAPID non disponibile' });
+        return false;
+      }
+
+      // 3) Subscribe using raw Push API (no SwPush dependency)
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: this.urlBase64ToUint8Array(key) as BufferSource | string
       });
 
-      this.currentEndpoint = newSub.endpoint;
+      this.currentSub = sub;
 
-      await firstValueFrom(
-        this.httpService.genericPost('push/subscribe', {
-          endpoint: newSub.endpoint,
-          keys: {
-            p256dh: this.arrayBufferToBase64(newSub.getKey('p256dh')),
-            auth: this.arrayBufferToBase64(newSub.getKey('auth'))
-          }
-        })
-      );
+      // 4) Save subscription to backend
+      await this.httpService.genericPost('push/subscribe', {
+        endpoint: sub.endpoint,
+        keys: {
+          p256dh: this.arrayBufferToBase64(sub.getKey('p256dh')),
+          auth: this.arrayBufferToBase64(sub.getKey('auth'))
+        }
+      }).toPromise();
 
-      this.zone.run(() => this.subscribedSubject.next(true));
+      this.updateStatus({ subscribed: true, error: null });
       return true;
-    } catch (err) {
-      console.warn('Push subscription failed:', err);
+    } catch (err: any) {
+      this.updateStatus({ error: err?.message || err?.toString() || 'Errore sconosciuto' });
       return false;
     }
   }
 
   async unsubscribe(): Promise<void> {
-    if (!this.currentEndpoint || !this.swPush.isEnabled) return;
+    if (!this.currentSub) return;
 
     try {
-      await firstValueFrom(
-        this.httpService.genericPost('push/unsubscribe', { endpoint: this.currentEndpoint })
-      );
-
-      const sub = await firstValueFrom(this.swPush.subscription);
-      if (sub) {
-        await sub.unsubscribe();
-      }
-
-      this.currentEndpoint = undefined;
-      this.zone.run(() => this.subscribedSubject.next(false));
-    } catch (err) {
-      console.warn('Push unsubscribe failed:', err);
+      await this.httpService.genericPost('push/unsubscribe', { endpoint: this.currentSub.endpoint }).toPromise();
+      await this.currentSub.unsubscribe();
+      this.currentSub = undefined;
+      this.updateStatus({ subscribed: false, error: null });
+    } catch (err: any) {
+      this.updateStatus({ error: err?.message || 'Errore unsubscribe' });
     }
+  }
+
+  private updateStatus(partial: Partial<PushStatus>): void {
+    this.zone.run(() => {
+      this.statusSubject.next({ ...this.statusSubject.value, ...partial });
+    });
+  }
+
+  private urlBase64ToUint8Array(base64: string): Uint8Array {
+    const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+    const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(b64);
+    return Uint8Array.from([...raw].map(ch => ch.charCodeAt(0)));
   }
 
   private arrayBufferToBase64(buffer: ArrayBuffer | null): string {
@@ -124,9 +156,5 @@ export class PushNotificationService implements OnDestroy {
       binary += String.fromCharCode(bytes[i]);
     }
     return btoa(binary);
-  }
-
-  ngOnDestroy(): void {
-    // nothing to clean up
   }
 }

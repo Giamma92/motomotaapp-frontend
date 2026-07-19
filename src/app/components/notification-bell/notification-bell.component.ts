@@ -35,6 +35,11 @@ import { Subscription } from 'rxjs';
             <span>Nessuna notifica</span>
           </div>
 
+          <div class="push-error" *ngIf="pushError">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>{{ pushError }}</span>
+          </div>
+
           <div
             class="notification-item"
             *ngFor="let notif of notifications.slice(0, 20)"
@@ -151,6 +156,19 @@ import { Subscription } from 'rxjs';
     .notification-empty span {
       font-size: 13px;
     }
+    .push-error {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(239,83,80,0.1);
+      color: #ef5350;
+      font-size: 12px;
+      border-top: 1px solid #333;
+    }
+    .push-error i {
+      font-size: 14px;
+    }
     .notification-item {
       display: flex;
       align-items: flex-start;
@@ -224,9 +242,11 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
   isOpen = false;
   unreadCount = 0;
   notifications: InAppNotification[] = [];
+  pushError: string | null = null;
 
   private unreadSub?: Subscription;
   private notifSub?: Subscription;
+  private pushSub?: Subscription;
   private closeHandler?: (e: MouseEvent) => void;
   constructor(
     private notificationService: InAppNotificationService,
@@ -240,6 +260,10 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     });
     this.notifSub = this.notificationService.notifications$.subscribe(notifs => {
       this.notifications = notifs;
+    });
+
+    this.pushSub = this.pushService.status$.subscribe(s => {
+      if (s.error) this.pushError = s.error;
     });
 
     this.notificationService.pollNow();
@@ -256,6 +280,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.unreadSub?.unsubscribe();
     this.notifSub?.unsubscribe();
+    this.pushSub?.unsubscribe();
     if (this.closeHandler) {
       document.removeEventListener('click', this.closeHandler);
     }
@@ -263,7 +288,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
 
   toggleDropdown(): void {
     this.isOpen = !this.isOpen;
-    if (this.isOpen && this.pushService.isSwEnabled && !this.pushService.isSubscribed) {
+    if (this.isOpen) {
       this.pushService.requestSubscription();
     }
   }
