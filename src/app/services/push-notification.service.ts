@@ -1,8 +1,8 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, NgZone } from '@angular/core';
 import { SwPush } from '@angular/service-worker';
 import { HttpService } from './http.service';
 import { AuthService } from './auth.service';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription, firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -11,31 +11,51 @@ export class PushNotificationService implements OnDestroy {
   private sub?: Subscription;
   private currentEndpoint?: string;
 
+  private subscribedSubject = new Subject<boolean>();
+  subscribed$ = this.subscribedSubject.asObservable();
+
+  get isSwEnabled(): boolean {
+    return this.swPush.isEnabled;
+  }
+
+  get isSubscribed(): boolean {
+    return !!this.currentEndpoint;
+  }
+
   constructor(
     private swPush: SwPush,
     private httpService: HttpService,
-    private authService: AuthService
+    private authService: AuthService,
+    private zone: NgZone
   ) {
     if (this.authService.getToken() && this.swPush.isEnabled) {
-      this.trySubscribe();
+      this.checkExistingSubscription();
     }
   }
 
-  async trySubscribe(): Promise<void> {
-    if (!this.swPush.isEnabled) return;
-
+  private async checkExistingSubscription(): Promise<void> {
     try {
-      const sub = await this.swPush.subscription;
+      const sub = await firstValueFrom(this.swPush.subscription);
       if (sub) {
         this.currentEndpoint = sub.endpoint;
-        return;
+        this.zone.run(() => this.subscribedSubject.next(true));
       }
+    } catch {
+      // no existing subscription
+    }
+  }
 
-      const { publicKey } = await this.httpService
-        .genericGet<{ publicKey: string }>('push/vapid-public-key')
-        .toPromise();
+  async requestSubscription(): Promise<boolean> {
+    if (!this.swPush.isEnabled) return false;
+    if (this.currentEndpoint) return true;
 
-      if (!publicKey) return;
+    try {
+      const resp = await firstValueFrom(
+        this.httpService.genericGet<{ publicKey: string }>('push/vapid-public-key')
+      );
+
+      if (!resp?.publicKey) return false;
+      const publicKey = resp.publicKey;
 
       const newSub = await this.swPush.requestSubscription({
         serverPublicKey: publicKey
@@ -43,17 +63,21 @@ export class PushNotificationService implements OnDestroy {
 
       this.currentEndpoint = newSub.endpoint;
 
-      await this.httpService
-        .genericPost('push/subscribe', {
+      await firstValueFrom(
+        this.httpService.genericPost('push/subscribe', {
           endpoint: newSub.endpoint,
           keys: {
             p256dh: this.arrayBufferToBase64(newSub.getKey('p256dh')),
             auth: this.arrayBufferToBase64(newSub.getKey('auth'))
           }
         })
-        .toPromise();
+      );
+
+      this.zone.run(() => this.subscribedSubject.next(true));
+      return true;
     } catch (err) {
       console.warn('Push subscription failed:', err);
+      return false;
     }
   }
 
@@ -61,16 +85,17 @@ export class PushNotificationService implements OnDestroy {
     if (!this.currentEndpoint || !this.swPush.isEnabled) return;
 
     try {
-      await this.httpService
-        .genericPost('push/unsubscribe', { endpoint: this.currentEndpoint })
-        .toPromise();
+      await firstValueFrom(
+        this.httpService.genericPost('push/unsubscribe', { endpoint: this.currentEndpoint })
+      );
 
-      const sub = await this.swPush.subscription;
+      const sub = await firstValueFrom(this.swPush.subscription);
       if (sub) {
         await sub.unsubscribe();
       }
 
       this.currentEndpoint = undefined;
+      this.zone.run(() => this.subscribedSubject.next(false));
     } catch (err) {
       console.warn('Push unsubscribe failed:', err);
     }

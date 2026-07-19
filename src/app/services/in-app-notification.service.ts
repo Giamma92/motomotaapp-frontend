@@ -77,6 +77,10 @@ export class InAppNotificationService implements OnDestroy {
     return this.httpService.genericPut<{ success: boolean }>('notifications/read-all', {});
   }
 
+  deleteReadNotifications(): Observable<{ success: boolean }> {
+    return this.httpService.genericDelete<{ success: boolean }>('notifications/read');
+  }
+
   getSettings(championshipId: number): Observable<NotificationSettings> {
     return this.httpService.genericGet<NotificationSettings>(`notification-settings/${championshipId}`);
   }

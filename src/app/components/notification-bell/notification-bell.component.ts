@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { InAppNotificationService, InAppNotification } from '../../services/in-app-notification.service';
+import { PushNotificationService } from '../../services/push-notification.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -18,9 +19,14 @@ import { Subscription } from 'rxjs';
       <div class="notification-dropdown" *ngIf="isOpen" (click)="$event.stopPropagation()">
         <div class="dropdown-header">
           <span class="dropdown-title">Notifiche</span>
-          <button class="mark-all-read-btn" *ngIf="unreadCount > 0" (click)="markAllRead()">
-            Segna tutte come lette
-          </button>
+          <div class="dropdown-actions">
+            <button class="mark-all-read-btn" *ngIf="unreadCount > 0" (click)="markAllRead()">
+              Segna tutte come lette
+            </button>
+            <button class="clear-read-btn" *ngIf="notifications.length > 0" (click)="deleteRead()">
+              Cancella lette
+            </button>
+          </div>
         </div>
 
         <div class="dropdown-body">
@@ -91,6 +97,8 @@ import { Subscription } from 'rxjs';
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
       padding: 12px 16px;
       border-bottom: 1px solid #333;
     }
@@ -99,17 +107,30 @@ import { Subscription } from 'rxjs';
       font-size: 14px;
       color: #eee;
     }
-    .mark-all-read-btn {
+    .dropdown-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mark-all-read-btn, .clear-read-btn {
       background: none;
       border: none;
-      color: #90caf9;
       font-size: 12px;
       cursor: pointer;
       padding: 4px 8px;
       border-radius: 6px;
     }
+    .mark-all-read-btn {
+      color: #90caf9;
+    }
     .mark-all-read-btn:hover {
       background: rgba(144,202,249,0.1);
+    }
+    .clear-read-btn {
+      color: #ef9a9a;
+    }
+    .clear-read-btn:hover {
+      background: rgba(239,154,154,0.1);
     }
     .dropdown-body {
       overflow-y: auto;
@@ -207,9 +228,11 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
   private unreadSub?: Subscription;
   private notifSub?: Subscription;
   private closeHandler?: (e: MouseEvent) => void;
+  private pushAttempted = false;
 
   constructor(
     private notificationService: InAppNotificationService,
+    private pushService: PushNotificationService,
     private router: Router
   ) {}
 
@@ -240,10 +263,20 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
 
   toggleDropdown(): void {
     this.isOpen = !this.isOpen;
+    if (this.isOpen && !this.pushAttempted && this.pushService.isSwEnabled && !this.pushService.isSubscribed) {
+      this.pushAttempted = true;
+      this.pushService.requestSubscription();
+    }
   }
 
   markAllRead(): void {
     this.notificationService.markAllAsRead().subscribe(() => {
+      this.notificationService.pollNow();
+    });
+  }
+
+  deleteRead(): void {
+    this.notificationService.deleteReadNotifications().subscribe(() => {
       this.notificationService.pollNow();
     });
   }
@@ -265,8 +298,6 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
   getIcon(category: string): string {
     switch (category) {
       case 'lineup': return 'fa-flag-checkered';
-      case 'race_bet': return 'fa-money-bill';
-      case 'sprint_bet': return 'fa-bolt';
       case 'score_update': return 'fa-chart-line';
       case 'standing_change': return 'fa-ranking-star';
       case 'race_cancelled': return 'fa-ban';
