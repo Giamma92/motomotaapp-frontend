@@ -228,8 +228,6 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
   private unreadSub?: Subscription;
   private notifSub?: Subscription;
   private closeHandler?: (e: MouseEvent) => void;
-  private pushAttempted = false;
-
   constructor(
     private notificationService: InAppNotificationService,
     private pushService: PushNotificationService,
@@ -263,8 +261,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
 
   toggleDropdown(): void {
     this.isOpen = !this.isOpen;
-    if (this.isOpen && !this.pushAttempted && this.pushService.isSwEnabled && !this.pushService.isSubscribed) {
-      this.pushAttempted = true;
+    if (this.isOpen && this.pushService.isSwEnabled && !this.pushService.isSubscribed) {
       this.pushService.requestSubscription();
     }
   }

@@ -2,14 +2,14 @@ import { Injectable, OnDestroy, NgZone } from '@angular/core';
 import { SwPush } from '@angular/service-worker';
 import { HttpService } from './http.service';
 import { AuthService } from './auth.service';
-import { Subject, Subscription, firstValueFrom } from 'rxjs';
+import { Subject, firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PushNotificationService implements OnDestroy {
-  private sub?: Subscription;
   private currentEndpoint?: string;
+  private cachedPublicKey?: string;
 
   private subscribedSubject = new Subject<boolean>();
   subscribed$ = this.subscribedSubject.asObservable();
@@ -28,9 +28,9 @@ export class PushNotificationService implements OnDestroy {
     private authService: AuthService,
     private zone: NgZone
   ) {
-    if (this.authService.getToken() && this.swPush.isEnabled) {
-      this.checkExistingSubscription();
-    }
+    if (!this.authService.getToken() || !this.swPush.isEnabled) return;
+    this.checkExistingSubscription();
+    this.cacheVapidKey();
   }
 
   private async checkExistingSubscription(): Promise<void> {
@@ -45,20 +45,35 @@ export class PushNotificationService implements OnDestroy {
     }
   }
 
-  async requestSubscription(): Promise<boolean> {
-    if (!this.swPush.isEnabled) return false;
-    if (this.currentEndpoint) return true;
-
+  private async cacheVapidKey(): Promise<void> {
     try {
       const resp = await firstValueFrom(
         this.httpService.genericGet<{ publicKey: string }>('push/vapid-public-key')
       );
+      this.cachedPublicKey = resp?.publicKey;
+    } catch {
+      // will retry on requestSubscription
+    }
+  }
 
-      if (!resp?.publicKey) return false;
-      const publicKey = resp.publicKey;
+  async requestSubscription(): Promise<boolean> {
+    if (!this.swPush.isEnabled) return false;
+    if (this.currentEndpoint) return true;
 
+    if (!this.cachedPublicKey) {
+      try {
+        const resp = await firstValueFrom(
+          this.httpService.genericGet<{ publicKey: string }>('push/vapid-public-key')
+        );
+        this.cachedPublicKey = resp?.publicKey;
+      } catch {
+        return false;
+      }
+    }
+
+    try {
       const newSub = await this.swPush.requestSubscription({
-        serverPublicKey: publicKey
+        serverPublicKey: this.cachedPublicKey
       });
 
       this.currentEndpoint = newSub.endpoint;
@@ -112,6 +127,6 @@ export class PushNotificationService implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.sub?.unsubscribe();
+    // nothing to clean up
   }
 }
