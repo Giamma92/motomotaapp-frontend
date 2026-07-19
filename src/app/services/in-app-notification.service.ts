@@ -41,9 +41,7 @@ export class InAppNotificationService implements OnDestroy {
     private httpService: HttpService,
     private authService: AuthService
   ) {
-    if (this.authService.getToken()) {
-      this.startPolling();
-    }
+    this.startPolling();
   }
 
   startPolling(intervalMs = 30000): void {

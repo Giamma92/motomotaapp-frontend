@@ -242,6 +242,8 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
       this.notifications = notifs;
     });
 
+    this.notificationService.pollNow();
+
     this.closeHandler = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!target.closest('.notification-bell-wrapper')) {
