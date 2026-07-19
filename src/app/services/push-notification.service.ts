@@ -66,9 +66,16 @@ export class PushNotificationService {
   private async cacheVapidKey(): Promise<void> {
     try {
       const resp = await this.httpService.genericGet<{ publicKey: string }>('push/vapid-public-key').toPromise();
-      this.cachedPublicKey = resp?.publicKey;
+      if (!resp) {
+        this.updateStatus({ error: 'Nessuna risposta dal server (verifica deploy backend)' });
+        return;
+      }
+      this.cachedPublicKey = resp.publicKey;
+      if (!this.cachedPublicKey) {
+        this.updateStatus({ error: 'Chiave VAPID mancante nel backend (aggiungi VAPID_PUBLIC_KEY su Vercel)' });
+      }
     } catch {
-      // will retry
+      this.updateStatus({ error: 'Impossibile contattare il backend (verifica URL API e CORS)' });
     }
   }
 
@@ -88,12 +95,17 @@ export class PushNotificationService {
       // 2) Get or fetch VAPID key
       let key = this.cachedPublicKey;
       if (!key) {
-        const resp = await this.httpService.genericGet<{ publicKey: string }>('push/vapid-public-key').toPromise();
-        key = resp?.publicKey;
-        this.cachedPublicKey = key;
+        try {
+          const resp = await this.httpService.genericGet<{ publicKey: string }>('push/vapid-public-key').toPromise();
+          key = resp?.publicKey;
+          this.cachedPublicKey = key;
+        } catch {
+          this.updateStatus({ error: 'Errore nel recupero della chiave VAPID (backend non raggiungibile)' });
+          return false;
+        }
       }
       if (!key) {
-        this.updateStatus({ error: 'Chiave VAPID non disponibile' });
+        this.updateStatus({ error: 'Chiave VAPID non configurata su Vercel (manca VAPID_PUBLIC_KEY)' });
         return false;
       }
 
