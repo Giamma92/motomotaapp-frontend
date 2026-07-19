@@ -12,6 +12,7 @@ import { UserSettingsService } from '../../services/user-settings.service';
 import { I18nService } from '../../services/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationServiceService } from '../../services/notification.service';
+import { InAppNotificationService, NotificationSettings } from '../../services/in-app-notification.service';
 
 @Component({
   selector: 'app-settings',
@@ -68,6 +69,40 @@ import { NotificationServiceService } from '../../services/notification.service'
             <button mat-raised-button color="primary" (click)="save()" [disabled]="settingsForm.invalid || loading">{{ 'settings.save' | t }}</button>
           </div>
         </section>
+
+        <section class="settings-panel notification-settings-panel" *ngIf="selectedChampionshipId">
+          <div class="panel-head">
+            <h2>Notifiche</h2>
+          </div>
+
+          <div class="notification-toggles">
+            <label class="toggle-row">
+              <span class="toggle-label">Schieramenti</span>
+              <input type="checkbox" [checked]="notifSettings.lineup" (change)="toggleNotif('lineup', $event)" />
+              <span class="toggle-switch"></span>
+            </label>
+            <label class="toggle-row">
+              <span class="toggle-label">Aggiornamento punteggi</span>
+              <input type="checkbox" [checked]="notifSettings.score_update" (change)="toggleNotif('score_update', $event)" />
+              <span class="toggle-switch"></span>
+            </label>
+            <label class="toggle-row">
+              <span class="toggle-label">Cambio posizione classifica</span>
+              <input type="checkbox" [checked]="notifSettings.standing_change" (change)="toggleNotif('standing_change', $event)" />
+              <span class="toggle-switch"></span>
+            </label>
+            <label class="toggle-row">
+              <span class="toggle-label">Gara cancellata</span>
+              <input type="checkbox" [checked]="notifSettings.race_cancelled" (change)="toggleNotif('race_cancelled', $event)" />
+              <span class="toggle-switch"></span>
+            </label>
+            <label class="toggle-row">
+              <span class="toggle-label">Generali</span>
+              <input type="checkbox" [checked]="notifSettings.general" (change)="toggleNotif('general', $event)" />
+              <span class="toggle-switch"></span>
+            </label>
+          </div>
+        </section>
       </main>
     </div>
   `,
@@ -78,6 +113,14 @@ export class SettingsComponent implements OnInit {
   settingsForm: FormGroup;
   loading = false;
   successMessageKey = '';
+  notifSettings: NotificationSettings = {
+    lineup: true,
+    score_update: true,
+    standing_change: true,
+    race_cancelled: true,
+    general: true
+  };
+  selectedChampionshipId: number | null = null;
   languages = [
     { code: 'en', label: 'English' },
     { code: 'it', label: 'Italiano' },
@@ -93,11 +136,18 @@ export class SettingsComponent implements OnInit {
     private userSettingsService: UserSettingsService,
     private router: Router,
     private i18n: I18nService,
-    private notificationService: NotificationServiceService
+    private notificationService: NotificationServiceService,
+    private inAppNotificationService: InAppNotificationService
   ) {
     this.settingsForm = this.fb.group({
       championship_id: ['', Validators.required],
       language: ['', Validators.required],
+    });
+
+    this.settingsForm.get('championship_id')?.valueChanges.subscribe(champId => {
+      if (champId) {
+        this.loadNotificationSettings(champId);
+      }
     });
   }
 
@@ -114,6 +164,25 @@ export class SettingsComponent implements OnInit {
       },
       error: (err) => console.error('Error fetching championships', err),
     });
+  }
+
+  loadNotificationSettings(championshipId: number): void {
+    this.selectedChampionshipId = championshipId;
+    this.inAppNotificationService.getSettings(championshipId).subscribe({
+      next: (settings) => {
+        this.notifSettings = { ...this.notifSettings, ...settings };
+      },
+      error: () => {}
+    });
+  }
+
+  toggleNotif(category: keyof NotificationSettings, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.notifSettings[category] = checked;
+    if (this.selectedChampionshipId) {
+      this.inAppNotificationService.updateSettings(this.selectedChampionshipId, { [category]: checked })
+        .subscribe({ error: () => {} });
+    }
   }
 
   /** Fetch user settings */

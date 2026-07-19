@@ -17,6 +17,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 import { RaceDetails } from '../../services/race-detail.service';
 import { I18nService } from '../../services/i18n.service';
 import { DateUtils } from '../../utils/date-utils';
+import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 
 type Tab = 'standings' | 'next' | 'team' | 'config';
 
@@ -24,7 +25,7 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
   selector: 'app-dashboard',
   standalone: true,
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule, MatExpansionModule, TimeFormatPipe, TranslatePipe],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule, MatExpansionModule, TimeFormatPipe, TranslatePipe, NotificationBellComponent],
   animations: [
     trigger('cardAnimation', [
       transition(':enter', [
@@ -55,6 +56,8 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
             <i class="fa-solid fa-people-group"></i>
             <span>Teams</span>
           </button>
+
+          <app-notification-bell></app-notification-bell>
 
           <button mat-icon-button class="header-menu-btn app-nav-icon app-nav-icon--light" [matMenuTriggerFor]="menu" aria-label="Open dashboard menu">
             <i class="fa-solid fa-ellipsis-vertical"></i>
