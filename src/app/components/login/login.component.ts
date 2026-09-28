@@ -28,17 +28,68 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   ],
   template: `
     <div class="login-container">
+      <div class="login-speed" aria-hidden="true"></div>
+
       <section class="login-shell">
         <div class="hero-panel">
-          <div class="hero-kicker">Fanta Moto GP</div>
+          <span class="hero-checker" aria-hidden="true"></span>
+          <span class="hero-ghost" aria-hidden="true">GP</span>
+
+          <span class="hero-kicker"><span class="hero-kicker-inner">Fanta Moto GP</span></span>
+
           <div class="hero-brand">
-            <img src="assets/images/motomotaGPLogo512x512.png" alt="Moto Mota logo">
+            <svg class="hero-logo" viewBox="0 0 100 100" role="img" aria-label="Moto Mota logo">
+              <defs>
+                <linearGradient id="mm-ring" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#e8153a" />
+                  <stop offset="0.55" stop-color="#c8102e" />
+                  <stop offset="1" stop-color="#8f0b1e" />
+                </linearGradient>
+                <radialGradient id="mm-disc" cx="0.35" cy="0.28" r="0.95">
+                  <stop offset="0" stop-color="#ffffff" />
+                  <stop offset="0.7" stop-color="#f4f5f7" />
+                  <stop offset="1" stop-color="#dee1e6" />
+                </radialGradient>
+                <pattern id="mm-check" width="9" height="9" patternUnits="userSpaceOnUse">
+                  <rect width="9" height="9" fill="#141414" />
+                  <rect width="4.5" height="4.5" fill="#ffffff" />
+                  <rect x="4.5" y="4.5" width="4.5" height="4.5" fill="#ffffff" />
+                </pattern>
+                <clipPath id="mm-disc-clip">
+                  <circle cx="50" cy="50" r="43" />
+                </clipPath>
+              </defs>
+
+              <circle cx="50" cy="50" r="47.5" fill="url(#mm-ring)" />
+              <circle cx="50" cy="50" r="43" fill="url(#mm-disc)" />
+
+              <g clip-path="url(#mm-disc-clip)">
+                <rect x="0" y="73.5" width="100" height="2.5" fill="#c8102e" />
+                <rect x="0" y="76" width="100" height="40" fill="url(#mm-check)" />
+              </g>
+
+              <g font-family="'MotoGP Bold', 'Arial Black', sans-serif" font-weight="700" font-size="20"
+                 text-anchor="middle">
+                <text x="50" y="39" textLength="60" lengthAdjust="spacingAndGlyphs" fill="#d5102d"
+                      transform="translate(0,39) skewX(-8) translate(0,-39)">MOTO</text>
+                <text x="50" y="60" textLength="60" lengthAdjust="spacingAndGlyphs" fill="#141414"
+                      transform="translate(0,60) skewX(-8) translate(0,-60)">MOTA</text>
+              </g>
+            </svg>
             <h1 class="hero-title">Moto Mota</h1>
           </div>
+
           <p class="hero-subtitle">
             <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
             <span>Fantasy MotoGP, semplice e veloce.</span>
           </p>
+
+          <ul class="hero-chips">
+            <li><mat-icon aria-hidden="true">leaderboard</mat-icon>Classifiche</li>
+            <li><mat-icon aria-hidden="true">groups</mat-icon>Schieramenti</li>
+            <li><mat-icon aria-hidden="true">flag</mat-icon>Risultati</li>
+          </ul>
+
           <div class="hero-divider" aria-hidden="true">
             <span class="hero-divider-mark"></span>
             <span class="hero-divider-track"></span>
@@ -47,9 +98,8 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 
         <div class="login-panel">
           <header class="login-header">
-            <div class="header-content">
-              <h2 class="app-title">{{ 'login.signIn' | t }}</h2>
-            </div>
+            <span class="login-kicker">Area piloti</span>
+            <h2 class="app-title">{{ 'login.signIn' | t }}</h2>
           </header>
 
           <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">

@@ -1,58 +1,89 @@
+/* ═══════════════════════════════════════════════════
+   Login — branded MotoGP entry page
+   Desktop-first, stack at 820px.
+   The racing background stays branded in both themes;
+   the form card follows the theme tokens.
+   NOTE: ViewEncapsulation.None → keep every selector
+   prefixed (.login-* / .hero-*) to avoid global leaks.
+   ═══════════════════════════════════════════════════ */
+
 .login-container {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0b0b0d 0%, #2a0e14 40%, #7d1024 76%, #c8102e 100%);
-  padding: clamp(12px, 2.6vw, 20px);
+  padding: clamp(16px, 3vw, 30px) clamp(12px, 2.6vw, 24px) clamp(42px, 6vh, 58px);
   overflow: hidden;
+  background:
+    radial-gradient(ellipse 90% 60% at 12% -10%, rgba(200, 16, 46, 0.38), transparent 60%),
+    radial-gradient(ellipse 80% 55% at 95% 115%, rgba(200, 16, 46, 0.30), transparent 55%),
+    linear-gradient(135deg, #08090c 0%, #14161d 42%, #3a0d16 76%, #6d0e20 100%);
 }
 
+/* Start/finish checkered band along the bottom edge */
 .login-container::before {
   content: '';
   position: absolute;
-  inset: 0;
-  transform: rotate(-8deg) scale(1.3);
-  background-image: linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.88) 0 25%,
-    rgba(0, 0, 0, 0.9) 25% 50%,
-    rgba(255, 255, 255, 0.88) 50% 75%,
-    rgba(0, 0, 0, 0.9) 75% 100%
-  );
-  background-size: 34px 34px;
-  opacity: 0.12;
+  left: -5%;
+  right: -5%;
+  bottom: -16px;
+  height: 74px;
+  transform: rotate(-2deg);
+  background:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.9) 0% 25%, rgba(10, 10, 12, 0.9) 0% 50%) 0 0 / 30px 30px;
+  opacity: 0.14;
   pointer-events: none;
   z-index: 0;
 }
 
+/* Vignette + top-left sheen */
 .login-container::after {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.14), transparent 35%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0.28));
+    radial-gradient(circle at 22% 16%, rgba(255, 255, 255, 0.12), transparent 38%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.42));
   pointer-events: none;
   z-index: 0;
+}
+
+/* Drifting diagonal speed streaks (seamless: one pattern period = 220px) */
+.login-speed {
+  position: absolute;
+  inset: -20% -30%;
+  z-index: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    115deg,
+    transparent 0 70px,
+    rgba(255, 255, 255, 0.05) 70px 72px,
+    transparent 72px 140px,
+    rgba(200, 16, 46, 0.08) 140px 143px,
+    transparent 143px 220px
+  );
+  animation: login-speed-drift 14s linear infinite;
+}
+
+@keyframes login-speed-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-220px); }
+}
+
+@keyframes login-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
 }
 
 .login-shell {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 900px;
+  max-width: 1000px;
   display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: 12px;
-  padding: 0;
-  margin: auto 0;
-  border-radius: 0;
-  box-shadow: none;
-  overflow: hidden;
-  border: 0;
-  background: transparent;
+  grid-template-columns: 1.08fr 0.92fr;
+  gap: 14px;
 }
 
 .login-powered {
@@ -70,50 +101,129 @@
   pointer-events: none;
 }
 
+/* ─── Hero panel ─── */
+
 .hero-panel {
-  min-height: 100%;
-  background: rgba(10, 10, 12, 0.58);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 16px;
-  padding: clamp(1rem, 2.8vw, 2rem);
-  color: #fff;
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.7rem;
-  position: relative;
+  gap: 0.85rem;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(160deg, rgba(12, 13, 17, 0.82), rgba(12, 13, 17, 0.55));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.42);
   overflow: hidden;
+  color: #fff;
+  animation: login-rise 0.5s ease both;
 }
 
+/* Diagonal checkered corner wedge (top-right) */
+.hero-checker {
+  position: absolute;
+  top: -52px;
+  right: -52px;
+  width: 170px;
+  height: 170px;
+  transform: rotate(45deg);
+  background:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.85) 0% 25%, rgba(12, 13, 17, 0.85) 0% 50%) 0 0 / 26px 26px;
+  opacity: 0.17;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Ghost "GP" watermark behind the hero content */
+.hero-ghost {
+  position: absolute;
+  right: -4px;
+  bottom: -34px;
+  font-family: 'MotoGP Bold', sans-serif;
+  font-size: clamp(7rem, 16vw, 12rem);
+  line-height: 0.8;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.05);
+  transform: skewX(-8deg);
+  pointer-events: none;
+  user-select: none;
+  z-index: -1;
+}
+
+/* Racing number-plate badge: skewed parallelogram, white text counter-skewed */
 .hero-kicker {
-  font-family: 'MotoGP Bold', sans-serif;
-  font-size: 0.74rem;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  color: #ff8ca0;
+  align-self: flex-start;
+  transform: skewX(-10deg);
+  background: linear-gradient(135deg, #e01133 0%, #c8102e 55%, #960920 100%);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 7px;
+  box-shadow:
+    0 6px 18px rgba(200, 16, 46, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
-.hero-title {
-  margin: 0;
+.hero-kicker-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transform: skewX(10deg);
+  padding: 0.36rem 0.9rem;
+  color: #fff;
   font-family: 'MotoGP Bold', sans-serif;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  line-height: 0.95;
-  font-size: clamp(1.6rem, 4.2vw, 2.7rem);
-  letter-spacing: 0.8px;
+  letter-spacing: 1.5px;
+}
+
+/* micro checkered start flag */
+.hero-kicker-inner::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: repeating-conic-gradient(#ffffff 0% 25%, #141414 0% 50%) 0 0 / 6px 6px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
 }
 
 .hero-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.85rem;
 }
 
-.hero-brand img {
-  width: clamp(36px, 5vw, 52px);
-  height: clamp(36px, 5vw, 52px);
-  border-radius: 10px;
-  object-fit: cover;
+/* Logo emblem (inline SVG): red gradient ring, light disc, italic wordmark,
+   checkered base band — crisp at any size, readable at 68-96px */
+.hero-logo {
+  display: block;
+  width: clamp(68px, 7vw, 96px);
+  height: clamp(68px, 7vw, 96px);
+  border-radius: 50%;
   flex: 0 0 auto;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.85),
+    0 14px 34px rgba(200, 16, 46, 0.5),
+    0 0 46px rgba(200, 16, 46, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.hero-brand:hover .hero-logo {
+  transform: scale(1.04);
+}
+
+.hero-title {
+  margin: 0;
+  font-family: 'MotoGP Bold', sans-serif;
+  // Explicit: beats the global h1{color:var(--text-primary)} rule, the hero
+  // panel is always dark-branded even in light theme
+  color: #fff;
+  text-transform: uppercase;
+  line-height: 0.92;
+  font-size: clamp(2rem, 4.6vw, 3.1rem);
+  letter-spacing: 1px;
+  transform: skewX(-7deg);
+  text-shadow: 0 8px 30px rgba(200, 16, 46, 0.5);
 }
 
 .hero-subtitle {
@@ -132,6 +242,40 @@
   height: 18px;
   font-size: 18px;
   color: #ff8ca0;
+  flex: 0 0 auto;
+}
+
+/* Feature chips — squared badges with a red icon tile, app vocabulary, hardcoded IT */
+.hero-chips {
+  list-style: none;
+  margin: 0.1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hero-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.74rem 0.3rem 0.34rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  font-size: 0.74rem;
+  letter-spacing: 0.2px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.hero-chips mat-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #e01133, #a80c24);
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(200, 16, 46, 0.4);
   flex: 0 0 auto;
 }
 
@@ -167,40 +311,70 @@
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
 
-.login-header {
-  padding: 0;
-  margin-bottom: 0.85rem;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.62rem;
-
-  .header-content {
-    text-align: left;
-    color: #111;
-
-    .app-title {
-      margin: 0 0 0.15rem;
-      font-family: 'MotoGP Bold', sans-serif;
-      color: #111214;
-      font-size: clamp(1.12rem, 3vw, 1.3rem);
-      letter-spacing: 0.4px;
-      line-height: 1;
-      text-transform: uppercase;
-      transform: none;
-      text-shadow: none;
-    }
-  }
-}
+/* ─── Login panel (theme-aware card) ─── */
 
 .login-panel {
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.52);
-  border-radius: 12px;
-  padding: 0.58rem 0.68rem 0.68rem;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
-  backdrop-filter: none;
+  position: relative;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  padding: clamp(1.2rem, 2.6vw, 1.8rem);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+  animation: login-rise 0.5s 0.12s ease both;
+}
+
+/* Red accent line under the top edge */
+.login-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 26px;
+  right: 26px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, transparent, var(--primary-color) 30% 70%, transparent);
+}
+
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin-bottom: 0.95rem;
+}
+
+.login-kicker {
+  font-family: 'MotoGP Bold', sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+  color: var(--primary-color);
+}
+
+.login-header .app-title {
+  position: relative;
+  margin: 0;
+  padding-bottom: 0.5rem;
+  font-family: 'MotoGP Bold', sans-serif;
+  color: var(--text-primary);
+  font-size: clamp(1.35rem, 3vw, 1.7rem);
+  letter-spacing: 0.5px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* Skewed red slash under the title */
+.login-header .app-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 58px;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--primary-color), transparent);
+  transform: skewX(-20deg);
 }
 
 .login-form {
@@ -211,121 +385,150 @@
   padding: 0;
 }
 
-.mat-form-field {
+.login-form .mat-mdc-form-field {
   margin: 0.14rem 0;
-
-  .mat-icon {
-    color: var(--accent-red);
-    margin-right: 0.35rem;
-  }
 }
 
-/* Login panel is light → re-declare dark tokens locally so Material text
-   inside the form is dark (inherits closer to the inputs than :root) */
-.login-form {
-  --mat-sys-on-surface: #111214;
-  --mat-sys-on-surface-variant: rgba(0, 0, 0, 0.6);
-  --mat-sys-surface-variant: #ffffff;
-  --mat-sys-outline: rgba(0, 0, 0, 0.32);
-  --mat-sys-outline-variant: rgba(0, 0, 0, 0.12);
-}
-
-.login-form .mat-mdc-text-field-wrapper {
-  background: #ffffff !important;
-}
-
-.login-form input:-webkit-autofill,
-.login-form input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #111214;
-  box-shadow: 0 0 0 1000px #ffffff inset;
-}
-
-.login-form .mdc-notched-outline__leading,
-.login-form .mdc-notched-outline__notch,
-.login-form .mdc-notched-outline__trailing {
-  border-color: rgba(0, 0, 0, 0.18) !important;
-}
-
-.login-form .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
-.login-form .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
-.login-form .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
-  border-color: var(--primary-color) !important;
-  border-width: 2px !important;
+.login-form .mat-mdc-form-field .mat-icon {
+  color: var(--primary-color);
+  margin-right: 0.35rem;
 }
 
 .login-button {
+  position: relative;
+  overflow: hidden;
   width: 100%;
-  min-height: 42px;
-  font-size: 0.92rem;
-  margin-top: 0.32rem;
-  transition: all 0.3s ease;
-  border-radius: 9px;
+  min-height: 46px;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+  border-radius: 10px;
   font-weight: 700;
-  letter-spacing: 0.2px;
-  background: linear-gradient(135deg, #c8102e, #960920) !important;
+  letter-spacing: 0.4px;
+  background: linear-gradient(135deg, #e01133, #c8102e 45%, #960920) !important;
+  box-shadow: 0 10px 24px rgba(200, 16, 46, 0.32);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(200, 16, 46, 0.32);
-  }
+/* Glossy sheen sweep on hover */
+.login-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.4) 50%, transparent 68%);
+  transform: translateX(-130%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+
+.login-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.login-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(200, 16, 46, 0.45);
+}
+
+.login-button:hover:not(:disabled)::after {
+  transform: translateX(130%);
+}
+
+.login-button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .error-message {
-  background: #ffecec;
-  color: var(--accent-red);
-  padding: 0.62rem;
-  border-radius: 8px;
-  margin: 0.56rem 0 0;
+  background: rgba(200, 16, 46, 0.14);
+  border: 1px solid rgba(200, 16, 46, 0.55);
+  color: var(--text-primary);
+  padding: 0.62rem 0.7rem;
+  border-radius: 10px;
+  margin: 0.7rem 0 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid var(--accent-red);
+  font-size: 0.85rem;
 }
 
-@media (max-width: 480px) {
+.error-message mat-icon {
+  color: var(--primary-color);
+  flex: 0 0 auto;
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 820px) {
   .login-container {
-    padding: 10px 8px;
+    padding: 14px 10px 46px;
   }
 
-  .login-shell {
-    padding: 0;
-    margin: 0;
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .login-panel {
-    padding: 0.55rem 0.58rem 0.62rem;
-  }
-
-  .hero-panel {
-    padding: 0.85rem 0.9rem;
-  }
-
-  .hero-title {
-    font-size: 1.55rem;
-  }
-
-  .hero-divider-track {
-    width: 150px;
-  }
-
-  .login-header {
-    padding: 0;
-  }
-
-  .login-header .header-content .app-title {
-    font-size: 1.05rem;
-  }
-}
-
-@media (max-width: 900px) {
   .login-shell {
     grid-template-columns: 1fr;
     max-width: 560px;
+    gap: 10px;
   }
 
   .hero-panel {
-    min-height: auto;
+    padding: 1.25rem 1.1rem;
+    gap: 0.7rem;
+  }
+
+  .hero-title {
+    font-size: clamp(1.7rem, 8vw, 2.2rem);
+  }
+
+  .hero-ghost {
+    font-size: clamp(5.5rem, 30vw, 8rem);
+    bottom: -22px;
+  }
+
+  .login-panel {
+    padding: 1.15rem 1rem 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-kicker-inner,
+  .login-kicker {
+    font-size: 0.7rem;
+    letter-spacing: 1.1px;
+    padding: 0.32rem 0.75rem;
+  }
+
+  .hero-chips li {
+    padding: 0.26rem 0.62rem 0.26rem 0.3rem;
+    font-size: 0.7rem;
+    gap: 0.42rem;
+  }
+
+  .hero-chips mat-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 13px;
+  }
+
+  .hero-subtitle {
+    font-size: 0.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-panel,
+  .login-panel {
+    animation: none;
+  }
+
+  .login-speed {
+    animation: none;
+  }
+
+  .login-button,
+  .login-button::after {
+    transition: none;
+  }
+
+  .hero-logo {
+    transition: none;
   }
 }
