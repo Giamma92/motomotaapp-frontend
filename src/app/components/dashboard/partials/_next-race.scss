@@ -242,22 +242,13 @@
 .next-race-card .race-content {
   position: relative;
   display: block !important;
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at top right, rgba(200, 16, 46, 0.10), transparent 34%),
-    linear-gradient(145deg, var(--surface-elevated, #1e2026), var(--surface-card, #1a1c22));
-  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.40);
-  padding: 16px;
-  overflow: hidden;
-}
-
-.next-race-card .race-content::after {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 5px;
-  background: linear-gradient(180deg, rgba(200, 16, 46, 0.92), rgba(137, 10, 32, 0.7));
+  /* Flat: no inner card — content sits directly on the page background */
+  border-radius: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  overflow: visible;
 }
 
 .next-race-card .race-overview {
@@ -649,10 +640,6 @@
 }
 
 @media (max-width: 980px) {
-  .next-race-card .race-content {
-    padding: 15px 14px;
-  }
-
   .next-race-card .race-overview {
     grid-template-columns: 1fr;
     gap: 14px;
@@ -676,11 +663,6 @@
 @media (max-width: 640px) {
   .next-race-card mat-card-content {
     padding: 12px 12px 10px !important;
-  }
-
-  .next-race-card .race-content {
-    border-radius: 22px;
-    padding: 14px 13px;
   }
 
   .next-race-card .grand-prix-name {
@@ -1319,10 +1301,6 @@
 @media (max-width: 768px) {
   .next-race-card mat-card-content {
     padding: 14px 14px 12px !important;
-  }
-
-  .next-race-card .race-content {
-    gap: 14px !important;
   }
 }
 
