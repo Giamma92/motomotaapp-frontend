@@ -3,9 +3,12 @@ import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
 import { Router, ActivatedRoute } from "@angular/router";
 import { ChampionshipService, ChampionshipConfig } from "../../services/championship.service";
-import { ChampionshipRider, DashboardService } from "../../services/dashboard.service";
+import { CalendarRace, ChampionshipRider, DashboardService } from "../../services/dashboard.service";
 import { HttpService } from "../../services/http.service";
 import { BetResult, LineupsResult, RaceDetailService } from "../../services/race-detail.service";
+import { RaceScheduleService } from "../../services/race-schedule.service";
+import { I18nService } from "../../services/i18n.service";
+import { DateUtils } from "../../utils/date-utils";
 import { ExistingBetsModalComponent } from "./existing-bets-modal/existing-bets-modal.component";
 import { LineupModalComponent } from "./lineup-modal/lineup-modal.component";
 import { NotificationServiceService } from "../../services/notification.service";
@@ -34,6 +37,7 @@ export abstract class BaseBetComponent implements OnInit {
   existingBetsAllCalendar: any[] = [];
   existingLineup: LineupsResult|null = null;
   existingBetsPointsSum = 0;
+  calendarRace: CalendarRace | null = null;
   lastSavedBetSummary: { riderName: string; position: number; points: number } | null = null;
 
   constructor(
@@ -45,7 +49,9 @@ export abstract class BaseBetComponent implements OnInit {
     protected route: ActivatedRoute,
     protected raceDetailService: RaceDetailService,
     protected notificationService: NotificationServiceService,
-    protected dialog: MatDialog
+    protected dialog: MatDialog,
+    protected raceScheduleService: RaceScheduleService,
+    protected i18nService: I18nService
   ) {
     this.initForm();
   }
@@ -106,6 +112,9 @@ export abstract class BaseBetComponent implements OnInit {
           }
         }
       });
+    } else {
+      this.betForm.markAllAsTouched();
+      this.betForm.updateValueAndValidity();
     }
   }
 
@@ -188,7 +197,7 @@ export abstract class BaseBetComponent implements OnInit {
       const raceRider = this.existingLineup.race_rider_id as any;
       const lineupRaceRiderId = typeof raceRider === 'object' ? raceRider?.id : raceRider;
       if (Number(lineupRaceRiderId) === riderId) {
-        return 'Gia usato come pilota gara nello schieramento';
+        return 'Già usato come pilota gara nello schieramento';
       }
     }
 
@@ -212,6 +221,159 @@ export abstract class BaseBetComponent implements OnInit {
   getSelectedRiderLabel(): string {
     const rider = this.riders.find(entry => entry.rider_id.id === this.selectedRiderId);
     return rider ? `${rider.rider_id.first_name} ${rider.rider_id.last_name} #${rider.rider_id.number}` : 'Pilota non selezionato';
+  }
+
+  get selectedRider(): ChampionshipRider | null {
+    return this.riders.find(entry => entry.rider_id.id === this.selectedRiderId) ?? null;
+  }
+
+  /** FA icon for the card header strip (sprint vs race). */
+  get betHeaderIcon(): string {
+    return this.betType === 'sprint' ? 'fa-gauge-high' : 'fa-flag-checkered';
+  }
+
+  /**
+   * True when the championship has no per-pilot bet limit configured
+   * (the getter falls back to a huge sentinel that must not be shown).
+   */
+  get pilotUsesUnlimited(): boolean {
+    return this.maxBetsPerPilot >= 999999;
+  }
+
+  // ─── Hero: race info + open-window deadline ───
+
+  get raceDateLabel(): string {
+    const race = this.calendarRace;
+    if (!race?.event_date) return '';
+    const eventDate = DateUtils.buildLocalDateTime(race.event_date, race.event_time ?? '00:00:00');
+    if (!eventDate) return '';
+    const date = new Intl.DateTimeFormat(this.i18nService.locale, {
+      weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+    }).format(eventDate);
+    const time = new Intl.DateTimeFormat(this.i18nService.locale, {
+      hour: '2-digit', minute: '2-digit'
+    }).format(eventDate);
+    return `${date} · ${time}`;
+  }
+
+  get windowDeadline(): Date | null {
+    if (!this.calendarRace) return null;
+    return this.raceScheduleService.getOpenWindowDeadline(
+      this.calendarRace,
+      this.championshipConfig?.timezone
+    );
+  }
+
+  get sprintTimeLabel(): string | null {
+    if (this.betType !== 'sprint' || !this.calendarRace) return null;
+    const sprintTime = this.raceScheduleService.getSprintTime(
+      this.calendarRace,
+      this.championshipConfig?.timezone
+    );
+    if (!sprintTime) return null;
+    const label = new Intl.DateTimeFormat(this.i18nService.locale, {
+      weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+    }).format(sprintTime);
+    return `Sprint · ${label}`;
+  }
+
+  formatDeadline(date: Date): string {
+    return new Intl.DateTimeFormat(this.i18nService.locale, {
+      weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+    }).format(date);
+  }
+
+  // ─── Position step (chips) ───
+
+  get positionValue(): number | null {
+    const value = Number(this.betForm.get('position')?.value);
+    return Number.isFinite(value) && value > 0 ? value : null;
+  }
+
+  get positionOptions(): number[] {
+    const max = this.riders.length;
+    return max > 0 ? Array.from({ length: max }, (_, index) => index + 1) : [];
+  }
+
+  setPosition(position: number): void {
+    if (this.betForm.disabled) return;
+    this.betForm.get('position')?.setValue(position);
+  }
+
+  // ─── Points step (stepper + presets) ───
+
+  get pointsValue(): number {
+    const value = Number(this.betForm.get('points')?.value);
+    return Number.isFinite(value) && value > 0 ? value : 0;
+  }
+
+  setPoints(points: number): void {
+    if (this.betForm.disabled) return;
+    const max = Math.max(this.remainingPoints, 1);
+    const clamped = Math.min(Math.max(Math.round(points), 1), max);
+    this.betForm.get('points')?.setValue(clamped);
+  }
+
+  stepPoints(delta: number): void {
+    this.setPoints((this.pointsValue || 0) + delta);
+  }
+
+  get pointsPresets(): number[] {
+    return [5, 10, 25].filter(value => value <= this.remainingPoints);
+  }
+
+  get pointsAfterBet(): number {
+    return Math.max(this.remainingPoints - this.pointsValue, 0);
+  }
+
+  get pointsBudgetPercent(): number {
+    if (!this.maxPointsPerBet) return 100;
+    return Math.max(0, Math.min(100, Math.round((this.remainingPoints / this.maxPointsPerBet) * 100)));
+  }
+
+  get isFormLocked(): boolean {
+    return this.betForm.disabled;
+  }
+
+  get pointsMaxError(): boolean {
+    return !!this.betForm.get('points')?.errors?.['max'];
+  }
+
+  get pointsMinError(): boolean {
+    const control = this.betForm.get('points');
+    const errors = control?.errors;
+    if (!errors || !control?.touched) return false;
+    return !!errors['min'] || !!errors['required'];
+  }
+
+  // ─── Placed bets list (inline recap) ───
+
+  private findRiderById(raw: any): ChampionshipRider | null {
+    const id = typeof raw === 'object' && raw ? raw.id : raw;
+    return this.riders.find(entry => entry.rider_id.id === Number(id)) ?? null;
+  }
+
+  betRiderNumber(bet: BetResult): string {
+    const rider = this.findRiderById(bet.rider_id);
+    return rider ? `#${rider.rider_id.number}` : '#—';
+  }
+
+  displayBetRider(bet: BetResult): string {
+    const rider = this.findRiderById(bet.rider_id);
+    if (!rider) return 'Pilota sconosciuto';
+    return `${rider.rider_id.first_name} ${rider.rider_id.last_name}`;
+  }
+
+  betStatusLabel(bet: BetResult): string {
+    const outcome = (bet as any).outcome;
+    if (outcome === null || outcome === undefined || String(outcome).trim() === '') return 'In attesa';
+    const normalized = String(outcome).trim().toLowerCase();
+    return ['true', 'ok', 'win', 'won', 'success', 'correct'].includes(normalized) ? 'Vinta' : 'Persa';
+  }
+
+  betStatusClass(bet: BetResult): string {
+    const label = this.betStatusLabel(bet);
+    return label === 'Vinta' ? 'ok-tag' : label === 'Persa' ? 'ko-tag' : 'pending-tag';
   }
 
   loadLineupRace(): void {
@@ -247,6 +409,7 @@ export abstract class BaseBetComponent implements OnInit {
   loadCalendarRace(championshipId: number) {
     this.raceDetailService.getCalendarRace(championshipId, this.raceId!).subscribe({
       next: (race) => {
+        this.calendarRace = race;
         this.raceTitle = race.race_id.name;
       },
       error: (err) => console.error('Failed to load race details', err)

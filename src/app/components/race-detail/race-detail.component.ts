@@ -1,5 +1,5 @@
 // src/app/race-detail/race-detail.component.ts
-import { Component, OnInit, HostListener, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, HostListener, ViewEncapsulation, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -28,6 +28,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
 @Component({
   selector: 'app-race-detail',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   styleUrl: './race-detail.component.scss',
   imports: [
@@ -59,7 +60,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
     <div class="page-container">
       <header class="header">
         <button mat-icon-button class="app-back-arrow" (click)="goBack()" aria-label="Back">
-          <i class="fa-solid fa-arrow-left"></i>
+          <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ 'raceDetail.title' | t }}</h1>
       </header>
@@ -102,159 +103,202 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
             </div>
           </section>
 
-          <mat-card class="info-card card-accent-blue personal-race-card" *ngIf="calendarRace">
-            <details class="card-collapsible" open>
-              <summary class="card-collapse-toggle">
-                <div class="card-header">
-                  <i class="fa-solid fa-bolt"></i>
-                  <span>Il tuo race hub</span>
-                </div>
-                <div class="card-collapse-meta">
-                  <span class="meta-tag" [class.ok-tag]="!!myLineup" [class.ko-tag]="!myLineup">L {{ myLineup ? 'ok' : 'x' }}</span>
-                  <span class="meta-tag" [class.ok-tag]="!!mySprintBet" [class.ko-tag]="!mySprintBet">S {{ mySprintBet ? 'ok' : 'x' }}</span>
-                  <span class="meta-tag" [class.ok-tag]="!!myRaceBet" [class.ko-tag]="!myRaceBet">R {{ myRaceBet ? 'ok' : 'x' }}</span>
-                  <i class="fa-solid fa-chevron-down card-collapse-chevron"></i>
-                </div>
-              </summary>
-              <div class="card-collapse-body">
-                <div class="personal-race-grid">
-                  <div class="personal-summary">
-                    <span class="summary-kicker">Stato personale</span>
-                    <h2>{{ personalCompletionLabel }}</h2>
-                    <p>{{ completionDetails }}</p>
-                    <div class="personal-tags">
-                      <span class="meta-tag" [class.ok-tag]="!!myLineup" [class.ko-tag]="!myLineup">Schieramento {{ myLineup ? 'ok' : 'manca' }}</span>
-                      <span class="meta-tag" [class.ok-tag]="!!mySprintBet" [class.ko-tag]="!mySprintBet">Sprint {{ mySprintBet ? 'ok' : 'manca' }}</span>
-                      <span class="meta-tag" [class.ok-tag]="!!myRaceBet" [class.ko-tag]="!myRaceBet">Race {{ myRaceBet ? 'ok' : 'manca' }}</span>
-                    </div>
-                  </div>
-                  <div class="personal-actions">
-                    <button mat-raised-button color="primary" (click)="goToContextAction('lineups')" [disabled]="!canEditLineup()">
-                      {{ myLineup ? 'Modifica schieramento' : 'Completa schieramento' }}
-                    </button>
-                    <button mat-raised-button color="accent" (click)="goToContextAction('sprint')" [disabled]="!canEditSprintBet()">
-                      {{ mySprintBet ? 'Modifica sprint bet' : 'Inserisci sprint bet' }}
-                    </button>
-                    <button mat-raised-button color="warn" (click)="goToContextAction('race')" [disabled]="!canEditRaceBet()">
-                      {{ myRaceBet ? 'Modifica race bet' : 'Inserisci race bet' }}
-                    </button>
-                  </div>
-                </div>
-                <div class="personal-breakdown">
-                  <details class="hub-section" [attr.open]="!myLineup ? true : null">
-                    <summary class="hub-section-summary">
-                      <div class="hub-section-main">
-                        <span class="summary-label">Schieramento</span>
-                        <strong>{{ myLineup ? 'Schieramento salvato' : 'Schieramento mancante' }}</strong>
-                      </div>
-                      <div class="hub-section-meta">
-                        <span class="bet-status-pill" [class.ok-tag]="!!myLineup" [class.ko-tag]="!myLineup">
-                          <i [class]="myLineup ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
-                          {{ myLineup ? 'Completo' : 'Manca' }}
-                        </span>
-                        <i class="fa-solid fa-chevron-down hub-chevron"></i>
-                      </div>
-                    </summary>
-                    <div class="hub-section-body">
-                      <div class="hub-score-strip">
-                        <span class="hub-score-pill" [class.pending-pill]="getLineupQualifyingScore() === null" [class.score-zero]="getLineupQualifyingScore() === 0" [class.score-positive]="(getLineupQualifyingScore() ?? -1) > 0">
-                          Qualifica
-                          <strong>{{ getLineupQualifyingScore() === null ? 'In attesa' : formatSignedPoints(getLineupQualifyingScore()!) }}</strong>
-                        </span>
-                        <span class="hub-score-pill" [class.pending-pill]="getLineupRaceScore() === null" [class.score-zero]="getLineupRaceScore() === 0" [class.score-positive]="(getLineupRaceScore() ?? -1) > 0">
-                          Gara
-                          <strong>{{ getLineupRaceScore() === null ? 'In attesa' : formatSignedPoints(getLineupRaceScore()!) }}</strong>
-                        </span>
-                        <span class="hub-score-pill hub-score-pill-total" [class.pending-pill]="getLineupTotalScore() === null" [class.score-zero]="getLineupTotalScore() === 0" [class.score-positive]="(getLineupTotalScore() ?? -1) > 0">
-                          Totale
-                          <strong>{{ getLineupTotalScore() === null ? 'In attesa' : formatSignedPoints(getLineupTotalScore()!) }}</strong>
-                        </span>
-                      </div>
-                      <div class="breakdown-item compact-breakdown-item">
-                        <span class="summary-label">Pilota qualifica</span>
-                        <strong>{{ myLineup ? getRiderDisplay(myLineup.qualifying_rider_id) : 'Non ancora scelto' }}</strong>
-                      </div>
-                      <div class="breakdown-item compact-breakdown-item">
-                        <span class="summary-label">Pilota gara</span>
-                        <strong>{{ myLineup ? getRiderDisplay(myLineup.race_rider_id) : 'Non ancora scelto' }}</strong>
-                      </div>
-                    </div>
-                  </details>
-
-                  <details class="hub-section bet-breakdown" [class.bet-breakdown-pending]="mySprintBet && !hasBetOutcome(mySprintBet)" [class.bet-breakdown-win]="mySprintBet && isBetSuccessful(mySprintBet)" [class.bet-breakdown-loss]="mySprintBet && hasBetOutcome(mySprintBet) && !isBetSuccessful(mySprintBet)">
-                    <summary class="hub-section-summary">
-                      <div class="hub-section-main">
-                        <span class="summary-label">Sprint bet</span>
-                        <strong>{{ mySprintBet ? (displayRiderName(mySprintBet.rider_id) + ' · P' + mySprintBet.position) : 'Non ancora inserita' }}</strong>
-                      </div>
-                      <div class="hub-section-meta">
-                        <span class="bet-status-pill" *ngIf="mySprintBet" [class.ok-tag]="isBetSuccessful(mySprintBet)" [class.ko-tag]="hasBetOutcome(mySprintBet) && !isBetSuccessful(mySprintBet)" [class.pending-tag]="!hasBetOutcome(mySprintBet)">
-                          <i [class]="getBetStatusIcon(mySprintBet)"></i>
-                          {{ getBetStatusLabel(mySprintBet) }}
-                        </span>
-                        <span class="bet-status-pill" *ngIf="mySprintBet">{{ mySprintBet.points }} pt</span>
-                        <span class="bet-status-pill ko-tag" *ngIf="!mySprintBet">
-                          <i class="fa-solid fa-circle-xmark"></i>
-                          Manca
-                        </span>
-                        <i class="fa-solid fa-chevron-down hub-chevron"></i>
-                      </div>
-                    </summary>
-                    <div class="hub-section-body" *ngIf="mySprintBet; else emptySprintBet">
-                      <div class="bet-points-row">
-                        <span class="bet-points-value">{{ getBetStatusLabel(mySprintBet) }}</span>
-                        <span class="bet-points-note">{{ getBetDeltaLabel(mySprintBet) }} · {{ displayRiderName(mySprintBet.rider_id) }} · Posizione {{ mySprintBet.position }}</span>
-                      </div>
-                    </div>
-                  </details>
-
-                  <ng-template #emptySprintBet>
-                    <div class="hub-section-body">
-                      <div class="breakdown-item compact-breakdown-item">
-                        <span class="summary-label">Sprint bet</span>
-                        <strong>Non ancora inserita</strong>
-                      </div>
-                    </div>
-                  </ng-template>
-
-                  <details class="hub-section bet-breakdown" [class.bet-breakdown-pending]="myRaceBet && !hasBetOutcome(myRaceBet)" [class.bet-breakdown-win]="myRaceBet && isBetSuccessful(myRaceBet)" [class.bet-breakdown-loss]="myRaceBet && hasBetOutcome(myRaceBet) && !isBetSuccessful(myRaceBet)">
-                    <summary class="hub-section-summary">
-                      <div class="hub-section-main">
-                        <span class="summary-label">Race bet</span>
-                        <strong>{{ myRaceBet ? (displayRiderName(myRaceBet.rider_id) + ' · P' + myRaceBet.position) : 'Non ancora inserita' }}</strong>
-                      </div>
-                      <div class="hub-section-meta">
-                        <span class="bet-status-pill" *ngIf="myRaceBet" [class.ok-tag]="isBetSuccessful(myRaceBet)" [class.ko-tag]="hasBetOutcome(myRaceBet) && !isBetSuccessful(myRaceBet)" [class.pending-tag]="!hasBetOutcome(myRaceBet)">
-                          <i [class]="getBetStatusIcon(myRaceBet)"></i>
-                          {{ getBetStatusLabel(myRaceBet) }}
-                        </span>
-                        <span class="bet-status-pill" *ngIf="myRaceBet">{{ myRaceBet.points }} pt</span>
-                        <span class="bet-status-pill ko-tag" *ngIf="!myRaceBet">
-                          <i class="fa-solid fa-circle-xmark"></i>
-                          Manca
-                        </span>
-                        <i class="fa-solid fa-chevron-down hub-chevron"></i>
-                      </div>
-                    </summary>
-                    <div class="hub-section-body" *ngIf="myRaceBet; else emptyRaceBet">
-                      <div class="bet-points-row">
-                        <span class="bet-points-value">{{ getBetStatusLabel(myRaceBet) }}</span>
-                        <span class="bet-points-note">{{ getBetDeltaLabel(myRaceBet) }} · {{ displayRiderName(myRaceBet.rider_id) }} · Posizione {{ myRaceBet.position }}</span>
-                      </div>
-                    </div>
-                  </details>
-
-                  <ng-template #emptyRaceBet>
-                    <div class="hub-section-body">
-                      <div class="breakdown-item compact-breakdown-item">
-                        <span class="summary-label">Race bet</span>
-                        <strong>Non ancora inserita</strong>
-                      </div>
-                    </div>
-                  </ng-template>
-                </div>
+          <mat-card class="info-card personal-race-card" *ngIf="calendarRace">
+            <div class="card-header">
+              <i class="fa-solid fa-bolt"></i>
+              <span>Il tuo race hub</span>
+              <div class="card-collapse-meta">
+                <span class="meta-tag" [class.ok-tag]="!!myLineup" [class.ko-tag]="!myLineup">L {{ myLineup ? 'ok' : 'x' }}</span>
+                <span class="meta-tag" [class.ok-tag]="!!mySprintBet" [class.ko-tag]="!mySprintBet">S {{ mySprintBet ? 'ok' : 'x' }}</span>
+                <span class="meta-tag" [class.ok-tag]="!!myRaceBet" [class.ko-tag]="!myRaceBet">R {{ myRaceBet ? 'ok' : 'x' }}</span>
               </div>
-            </details>
+            </div>
+
+            <div class="hub-progress" [class.is-complete]="personalCompletionPercent === 100">
+              <div class="hub-progress-copy">
+                <span class="summary-kicker">Stato personale</span>
+                <strong>{{ personalCompletionLabel }}</strong>
+              </div>
+              <div class="hub-progress-track" aria-hidden="true">
+                <span [style.width.%]="personalCompletionPercent"></span>
+              </div>
+              <span class="hub-progress-value">{{ personalCompletionPercent }}%</span>
+            </div>
+
+            <div class="hub-steps">
+              <!-- 1 · Schieramento -->
+              <section class="hub-step" [class.step-done]="!!myLineup" [class.step-missing]="!myLineup">
+                <header class="step-head">
+                  <span class="step-index">1</span>
+                  <span class="step-copy">
+                    <span class="summary-label">Schieramento</span>
+                    <strong>{{ myLineup ? 'Completato' : 'Da completare' }}</strong>
+                  </span>
+                  <span class="bet-status-pill" [class.ok-tag]="!!myLineup" [class.ko-tag]="!myLineup">
+                    <i [class]="myLineup ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+                    {{ myLineup ? 'Salvato' : 'Manca' }}
+                  </span>
+                </header>
+
+                <div class="step-body">
+                  <ng-container *ngIf="myLineup; else lineupEmpty">
+                    <div class="hub-score-strip">
+                      <span class="hub-score-pill" [class.pending-pill]="getLineupQualifyingScore() === null" [class.score-zero]="getLineupQualifyingScore() === 0" [class.score-positive]="(getLineupQualifyingScore() ?? -1) > 0">
+                        Qualifica
+                        <strong>{{ getLineupQualifyingScore() === null ? 'In attesa' : formatSignedPoints(getLineupQualifyingScore()!) }}</strong>
+                      </span>
+                      <span class="hub-score-pill" [class.pending-pill]="getLineupRaceScore() === null" [class.score-zero]="getLineupRaceScore() === 0" [class.score-positive]="(getLineupRaceScore() ?? -1) > 0">
+                        Gara
+                        <strong>{{ getLineupRaceScore() === null ? 'In attesa' : formatSignedPoints(getLineupRaceScore()!) }}</strong>
+                      </span>
+                      <span class="hub-score-pill hub-score-pill-total" [class.pending-pill]="getLineupTotalScore() === null" [class.score-zero]="getLineupTotalScore() === 0" [class.score-positive]="(getLineupTotalScore() ?? -1) > 0">
+                        Totale
+                        <strong>{{ getLineupTotalScore() === null ? 'In attesa' : formatSignedPoints(getLineupTotalScore()!) }}</strong>
+                      </span>
+                    </div>
+                    <div class="step-pick">
+                      <span class="pick-item">
+                        <span class="summary-label">Pilota qualifica</span>
+                        <strong>{{ getRiderDisplay(myLineup.qualifying_rider_id) }}</strong>
+                      </span>
+                      <span class="pick-item">
+                        <span class="summary-label">Pilota gara</span>
+                        <strong>{{ getRiderDisplay(myLineup.race_rider_id) }}</strong>
+                      </span>
+                    </div>
+                  </ng-container>
+                  <ng-template #lineupEmpty>
+                    <div class="step-empty">
+                      <i class="fa-regular fa-circle-xmark"></i>
+                      <span>Nessuno schieramento salvato per questa gara.</span>
+                    </div>
+                  </ng-template>
+                </div>
+
+                <footer class="step-actions">
+                  <button mat-raised-button color="primary" class="step-action" (click)="goToContextAction('lineups')" [disabled]="!canEditLineup()">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                    {{ myLineup ? 'Modifica schieramento' : 'Completa schieramento' }}
+                  </button>
+                  <p class="step-hint" *ngIf="!canEditLineup()">
+                    <mat-icon aria-hidden="true">lock</mat-icon>
+                    Finestra chiusa: lo schieramento si apre 3 giorni prima della gara e chiude il venerdì.
+                  </p>
+                </footer>
+              </section>
+
+              <!-- 2 · Sprint bet -->
+              <section class="hub-step bet-step" [class.step-done]="!!mySprintBet" [class.step-missing]="!mySprintBet" [class.bet-win]="mySprintBet && isBetSuccessful(mySprintBet)" [class.bet-loss]="mySprintBet && hasBetOutcome(mySprintBet) && !isBetSuccessful(mySprintBet)" [class.bet-pending]="mySprintBet && !hasBetOutcome(mySprintBet)">
+                <header class="step-head">
+                  <span class="step-index">2</span>
+                  <span class="step-copy">
+                    <span class="summary-label">Sprint bet</span>
+                    <strong>{{ mySprintBet ? 'Inserita' : 'Da inserire' }}</strong>
+                  </span>
+                  <span class="bet-status-pill" *ngIf="mySprintBet" [class.ok-tag]="isBetSuccessful(mySprintBet)" [class.ko-tag]="hasBetOutcome(mySprintBet) && !isBetSuccessful(mySprintBet)" [class.pending-tag]="!hasBetOutcome(mySprintBet)">
+                    <i [class]="getBetStatusIcon(mySprintBet)"></i>
+                    {{ getBetStatusLabel(mySprintBet) }}
+                  </span>
+                  <span class="bet-status-pill ko-tag" *ngIf="!mySprintBet">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    Manca
+                  </span>
+                </header>
+
+                <div class="step-body">
+                  <ng-container *ngIf="mySprintBet; else sprintEmpty">
+                    <div class="step-pick">
+                      <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
+                      <strong>{{ displayRiderName(mySprintBet.rider_id) }}</strong>
+                      <span class="badge badge-neutral">{{ getPositionDisplay(mySprintBet.position) }}</span>
+                    </div>
+                    <div class="step-bet-meta">
+                      <span class="meta-tag points">{{ mySprintBet.points }} pt di posta</span>
+                      <span class="meta-tag" *ngIf="hasBetOutcome(mySprintBet)" [class.ok-tag]="isBetSuccessful(mySprintBet)" [class.ko-tag]="!isBetSuccessful(mySprintBet)">
+                        <i [class]="getBetStatusIcon(mySprintBet)"></i>
+                        {{ formatSignedPoints(getBetDelta(mySprintBet)!) }}
+                      </span>
+                      <span class="meta-tag" *ngIf="!hasBetOutcome(mySprintBet)">
+                        <i class="fa-regular fa-clock"></i> In attesa di esito
+                      </span>
+                    </div>
+                  </ng-container>
+                  <ng-template #sprintEmpty>
+                    <div class="step-empty">
+                      <i class="fa-regular fa-circle-xmark"></i>
+                      <span>Nessuna sprint bet inserita.</span>
+                    </div>
+                  </ng-template>
+                </div>
+
+                <footer class="step-actions">
+                  <button mat-raised-button color="primary" class="step-action" (click)="goToContextAction('sprint')" [disabled]="!canEditSprintBet()">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    {{ mySprintBet ? 'Modifica sprint bet' : 'Inserisci sprint bet' }}
+                  </button>
+                  <p class="step-hint" *ngIf="!canEditSprintBet()">
+                    <mat-icon aria-hidden="true">lock</mat-icon>
+                    Finestra chiusa: si apre il giorno prima e chiude 30 minuti prima della sprint.
+                  </p>
+                </footer>
+              </section>
+
+              <!-- 3 · Race bet -->
+              <section class="hub-step bet-step" [class.step-done]="!!myRaceBet" [class.step-missing]="!myRaceBet" [class.bet-win]="myRaceBet && isBetSuccessful(myRaceBet)" [class.bet-loss]="myRaceBet && hasBetOutcome(myRaceBet) && !isBetSuccessful(myRaceBet)" [class.bet-pending]="myRaceBet && !hasBetOutcome(myRaceBet)">
+                <header class="step-head">
+                  <span class="step-index">3</span>
+                  <span class="step-copy">
+                    <span class="summary-label">Race bet</span>
+                    <strong>{{ myRaceBet ? 'Inserita' : 'Da inserire' }}</strong>
+                  </span>
+                  <span class="bet-status-pill" *ngIf="myRaceBet" [class.ok-tag]="isBetSuccessful(myRaceBet)" [class.ko-tag]="hasBetOutcome(myRaceBet) && !isBetSuccessful(myRaceBet)" [class.pending-tag]="!hasBetOutcome(myRaceBet)">
+                    <i [class]="getBetStatusIcon(myRaceBet)"></i>
+                    {{ getBetStatusLabel(myRaceBet) }}
+                  </span>
+                  <span class="bet-status-pill ko-tag" *ngIf="!myRaceBet">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    Manca
+                  </span>
+                </header>
+
+                <div class="step-body">
+                  <ng-container *ngIf="myRaceBet; else raceEmpty">
+                    <div class="step-pick">
+                      <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
+                      <strong>{{ displayRiderName(myRaceBet.rider_id) }}</strong>
+                      <span class="badge badge-neutral">{{ getPositionDisplay(myRaceBet.position) }}</span>
+                    </div>
+                    <div class="step-bet-meta">
+                      <span class="meta-tag points">{{ myRaceBet.points }} pt di posta</span>
+                      <span class="meta-tag" *ngIf="hasBetOutcome(myRaceBet)" [class.ok-tag]="isBetSuccessful(myRaceBet)" [class.ko-tag]="!isBetSuccessful(myRaceBet)">
+                        <i [class]="getBetStatusIcon(myRaceBet)"></i>
+                        {{ formatSignedPoints(getBetDelta(myRaceBet)!) }}
+                      </span>
+                      <span class="meta-tag" *ngIf="!hasBetOutcome(myRaceBet)">
+                        <i class="fa-regular fa-clock"></i> In attesa di esito
+                      </span>
+                    </div>
+                  </ng-container>
+                  <ng-template #raceEmpty>
+                    <div class="step-empty">
+                      <i class="fa-regular fa-circle-xmark"></i>
+                      <span>Nessuna race bet inserita.</span>
+                    </div>
+                  </ng-template>
+                </div>
+
+                <footer class="step-actions">
+                  <button mat-raised-button color="primary" class="step-action" (click)="goToContextAction('race')" [disabled]="!canEditRaceBet()">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                    {{ myRaceBet ? 'Modifica race bet' : 'Inserisci race bet' }}
+                  </button>
+                  <p class="step-hint" *ngIf="!canEditRaceBet()">
+                    <mat-icon aria-hidden="true">lock</mat-icon>
+                    Finestra chiusa: si apre dopo la sprint e chiude il giorno di gara.
+                  </p>
+                </footer>
+              </section>
+            </div>
           </mat-card>
 
           <!-- Admin Actions (REPLACE the whole previous admin-card) -->
@@ -440,22 +484,27 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
           </mat-card>
 
           <!-- Tabs & Tables -->
-          <mat-card class="results-card">
-            <details class="card-collapsible" open>
-              <summary class="card-collapse-toggle">
-                <div class="card-header">
-                  <i class="fa-solid fa-users-viewfinder"></i>
-                  <span>Risultati partecipanti</span>
-                </div>
-                <div class="card-collapse-meta">
-                  <span class="meta-tag">{{ getVisibleResultsSummary() }}</span>
-                  <i class="fa-solid fa-chevron-down card-collapse-chevron"></i>
-                </div>
-              </summary>
-              <div class="card-collapse-body">
+          <mat-card class="results-card" *ngIf="showLineups || showSprintBet || showRaceBet">
+            <div class="card-header">
+              <i class="fa-solid fa-users-viewfinder"></i>
+              <span>Risultati partecipanti</span>
+              <div class="card-collapse-meta">
+                <span class="meta-tag">{{ getVisibleResultsSummary() }}</span>
+              </div>
+            </div>
+
+            <div class="availability-note" *ngIf="!showSprintBet || !showRaceBet">
+              <i class="fa-regular fa-eye-slash"></i>
+              <div class="availability-copy">
+                <strong>Schede degli altri non ancora visibili</strong>
+                <span *ngIf="!showSprintBet">Scommesse sprint: compaiono da 30 minuti prima della sessione sprint.</span>
+                <span *ngIf="!showRaceBet">Scommesse gara: compaiono il giorno della gara, quando chiudono le scommesse.</span>
+              </div>
+            </div>
+
             <mat-tab-group class="results-tabs app-material-tabs">
               <!-- Lineups Tab -->
-              <mat-tab *ngIf="showLineups" label="{{ 'raceDetail.lineups.tab' | t }}">
+              <mat-tab *ngIf="showLineups" label="{{ 'raceDetail.lineups.tab' | t }} ({{ lineups.length }})">
                 <div class="session-results">
                   <ng-container *ngIf="!isMobile">
                     <table mat-table [dataSource]="lineups" class="result-table app-material-table">
@@ -463,7 +512,7 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                         <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.user' | t }}</th>
                         <td mat-cell *matCellDef="let e">
                           <div class="user-cell">
-                            <span>{{ displayUser(e.user_id) }}</span>
+                            <span>{{ displayUser(e.user_id) }}<span class="me-badge" *ngIf="isMe(e.user_id)">Tu</span></span>
                             <span class="auto-note" *ngIf="e.automatically_inserted">Auto-inserita, non fa punteggio</span>
                           </div>
                         </td>
@@ -482,15 +531,15 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                       </ng-container>
 
                       <tr mat-header-row *matHeaderRowDef="lineupColumns"></tr>
-                      <tr mat-row *matRowDef="let row; columns: lineupColumns;"></tr>
+                      <tr mat-row *matRowDef="let row; columns: lineupColumns;" [class.is-me]="isMe(row.user_id)"></tr>
                     </table>
                   </ng-container>
 
                   <ng-container *ngIf="isMobile">
                     <div class="mobile-list">
-                      <article class="mobile-entry" *ngFor="let e of lineups; trackBy: trackByUser">
+                      <article class="mobile-entry" *ngFor="let e of lineups; trackBy: trackByUser" [class.is-me]="isMe(e.user_id)">
                         <header class="entry-head">
-                          <span class="entry-user">{{ displayUser(e.user_id) }}</span>
+                          <span class="entry-user">{{ displayUser(e.user_id) }}<span class="me-badge" *ngIf="isMe(e.user_id)">Tu</span></span>
                           <span class="entry-when">{{ formatEntryDateTime(e.modified_at) }}</span>
                         </header>
                         <section class="entry-body">
@@ -515,13 +564,13 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
               </mat-tab>
 
               <!-- Sprint Tab -->
-              <mat-tab *ngIf="showSprintBet" label="{{ 'raceDetail.sprint.tab' | t }}">
+              <mat-tab *ngIf="showSprintBet" label="{{ 'raceDetail.sprint.tab' | t }} ({{ sprints.length }})">
                 <div class="session-results">
                   <ng-container *ngIf="!isMobile">
                     <table mat-table [dataSource]="sprints" class="result-table app-material-table">
                       <ng-container matColumnDef="user">
                         <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.user' | t }}</th>
-                        <td mat-cell *matCellDef="let e">{{ displayUser(e.user_id) }}</td>
+                        <td mat-cell *matCellDef="let e">{{ displayUser(e.user_id) }}<span class="me-badge" *ngIf="isMe(e.user_id)">Tu</span></td>
                       </ng-container>
                       <ng-container matColumnDef="rider">
                         <th mat-header-cell *matHeaderCellDef>
@@ -551,15 +600,15 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                       </ng-container>
 
                       <tr mat-header-row *matHeaderRowDef="sprintColumns"></tr>
-                      <tr mat-row *matRowDef="let row; columns: sprintColumns;"></tr>
+                      <tr mat-row *matRowDef="let row; columns: sprintColumns;" [class.is-me]="isMe(row.user_id)"></tr>
                     </table>
                   </ng-container>
 
                   <ng-container *ngIf="isMobile">
                     <div class="mobile-list">
-                      <article class="mobile-entry" *ngFor="let e of sprints; trackBy: trackByUser">
+                      <article class="mobile-entry" *ngFor="let e of sprints; trackBy: trackByUser" [class.is-me]="isMe(e.user_id)">
                         <header class="entry-head">
-                          <span class="entry-user">{{ displayUser(e.user_id) }}</span>
+                          <span class="entry-user">{{ displayUser(e.user_id) }}<span class="me-badge" *ngIf="isMe(e.user_id)">Tu</span></span>
                           <span class="entry-when">{{ formatEntryDateTime(e.modified_at) }}</span>
                         </header>
                         <section class="entry-body">
@@ -582,13 +631,13 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
               </mat-tab>
 
               <!-- Race Tab -->
-              <mat-tab *ngIf="showRaceBet" label="{{ 'raceDetail.race.tab' | t }}">
+              <mat-tab *ngIf="showRaceBet" label="{{ 'raceDetail.race.tab' | t }} ({{ bets.length }})">
                 <div class="session-results">
                   <ng-container *ngIf="!isMobile">
                     <table mat-table [dataSource]="bets" class="result-table app-material-table">
                       <ng-container matColumnDef="user">
                         <th mat-header-cell *matHeaderCellDef>{{ 'raceDetail.table.user' | t }}</th>
-                        <td mat-cell *matCellDef="let e">{{ displayUser(e.user_id) }}</td>
+                        <td mat-cell *matCellDef="let e">{{ displayUser(e.user_id) }}<span class="me-badge" *ngIf="isMe(e.user_id)">Tu</span></td>
                       </ng-container>
                       <ng-container matColumnDef="rider">
                         <th mat-header-cell *matHeaderCellDef>
@@ -618,15 +667,15 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                       </ng-container>
 
                       <tr mat-header-row *matHeaderRowDef="betColumns"></tr>
-                      <tr mat-row *matRowDef="let row; columns: betColumns;"></tr>
+                      <tr mat-row *matRowDef="let row; columns: betColumns;" [class.is-me]="isMe(row.user_id)"></tr>
                     </table>
                   </ng-container>
 
                   <ng-container *ngIf="isMobile">
                     <div class="mobile-list">
-                      <article class="mobile-entry" *ngFor="let e of bets; trackBy: trackByUser">
+                      <article class="mobile-entry" *ngFor="let e of bets; trackBy: trackByUser" [class.is-me]="isMe(e.user_id)">
                         <header class="entry-head">
-                          <span class="entry-user">{{ displayUser(e.user_id) }}</span>
+                          <span class="entry-user">{{ displayUser(e.user_id) }}<span class="me-badge" *ngIf="isMe(e.user_id)">Tu</span></span>
                           <span class="entry-when">{{ formatEntryDateTime(e.modified_at) }}</span>
                         </header>
                         <section class="entry-body">
@@ -648,8 +697,6 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                 </div>
               </mat-tab>
             </mat-tab-group>
-              </div>
-            </details>
           </mat-card>
 
           <div *ngIf="!showLineups && !showSprintBet && !showRaceBet" class="no-results">
@@ -699,16 +746,24 @@ export class RaceDetailComponent implements OnInit {
     private raceScheduleService: RaceScheduleService,
     private authService: AuthService,
     private notificationService: NotificationServiceService,
-    private i18nService: I18nService
+    private i18nService: I18nService,
+    private cdr: ChangeDetectorRef
   ) { this.checkScreen(); }
 
-  @HostListener('window:resize') onResize(){ this.checkScreen(); }
-  private checkScreen(){ this.isMobile = window.innerWidth <= 768; }
+  private resizeTimer: any = null;
+  @HostListener('window:resize') onResize(){
+    if (this.resizeTimer) return;
+    this.resizeTimer = setTimeout(() => {
+      this.checkScreen();
+      this.resizeTimer = null;
+    }, 150);
+  }
+  private checkScreen(){ this.isMobile = window.innerWidth <= 820; }
 
   ngOnInit(): void {
     this.raceId = this.route.snapshot.paramMap.get('id');
     this.championshipService.getChampIdObs().subscribe((champId: number) => {
-      if (!champId || !this.raceId) { this.loading = false; return; }
+      if (!champId || !this.raceId) { this.loading = false; this.cdr.markForCheck(); return; }
 
       // Data
       this.raceDetailService.getRaceDetails(champId, this.raceId!, { allUsers: true, allCalendar: false }).subscribe({
@@ -718,8 +773,9 @@ export class RaceDetailComponent implements OnInit {
           this.bets = data.bets ?? [];
           this.setMotoGPResults(data.motogpResults ?? []);
           this.loading = false;
+          this.cdr.markForCheck();
         },
-        error: (err) => { console.error('Error fetching race details:', err); this.loading = false; }
+        error: (err) => { console.error('Error fetching race details:', err); this.loading = false; this.cdr.markForCheck(); }
       });
 
       // Schedule logic + race name
@@ -733,11 +789,12 @@ export class RaceDetailComponent implements OnInit {
               this.showLineups = true;
               this.showSprintBet = this.raceScheduleService.canShowSprintBetResults(race, this.championshipTimeZone);
               this.showRaceBet = this.raceScheduleService.canShowRaceBetResults(race, this.championshipTimeZone);
+              this.cdr.markForCheck();
             },
-            error: (err) => console.error('Error fetching championship config:', err)
+            error: (err) => { console.error('Error fetching championship config:', err); this.cdr.markForCheck(); }
           });
         },
-        error: (err) => console.error('Error fetching race info:', err)
+        error: (err) => { console.error('Error fetching race info:', err); this.cdr.markForCheck(); }
       });
     });
   }
@@ -791,6 +848,16 @@ export class RaceDetailComponent implements OnInit {
     if (completed === 3) return 'Hai completato tutto';
     if (completed === 0) return 'Ti manca ancora tutto';
     return `${completed}/3 azioni completate`;
+  }
+
+  get personalCompletionPercent(): number {
+    const completed = [this.myLineup, this.mySprintBet, this.myRaceBet].filter(Boolean).length;
+    return Math.round((completed / 3) * 100);
+  }
+
+  /** True when the given entry (lineup/bet) belongs to the logged-in user. */
+  isMe(user: any): boolean {
+    return !!user && user.id === this.authService.getUserId();
   }
 
   get completionDetails(): string {
@@ -848,6 +915,7 @@ export class RaceDetailComponent implements OnInit {
           next: (data) => {
             this.lineups = data.lineups ?? [];
             this.setMotoGPResults(data.motogpResults ?? []);
+            this.cdr.markForCheck();
           },
           error: () => {}
         });
@@ -856,7 +924,7 @@ export class RaceDetailComponent implements OnInit {
         console.error(err);
         this.notificationService.showError('admin.actions.fillFail');
       },
-      complete: () => this.busy = false
+      complete: () => { this.busy = false; this.cdr.markForCheck(); }
     });
   }
 
@@ -880,12 +948,13 @@ export class RaceDetailComponent implements OnInit {
         this.calendarRace = race;
         this.raceName = race?.race_id?.name ?? this.raceName;
         this.notificationService.showSuccessMessage(nextCancelled ? 'Gara segnata come cancellata.' : 'Gara riattivata.');
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error(err);
         this.notificationService.showErrorMessage('Errore durante l\'aggiornamento dello stato gara. Verifica che la colonna calendar.cancelled esista nel database.');
       },
-      complete: () => this.busy = false
+      complete: () => { this.busy = false; this.cdr.markForCheck(); }
     });
   }
 
@@ -1084,6 +1153,7 @@ export class RaceDetailComponent implements OnInit {
                 // clear selections after refresh
                 if (kind === 'SPR') this.selectedSprintIds.clear();
                 else this.selectedRaceIds.clear();
+                this.cdr.markForCheck();
               }
             });
         },
@@ -1091,7 +1161,7 @@ export class RaceDetailComponent implements OnInit {
           console.error(err);
           this.notificationService.showError(msgErrKey);
         },
-        complete: () => this.busy = false
+        complete: () => { this.busy = false; this.cdr.markForCheck(); }
       });
   }
 
@@ -1170,8 +1240,9 @@ export class RaceDetailComponent implements OnInit {
         this.sprints = data.sprints ?? [];
         this.bets = data.bets ?? [];
         this.setMotoGPResults(data.motogpResults ?? []);
+        this.cdr.markForCheck();
       },
-      error: (err) => console.error('Error refreshing race details:', err)
+      error: (err) => { console.error('Error refreshing race details:', err); this.cdr.markForCheck(); }
     });
   }
 

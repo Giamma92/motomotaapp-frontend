@@ -94,7 +94,7 @@ interface MotoGPResultsData {
     <div class="page-container">
       <header class="header">
         <button mat-icon-button class="app-back-arrow" (click)="goBack()" aria-label="Back">
-          <i class="fa-solid fa-arrow-left"></i>
+          <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ 'motogp.results.title' | t }}</h1>
       </header>

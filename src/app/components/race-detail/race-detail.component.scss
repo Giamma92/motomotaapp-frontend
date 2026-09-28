@@ -1,3 +1,13 @@
+/* ═══════════════════════════════════════════════
+   Race detail — "Dettaglio gara"
+   Structure: hero → personal race hub (3 flat steps)
+              → results (tabs/tables) → admin actions
+   Theme-aware via global tokens (dark / light).
+   NOTE: the component has ViewEncapsulation.None, so every
+   rule below is nested under the `app-race-detail` host.
+   The page header itself is styled globally in styles/_layout.scss.
+   ═══════════════════════════════════════════════ */
+
 app-race-detail {
   --accent-blue: #1976d2;
   --accent-red: #d32f2f;
@@ -5,65 +15,42 @@ app-race-detail {
   .page-container {
     min-height: 100vh;
     padding: 0;
+    color: var(--text-primary);
     background:
       radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
-      radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
-      linear-gradient(158deg, #ffffff 0%, #f8f8f9 48%, #f1f2f4 100%);
-    color: #16181d;
-  }
-
-  .header {
-    position: fixed;
-    inset: 0 0 auto 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    height: var(--app-header-height);
-    padding: 0 8px;
-    background: rgba(17, 18, 20, 0.97);
-    color: #fff;
-    box-shadow: var(--shadow-md);
-    z-index: 1000;
-  }
-
-  .header h1 {
-    margin: 0;
-    flex: 1;
-    text-align: center;
-    color: #fff;
-    font-family: 'MotoGP Bold', sans-serif;
-    font-size: clamp(1rem, 2.8vw, 1.35rem);
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-    padding-right: 42px;
+      var(--page-shade),
+      var(--page-gradient);
   }
 
   .main-content {
     width: 100%;
-    max-width: none;
+    max-width: 1240px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: calc(var(--app-header-height) + 2px) 10px 12px;
+    gap: 10px;
+    padding: calc(var(--app-header-height) + 12px) clamp(10px, 2.5vw, 22px) 18px;
   }
 
   .results-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
+
+  /* ═══════════════ Race hero ═══════════════ */
 
   .page-race-hero {
     position: relative;
-    padding: 1rem;
-    border-radius: 18px;
+    padding: 1.1rem 1.15rem;
+    border-radius: var(--radius-xl);
     overflow: hidden;
     background:
-      radial-gradient(circle at top right, rgba(200, 16, 46, 0.18), transparent 34%),
-      linear-gradient(145deg, rgba(17, 18, 20, 0.98), rgba(35, 39, 46, 0.94));
+      radial-gradient(circle at top right, rgba(200, 16, 46, 0.22), transparent 36%),
+      linear-gradient(155deg, rgba(17, 18, 20, 0.98), rgba(35, 39, 46, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.09);
     color: #fff;
-    box-shadow: 0 18px 38px rgba(17, 18, 20, 0.16);
+    box-shadow: 0 18px 34px rgba(8, 11, 18, 0.18);
   }
 
   .page-race-hero::after {
@@ -109,9 +96,9 @@ app-race-detail {
     gap: 8px;
     min-height: 34px;
     padding: 0 12px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: rgba(255, 255, 255, 0.92);
     font-size: 0.76rem;
     font-weight: 700;
@@ -123,163 +110,7 @@ app-race-detail {
 
   .hero-meta-pill-primary {
     background: rgba(255, 110, 132, 0.12);
-    border-color: rgba(255, 110, 132, 0.24);
-  }
-
-  .info-card,
-  .admin-card,
-  .results-card {
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    overflow: visible;
-    margin: 0;
-  }
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 40px;
-    padding: 0.68rem 0.84rem;
-    border-radius: 12px 12px 0 0;
-    background: #111214;
-    color: #fff;
-    font-family: 'MotoGP Bold', sans-serif;
-    font-size: 0.98rem;
-    letter-spacing: 0.22px;
-    text-transform: uppercase;
-  }
-
-  .card-header i {
-    color: #ff6e84;
-  }
-
-  .card-collapsible {
-    display: block;
-    border-radius: 14px;
-  }
-
-  .card-collapse-toggle {
-    position: relative;
-    display: block;
-    cursor: pointer;
-    list-style: none;
-  }
-
-  .card-collapse-toggle::-webkit-details-marker {
-    display: none;
-  }
-
-  .card-collapse-meta {
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
-    transform: translateY(-50%);
-    z-index: 1;
-  }
-
-  .card-collapse-chevron {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.86);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    transition: transform 0.2s ease;
-  }
-
-  .card-collapsible[open] .card-collapse-chevron {
-    transform: rotate(180deg);
-  }
-
-  .card-collapse-body {
-    display: grid;
-    gap: 8px;
-  }
-
-  .card-collapsible .card-header {
-    width: 100%;
-    min-height: 48px;
-    padding-right: 132px;
-    border-radius: 14px 14px 0 0;
-    box-sizing: border-box;
-  }
-
-  .card-collapsible:not([open]) .card-header {
-    border-radius: 14px;
-  }
-
-  .card-collapsible .card-collapse-meta .meta-tag {
-    min-height: 24px;
-    padding: 0 7px;
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.14);
-    color: rgba(255, 255, 255, 0.92);
-    font-size: 0.63rem;
-  }
-
-  .card-collapsible .card-collapse-meta .meta-tag.ok-tag {
-    background: rgba(31, 143, 67, 0.18);
-    border-color: rgba(120, 214, 151, 0.28);
-    color: #d9fbe5;
-  }
-
-  .card-collapsible .card-collapse-meta .meta-tag.ko-tag {
-    background: rgba(200, 16, 46, 0.18);
-    border-color: rgba(255, 176, 188, 0.28);
-    color: #ffe2e7;
-  }
-
-  .results-card .card-collapsible .card-header {
-    padding-right: 108px;
-  }
-
-  .results-card .card-collapse-meta {
-    right: 10px;
-    max-width: 120px;
-    gap: 4px;
-  }
-
-  .results-card .card-collapse-meta .meta-tag {
-    max-width: 78px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 0.58rem;
-    padding: 0 6px;
-  }
-
-  .race-overview,
-  .admin-panel,
-  .results-tabs {
-    background: rgba(255, 255, 255, 0.98);
-    border: 1px solid var(--border-subtle);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .race-overview {
-    display: grid;
-    grid-template-columns: 1.25fr 1fr;
-    gap: 0.8rem;
-    align-items: start;
-    padding: 0.8rem 0.9rem;
-    border-top: 0;
-    border-radius: 0 0 12px 12px;
-  }
-
-  .race-overview-main {
-    display: flex;
-    flex-direction: column;
-    gap: 0.32rem;
-    min-width: 0;
+    border-color: rgba(255, 110, 132, 0.26);
   }
 
   .race-kicker,
@@ -287,7 +118,7 @@ app-race-detail {
   .kv-key {
     color: var(--text-muted);
     font-family: 'MotoGP Bold', sans-serif;
-    font-size: 0.68rem;
+    font-size: 0.7rem; /* 11.2px floor */
     font-weight: 700;
     letter-spacing: 0.35px;
     text-transform: uppercase;
@@ -295,7 +126,7 @@ app-race-detail {
 
   .race-title {
     margin: 0;
-    color: #111214;
+    color: var(--text-primary);
     font-family: 'MotoGP Bold', sans-serif;
     font-size: clamp(1.12rem, 2.3vw, 1.48rem);
     letter-spacing: 0.24px;
@@ -307,7 +138,7 @@ app-race-detail {
     display: inline-flex;
     align-items: center;
     gap: 0.38rem;
-    color: #353b46;
+    color: var(--text-secondary);
     font-size: 0.88rem;
     font-weight: 600;
   }
@@ -315,91 +146,7 @@ app-race-detail {
   .race-date-row i,
   .kv-key i,
   .kv-key mat-icon {
-    color: #c8102e;
-  }
-
-  .race-times-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.45rem;
-  }
-
-  .race-time-item {
-    display: grid;
-    gap: 0.16rem;
-    min-height: 54px;
-    padding: 0.5rem 0.58rem;
-    border: 1px solid var(--border-strong);
-    border-radius: 10px;
-    background: #fff;
-  }
-
-  .race-time-item-primary {
-    grid-column: 1 / -1;
-    border-color: rgba(200, 16, 46, 0.35);
-    background: linear-gradient(180deg, rgba(200, 16, 46, 0.05), rgba(200, 16, 46, 0.02));
-  }
-
-  .race-time-label {
-    color: var(--text-muted);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.34px;
-    text-transform: uppercase;
-  }
-
-  .race-time-value {
-    color: #111214;
-    font-family: 'MotoGP Bold', sans-serif;
-    font-size: 1rem;
-  }
-
-  .admin-panel {
-    padding: 0.85rem;
-    border-top: 0;
-    border-radius: 0 0 12px 12px;
-  }
-
-  .admin-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 0.85rem;
-  }
-
-  .admin-actions-row {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-    padding: 1rem;
-    border: 1px solid var(--border-subtle);
-    border-radius: 14px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 248, 250, 0.96));
-    overflow: hidden;
-  }
-
-  .admin-actions-row::before {
-    content: '';
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 4px;
-    background: #d9dde3;
-  }
-
-  .admin-actions-row-primary::before {
-    background: var(--accent-blue);
-  }
-
-  .admin-actions-row-accent::before {
-    background: #c8102e;
-  }
-
-  .admin-actions-row-warn::before {
-    background: #ed6c02;
-  }
-
-  .admin-actions-row-danger::before {
-    background: #7f1d1d;
+    color: var(--primary-color);
   }
 
   .cancelled-race-banner {
@@ -409,7 +156,7 @@ app-race-detail {
     width: fit-content;
     margin: 0.35rem 0 0.15rem;
     padding: 0.45rem 0.7rem;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: #111214;
     color: #fff;
     font-family: 'MotoGP Bold', sans-serif;
@@ -418,27 +165,270 @@ app-race-detail {
     text-transform: uppercase;
   }
 
-  .action-copy {
-    display: grid;
-    gap: 0.2rem;
+  /* ═══════════════ Card chrome ═══════════════
+     Base card look (bg/border/radius) comes from the global
+     .mat-mdc-card rule — here we only clip and style the strip. */
+
+  .info-card,
+  .results-card,
+  .admin-card {
+    overflow: hidden;
   }
 
-  .action-heading {
-    color: #111214;
+  .card-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.7rem 0.85rem;
+    background: #111214;
+    color: #fff;
     font-family: 'MotoGP Bold', sans-serif;
-    font-size: 0.96rem;
-    letter-spacing: 0.18px;
-    line-height: 1.2;
+    font-size: 0.95rem;
+    letter-spacing: 0.22px;
     text-transform: uppercase;
   }
 
-  .action-note {
-    color: #5f6672;
-    font-size: 0.82rem;
-    line-height: 1.35;
+  .card-header i {
+    color: #ff6e84;
   }
 
-  .admin-action-button {
+  .card-collapse-meta {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+
+  /* ═══════════════ Personal race hub ═══════════════ */
+
+  .hub-progress {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(120px, 320px) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--surface-elevated);
+  }
+
+  .hub-progress-copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .summary-kicker,
+  .summary-label {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .hub-progress-copy strong {
+    color: var(--text-primary);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .hub-progress-track {
+    height: 8px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+  }
+
+  .hub-progress-track span {
+    display: block;
+    height: 100%;
+    min-height: 100%;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(90deg, var(--primary-color), #ff6e84);
+    transition: width 0.4s ease;
+  }
+
+  .hub-progress.is-complete .hub-progress-track span {
+    background: linear-gradient(90deg, #1f8f43, #4ade80);
+  }
+
+  .hub-progress-value {
+    min-width: 46px;
+    text-align: right;
+    color: var(--text-primary);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 1rem;
+  }
+
+  .hub-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .hub-step {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: var(--surface-elevated);
+  }
+
+  .hub-step.step-done {
+    border-color: rgba(31, 143, 67, 0.36);
+  }
+
+  .hub-step.step-missing {
+    border-color: rgba(200, 16, 46, 0.4);
+  }
+
+  .hub-step.bet-win {
+    background: linear-gradient(180deg, rgba(31, 143, 67, 0.10), var(--surface-elevated));
+  }
+
+  .hub-step.bet-loss {
+    background: linear-gradient(180deg, rgba(200, 16, 46, 0.10), var(--surface-elevated));
+  }
+
+  .hub-step.bet-pending {
+    background: linear-gradient(180deg, rgba(237, 108, 2, 0.10), var(--surface-elevated));
+  }
+
+  .step-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .step-index {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: #111214;
+    color: #fff;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.76rem;
+  }
+
+  .hub-step.step-missing .step-index {
+    background: var(--primary-color);
+  }
+
+  .step-copy {
+    display: grid;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .step-copy strong {
+    color: var(--text-primary);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.94rem;
+    letter-spacing: 0.2px;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .step-body {
+    display: grid;
+    gap: 8px;
+    flex: 1;
+    align-content: start;
+  }
+
+  .step-empty {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border: 1px dashed var(--border-medium);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.3;
+  }
+
+  .step-empty i {
+    color: var(--primary-color);
+  }
+
+  .step-pick {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    background: var(--surface-card);
+  }
+
+  .step-pick mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    color: var(--primary-color);
+  }
+
+  .step-pick strong {
+    color: var(--text-primary);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.92rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .step-pick .badge {
+    margin-left: auto;
+  }
+
+  .step-pick .pick-item {
+    display: grid;
+    gap: 2px;
+    flex: 1 1 45%;
+    min-width: 0;
+  }
+
+  .step-pick .pick-item strong {
+    overflow-wrap: anywhere;
+  }
+
+  .step-bet-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .step-actions {
+    display: grid;
+    gap: 6px;
+  }
+
+  .step-action {
     width: 100%;
     min-height: 44px;
     justify-content: center;
@@ -447,102 +437,159 @@ app-race-detail {
     letter-spacing: 0.2px;
   }
 
-  .admin-action-button i {
+  .step-action i {
     margin-right: 0.45rem;
   }
 
-  .qualifying-override-panel {
+  .step-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
+
+  .step-hint mat-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+    margin-top: 1px;
+    color: var(--text-muted);
+  }
+
+  /* Score pills (lineup step) */
+
+  .hub-score-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hub-score-pill {
     display: grid;
-    gap: 0.85rem;
-    margin-top: 1rem;
-    padding: 1rem;
+    gap: 2px;
+    flex: 1 1 92px;
+    min-width: 92px;
+    min-height: 54px;
+    padding: 8px 12px;
     border: 1px solid var(--border-subtle);
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.96);
-  }
-
-  .override-header {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-
-  .override-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    width: 100%;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    text-align: left;
-    cursor: pointer;
-    color: inherit;
-  }
-
-  .override-toggle i {
-    flex: 0 0 auto;
-    color: #5b6472;
-    font-size: 0.95rem;
-  }
-
-  .override-table {
-    display: grid;
-    gap: 0.5rem;
-  }
-
-  .override-row {
-    display: grid;
-    grid-template-columns: minmax(140px, 1.4fr) 80px 120px 110px minmax(230px, 1.6fr);
-    gap: 0.75rem;
-    align-items: center;
-    padding: 0.7rem 0.8rem;
-    border: 1px solid rgba(17, 18, 20, 0.08);
-    border-radius: 10px;
-    background: #fff;
-  }
-
-  .override-row-head {
-    background: #f4f6fa;
-    font-size: 0.74rem;
+    background: var(--surface-card);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
     font-weight: 800;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
+    line-height: 1.1;
   }
 
-  .override-rider {
-    color: #111214;
+  .hub-score-pill strong {
+    color: var(--text-primary);
     font-family: 'MotoGP Bold', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.01em;
   }
 
-  .override-points {
-    color: #697180;
-    margin-left: 0.25rem;
+  .hub-score-pill-total {
+    background: rgba(200, 16, 46, 0.06);
+    border-color: rgba(200, 16, 46, 0.22);
   }
 
-  .override-source {
-    font-weight: 700;
-    color: #4c5564;
+  .hub-score-pill.pending-pill {
+    background: rgba(237, 108, 2, 0.08);
+    border-color: rgba(237, 108, 2, 0.26);
+    color: var(--text-secondary);
   }
 
-  .override-actions {
-    display: flex;
+  .hub-score-pill.pending-pill strong {
+    color: #b54708;
+  }
+
+  .hub-score-pill.score-positive {
+    background: rgba(31, 143, 67, 0.10);
+    border-color: rgba(31, 143, 67, 0.28);
+  }
+
+  .hub-score-pill.score-positive strong {
+    color: #1f8f43;
+  }
+
+  .hub-score-pill.score-zero {
+    background: rgba(200, 16, 46, 0.08);
+    border-color: rgba(200, 16, 46, 0.26);
+  }
+
+  .hub-score-pill.score-zero strong {
+    color: var(--primary-color);
+  }
+
+  /* Status pills */
+
+  .bet-status-pill {
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill);
+    background: var(--surface-card);
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
   }
 
-  .native-input {
-    width: 86px;
-    min-height: 38px;
-    padding: 0.5rem 0.65rem;
-    border: 1px solid rgba(17, 18, 20, 0.16);
-    border-radius: 10px;
-    background: #fff;
-    color: #111214;
-    font: inherit;
+  .bet-status-pill.ok-tag {
+    border-color: rgba(31, 143, 67, 0.34);
+    background: rgba(31, 143, 67, 0.10);
+    color: #1f8f43;
+  }
+
+  .bet-status-pill.ko-tag {
+    border-color: rgba(200, 16, 46, 0.34);
+    background: rgba(200, 16, 46, 0.10);
+    color: var(--primary-color);
+  }
+
+  .bet-status-pill.pending-tag {
+    border-color: rgba(237, 108, 2, 0.32);
+    background: rgba(237, 108, 2, 0.10);
+    color: #b54708;
+  }
+
+  /* ═══════════════ Results (other participants) ═══════════════ */
+
+  .availability-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 12px 12px 0;
+    padding: 10px 12px;
+    border: 1px dashed rgba(200, 16, 46, 0.4);
+    border-radius: 12px;
+    background: rgba(200, 16, 46, 0.06);
+  }
+
+  .availability-note > i {
+    margin-top: 2px;
+    color: var(--primary-color);
+  }
+
+  .availability-copy {
+    display: grid;
+    gap: 3px;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  .availability-copy strong {
+    color: var(--text-primary);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
   }
 
   .results-tabs {
@@ -556,7 +603,7 @@ app-race-detail {
 
   .result-table {
     width: 100%;
-    border: 1px solid rgba(17, 18, 20, 0.08);
+    border: 1px solid var(--border-subtle);
     border-radius: 10px;
     overflow: hidden;
   }
@@ -575,13 +622,40 @@ app-race-detail {
     vertical-align: baseline;
   }
 
+  /* Highlight the logged-in user's own entry */
+  .result-table .mat-mdc-row.is-me td {
+    background: rgba(200, 16, 46, 0.08);
+  }
+
+  .result-table .mat-mdc-row.is-me td:first-child {
+    box-shadow: inset 3px 0 0 var(--primary-color);
+    font-weight: 700;
+  }
+
+  .me-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 18px;
+    margin-left: 6px;
+    padding: 0 7px;
+    border-radius: var(--radius-pill);
+    background: var(--primary-color);
+    color: #fff;
+    font-size: 0.7rem; /* 11.2px floor */
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
+
   .user-cell {
     display: grid;
     gap: 2px;
   }
 
   .auto-note {
-    color: #8e1128;
+    color: #e0525f;
     font-size: 0.72rem;
     font-weight: 700;
     line-height: 1.2;
@@ -603,12 +677,13 @@ app-race-detail {
   .badge.points {
     background: rgba(200, 16, 46, 0.12);
     border: 1px solid rgba(200, 16, 46, 0.25);
-    color: #c8102e;
+    color: var(--primary-color);
   }
 
   .badge.badge-neutral {
-    background: #f3f4f7;
-    color: #2f3640;
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
   }
 
   .ok {
@@ -616,13 +691,15 @@ app-race-detail {
   }
 
   .ko {
-    color: #c8102e;
+    color: var(--primary-color);
   }
 
   .outcome-text {
-    color: #353b46;
+    color: var(--text-secondary);
     font-weight: 600;
   }
+
+  /* Mobile entry cards */
 
   .mobile-list {
     display: flex;
@@ -635,8 +712,13 @@ app-race-detail {
     gap: 6px;
     padding: 8px 9px;
     border: 1px solid var(--border-subtle);
-    border-radius: 10px;
-    background: #fff;
+    border-radius: 12px;
+    background: var(--surface-card);
+  }
+
+  .mobile-entry.is-me {
+    border-color: rgba(200, 16, 46, 0.5);
+    box-shadow: inset 3px 0 0 var(--primary-color);
   }
 
   .entry-head {
@@ -645,7 +727,7 @@ app-race-detail {
     justify-content: space-between;
     gap: 8px;
     padding-bottom: 5px;
-    border-bottom: 1px solid rgba(17, 18, 20, 0.08);
+    border-bottom: 1px solid var(--border-subtle);
   }
 
   .entry-user {
@@ -653,15 +735,15 @@ app-race-detail {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: #111214;
+    color: var(--text-primary);
     font-family: 'MotoGP Bold', sans-serif;
     font-size: 0.84rem;
   }
 
   .entry-when {
     flex: 0 0 auto;
-    color: #6a717c;
-    font-size: 0.64rem;
+    color: var(--text-muted);
+    font-size: 0.7rem; /* 11.2px floor */
     white-space: nowrap;
   }
 
@@ -691,7 +773,7 @@ app-race-detail {
   }
 
   .kv-value {
-    color: #16181d;
+    color: var(--text-primary);
     font-size: 0.82rem;
     font-weight: 700;
     line-height: 1.22;
@@ -706,31 +788,32 @@ app-race-detail {
     padding-top: 2px;
   }
 
+  /* Meta tags */
+
   .meta-tag {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     min-height: 22px;
     padding: 0 8px;
-    border: 1px solid rgba(17, 18, 20, 0.15);
+    border: 1px solid var(--border-medium);
     border-radius: var(--radius-pill);
-    background: #fff;
-    color: #353b46;
-    font-size: 0.64rem;
+    background: var(--surface-card);
+    color: var(--text-secondary);
+    font-size: 0.7rem; /* 11.2px floor */
     line-height: 1;
-    white-space: nowrap;
   }
 
   .meta-tag strong {
-    color: #111214;
+    color: var(--text-primary);
     font-family: 'MotoGP Bold', sans-serif;
   }
 
   .meta-tag.points,
   .meta-tag.auto-tag {
-    border-color: rgba(200, 16, 46, 0.24);
-    background: rgba(200, 16, 46, 0.06);
-    color: #8e1128;
+    border-color: rgba(200, 16, 46, 0.26);
+    background: rgba(200, 16, 46, 0.07);
+    color: var(--primary-color);
     font-weight: 700;
   }
 
@@ -740,255 +823,195 @@ app-race-detail {
 
   .meta-tag.ok-tag {
     border-color: rgba(31, 143, 67, 0.32);
-    background: rgba(31, 143, 67, 0.08);
+    background: rgba(31, 143, 67, 0.09);
     color: #1f8f43;
   }
 
   .meta-tag.ko-tag {
     border-color: rgba(200, 16, 46, 0.32);
-    background: rgba(200, 16, 46, 0.08);
-    color: #c8102e;
+    background: rgba(200, 16, 46, 0.09);
+    color: var(--primary-color);
   }
 
-  .personal-race-card {
-    margin-bottom: 12px;
+  /* ═══════════════ Admin ═══════════════ */
+
+  .admin-panel {
+    padding: 0.85rem;
   }
 
-  .personal-race-grid,
-  .personal-breakdown {
+  .admin-actions-grid {
     display: grid;
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 0.85rem;
   }
 
-  .personal-race-grid {
-    grid-template-columns: minmax(0, 1.5fr) minmax(240px, 0.9fr);
-    margin-bottom: 12px;
-  }
-
-  .summary-kicker,
-  .summary-label {
-    color: #6a717c;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .personal-summary h2 {
-    margin: 6px 0;
-    font-family: 'MotoGP Bold', sans-serif;
-  }
-
-  .personal-summary p {
-    margin: 0;
-    color: #404652;
-  }
-
-  .personal-tags {
+  .admin-actions-row {
+    position: relative;
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-  }
-
-  .personal-actions {
-    display: grid;
-    gap: 8px;
-  }
-
-  .hub-section {
-    border: 1px solid rgba(17, 18, 20, 0.08);
-    border-radius: 12px;
-    background: #fff;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: linear-gradient(180deg, var(--surface-card), var(--surface-elevated));
     overflow: hidden;
   }
 
-  .hub-section-summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 12px;
-    cursor: pointer;
-    list-style: none;
+  .admin-actions-row::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: #9e9e9e;
   }
 
-  .hub-section-summary::-webkit-details-marker {
-    display: none;
+  .admin-actions-row-primary::before {
+    background: var(--accent-blue);
   }
 
-  .hub-section-main {
+  .admin-actions-row-accent::before {
+    background: var(--primary-color);
+  }
+
+  .admin-actions-row-warn::before {
+    background: #ed6c02;
+  }
+
+  .admin-actions-row-danger::before {
+    background: #7f1d1d;
+  }
+
+  .action-copy {
     display: grid;
-    gap: 4px;
-    min-width: 0;
+    gap: 0.2rem;
   }
 
-  .hub-section-main strong {
-    color: #111214;
-    line-height: 1.25;
-  }
-
-  .hub-section-meta {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .hub-chevron {
-    color: #667085;
-    transition: transform 0.2s ease;
-  }
-
-  .hub-section[open] .hub-chevron {
-    transform: rotate(180deg);
-  }
-
-  .hub-section-body {
-    display: grid;
-    gap: 8px;
-    padding: 0 12px 12px;
-    border-top: 1px solid rgba(17, 18, 20, 0.06);
-  }
-
-  .hub-score-strip {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding-top: 8px;
-  }
-
-  .hub-score-pill {
-    display: grid;
-    gap: 2px;
-    min-width: 92px;
-    min-height: 54px;
-    padding: 8px 12px;
-    border: 1px solid rgba(17, 18, 20, 0.08);
-    border-radius: 16px;
-    background: #f8fafc;
-    color: #475467;
-    font-size: 0.7rem;
-    font-weight: 800;
-    line-height: 1.1;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  }
-
-  .hub-score-pill strong {
-    color: #111214;
+  .action-heading {
+    color: var(--text-primary);
     font-family: 'MotoGP Bold', sans-serif;
-    font-size: 1rem;
-    letter-spacing: 0.01em;
+    font-size: 0.96rem;
+    letter-spacing: 0.18px;
+    line-height: 1.2;
+    text-transform: uppercase;
   }
 
-  .hub-score-pill-total {
-    background: rgba(200, 16, 46, 0.06);
-    border-color: rgba(200, 16, 46, 0.18);
-  }
-
-  .hub-score-pill.pending-pill {
-    background: rgba(255, 244, 229, 0.9);
-    border-color: rgba(237, 108, 2, 0.22);
-    color: #b54708;
-  }
-
-  .hub-score-pill.score-positive {
-    background: linear-gradient(180deg, rgba(31, 143, 67, 0.12), rgba(239, 252, 244, 0.95));
-    border-color: rgba(31, 143, 67, 0.22);
-    color: #1f8f43;
-  }
-
-  .hub-score-pill.score-positive strong {
-    color: #146c2e;
-  }
-
-  .hub-score-pill.score-zero {
-    background: linear-gradient(180deg, rgba(200, 16, 46, 0.1), rgba(255, 241, 243, 0.96));
-    border-color: rgba(200, 16, 46, 0.22);
-    color: #c8102e;
-  }
-
-  .hub-score-pill.score-zero strong {
-    color: #a30d26;
-  }
-
-  .breakdown-item {
-    display: grid;
-    gap: 4px;
-    padding: 12px;
-    border-radius: 12px;
-    border: 1px solid rgba(17, 18, 20, 0.08);
-    background: #fff;
-  }
-
-  .bet-breakdown {
-    border-width: 2px;
-  }
-
-  .bet-breakdown-win {
-    border-color: rgba(31, 143, 67, 0.3);
-    background: linear-gradient(180deg, rgba(31, 143, 67, 0.08), rgba(255, 255, 255, 0.98));
-  }
-
-  .bet-breakdown-loss {
-    border-color: rgba(200, 16, 46, 0.3);
-    background: linear-gradient(180deg, rgba(200, 16, 46, 0.08), rgba(255, 255, 255, 0.98));
-  }
-
-  .bet-breakdown-pending {
-    border-color: rgba(237, 108, 2, 0.28);
-    background: linear-gradient(180deg, rgba(237, 108, 2, 0.08), rgba(255, 255, 255, 0.98));
-  }
-
-  .bet-status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 28px;
-    padding: 0 10px;
-    border: 1px solid rgba(17, 18, 20, 0.08);
-    border-radius: 999px;
-    background: #fff;
-    color: #344054;
-    font-size: 0.72rem;
-    font-weight: 800;
-    white-space: nowrap;
-  }
-
-  .bet-status-pill.pending-tag {
-    border-color: rgba(237, 108, 2, 0.3);
-    background: rgba(255, 244, 229, 0.9);
-    color: #b54708;
-  }
-
-  .bet-points-row {
-    display: grid;
-    gap: 2px;
-  }
-
-  .bet-points-value {
-    color: #111214;
-    font-family: 'MotoGP Bold', sans-serif;
-    font-size: 1.15rem;
-    letter-spacing: 0.02em;
-  }
-
-  .bet-points-note {
-    color: #5f6672;
-    font-size: 0.78rem;
+  .action-note {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
     line-height: 1.35;
   }
 
-  .compact-breakdown-item {
-    padding: 10px 0 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
+  .admin-action-button {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    border-radius: 12px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
   }
 
-  @media (max-width: 768px) {
+  .admin-action-button i {
+    margin-right: 0.45rem;
+  }
+
+  .qualifying-override-panel {
+    display: grid;
+    gap: 0.85rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: var(--surface-card);
+  }
+
+  .override-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+  }
+
+  .override-toggle i {
+    flex: 0 0 auto;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .override-table {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .override-row {
+    display: grid;
+    grid-template-columns: minmax(140px, 1.4fr) 80px 120px 110px minmax(230px, 1.6fr);
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    background: var(--surface-card);
+  }
+
+  .override-row-head {
+    background: var(--surface-muted);
+    color: var(--text-primary);
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .override-rider {
+    color: var(--text-primary);
+    font-family: 'MotoGP Bold', sans-serif;
+  }
+
+  .override-points {
+    color: var(--text-muted);
+    margin-left: 0.25rem;
+  }
+
+  .override-source {
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+
+  .override-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .native-input {
+    width: 86px;
+    min-height: 38px;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--border-medium);
+    border-radius: 10px;
+    background: var(--surface-card);
+    color: var(--text-primary);
+    font: inherit;
+  }
+
+  /* ═══════════════ Responsive (breakpoint: 820px) ═══════════════ */
+
+  @media (max-width: 820px) {
     .main-content {
-      padding: calc(var(--app-header-height) + 2px) 8px 10px;
+      padding: calc(var(--app-header-height) + 10px) 8px 12px;
+      gap: 8px;
+    }
+
+    .results-container {
+      gap: 8px;
     }
 
     .page-race-hero {
@@ -1007,10 +1030,45 @@ app-race-detail {
       font-size: 0.72rem;
     }
 
-    .race-overview {
+    .card-header {
+      min-height: 46px;
+      padding: 0.65rem 0.75rem;
+      font-size: 0.88rem;
+    }
+
+    .card-collapse-meta {
+      right: 8px;
+      gap: 4px;
+    }
+
+    .card-collapse-meta .meta-tag {
+      min-height: 22px;
+      padding: 0 6px;
+    }
+
+    .hub-progress {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      padding: 10px 12px;
+    }
+
+    .hub-progress-track {
+      grid-column: 1 / -1;
+      order: 3;
+    }
+
+    .hub-steps {
       grid-template-columns: 1fr;
-      gap: 0.55rem;
-      padding: 0.7rem 0.75rem;
+      gap: 8px;
+      padding: 10px;
+    }
+
+    .availability-note {
+      margin: 10px 10px 0;
+    }
+
+    .session-results {
+      padding: 0.45rem 0.45rem 0.55rem;
     }
 
     .admin-panel {
@@ -1021,94 +1079,10 @@ app-race-detail {
       grid-template-columns: 1fr;
     }
 
-    .personal-race-grid,
-    .personal-breakdown {
-      grid-template-columns: 1fr;
-    }
-
-    .card-collapse-toggle {
-      display: block;
-    }
-
-    .card-collapsible .card-header {
-      min-height: 50px;
-      padding-right: 84px;
-      font-size: 0.92rem;
-    }
-
-    .card-collapse-meta {
-      right: 10px;
-      gap: 4px;
-    }
-
-    .card-collapsible .card-collapse-meta .meta-tag {
-      min-height: 22px;
-      padding: 0 6px;
-      font-size: 0.58rem;
-    }
-
-    .card-collapse-chevron {
-      width: 26px;
-      height: 26px;
-    }
-
-    .results-card .card-collapsible .card-header {
-      padding-right: 72px;
-      font-size: 0.86rem;
-    }
-
-    .results-card .card-collapse-meta {
-      max-width: 88px;
-    }
-
-    .results-card .card-collapse-meta .meta-tag {
-      max-width: 52px;
-      font-size: 0.52rem;
-      padding: 0 5px;
-    }
-
-    .hub-section-summary {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .hub-section-meta {
-      width: 100%;
-      justify-content: flex-start;
-    }
-
-    .override-header {
-      flex-direction: column;
-    }
-
     .override-row {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .race-time-item {
-      min-height: 48px;
-      padding: 0.42rem 0.5rem;
-    }
-
-    .kv-row {
-      grid-template-columns: 1fr;
-      gap: 2px;
-    }
-
-    .kv-value {
-      text-align: left;
-      font-size: 0.78rem;
-    }
-
-    .entry-user {
-      font-size: 0.8rem;
-    }
-
-    .entry-when,
-    .meta-tag {
-      font-size: 0.61rem;
+      grid-template-columns: minmax(110px, 1.2fr) 60px 90px 90px minmax(160px, 1.4fr);
+      gap: 0.5rem;
+      padding: 0.6rem;
     }
   }
 }

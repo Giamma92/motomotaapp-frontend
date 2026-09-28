@@ -1,0 +1,272 @@
+<div class="page-container">
+  <header class="header">
+    <button mat-icon-button class="app-back-arrow" (click)="goBack()" aria-label="Back">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>{{ 'calendar.title' | t }}</h1>
+  </header>
+
+  <main class="main-content">
+    <!-- ── Loading skeleton ── -->
+    <ng-container *ngIf="loading">
+      <section class="sk sk-hero" aria-hidden="true"></section>
+      <section class="skeleton-list" aria-hidden="true">
+        <span class="sk sk-row" *ngFor="let s of [1, 2, 3, 4, 5]"></span>
+      </section>
+    </ng-container>
+
+    <!-- ── Empty / error state ── -->
+    <section class="app-panel card-state" *ngIf="!loading && !calendar.length">
+      <mat-icon class="state-icon">event_busy</mat-icon>
+      <p class="state-title">Nessuna gara disponibile.</p>
+    </section>
+
+    <ng-container *ngIf="!loading && calendar.length">
+      <!-- ── Featured (next) race hero — both desktop & mobile ── -->
+      <section class="race-hero" *ngIf="featuredRace as race" [class.race-hero--cancelled]="race.cancelled">
+        <div class="hero-copy">
+          <div class="hero-topline">
+            <span class="hero-kicker">{{ getMobileRaceStateLabel(race) }}</span>
+            <span class="cancelled-pill" *ngIf="race.cancelled">Cancellata</span>
+            <span class="countdown-chip" *ngIf="countdown">
+              <mat-icon>timer</mat-icon>
+              <span class="countdown-label" *ngIf="countdownPrefix">Partenza tra</span>
+              <strong>{{ countdown }}</strong>
+            </span>
+          </div>
+          <h2>{{ race.race_id.name }}</h2>
+          <p class="hero-meta">
+            <span class="hero-meta-item">
+              <mat-icon>event</mat-icon>
+              {{ formatEventRange(race.event_date) }}
+            </span>
+            <span class="hero-meta-item">
+              <mat-icon>location_on</mat-icon>
+              {{ race.race_id.location }}
+            </span>
+          </p>
+          <div class="hero-status">
+            <span class="status-pill" [class.status-pill-complete]="hasCompletedLineup(race)" [class.status-pill-missing]="!hasCompletedLineup(race)">Schieramento {{ hasCompletedLineup(race) ? 'ok' : 'manca' }}</span>
+            <span class="status-pill" [class.status-pill-complete]="hasCompletedSprintBet(race)" [class.status-pill-missing]="!hasCompletedSprintBet(race)">Sprint {{ hasCompletedSprintBet(race) ? 'ok' : 'manca' }}</span>
+            <span class="status-pill" [class.status-pill-complete]="hasCompletedRaceBet(race)" [class.status-pill-missing]="!hasCompletedRaceBet(race)">Race {{ hasCompletedRaceBet(race) ? 'ok' : 'manca' }}</span>
+            <span class="status-summary-pill">{{ getRaceCompletionLabel(race) }}</span>
+          </div>
+        </div>
+
+        <div class="hero-sessions">
+          <div class="hero-session">
+            <mat-icon>schedule</mat-icon>
+            <span class="hero-session-label">{{ 'common.qualifying' | t }}</span>
+            <strong>{{ getQualifyingDay(race.event_date) }} {{ race.qualifications_time ?? '10:00:00' | timeFormat }}</strong>
+          </div>
+          <div class="hero-session">
+            <mat-icon>bolt</mat-icon>
+            <span class="hero-session-label">{{ 'common.sprint' | t }}</span>
+            <strong>{{ getSprintDay(race.event_date) }} {{ race.sprint_time ?? '15:00:00' | timeFormat }}</strong>
+          </div>
+          <div class="hero-session hero-session--race">
+            <mat-icon>sports_motorsports</mat-icon>
+            <span class="hero-session-label">{{ 'common.race' | t }}</span>
+            <strong>{{ getRaceDay(race.event_date) }} {{ race.event_time ?? '14:00:00' | timeFormat }}</strong>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <button mat-flat-button class="hero-action hero-action-primary" (click)="goToRaceDetail(race)">
+            <mat-icon>arrow_forward</mat-icon>
+            <span>Apri gara</span>
+          </button>
+          <button mat-stroked-button class="hero-action hero-action-secondary" (click)="goToMotoGPResults(race)" aria-label="View MotoGP Results">
+            <mat-icon>emoji_events</mat-icon>
+            <span>Risultati</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Desktop: season progress + table ── -->
+      <section class="table-card desktop-only">
+        <div class="season-progress">
+          <div class="season-progress-copy">
+            <span class="card-kicker">Stagione</span>
+            <strong>{{ completedCount }} / {{ calendar.length }}</strong>
+            <span class="season-progress-note">gare concluse</span>
+          </div>
+          <div class="progress-track">
+            <span class="progress-fill" [style.width.%]="seasonProgressPct"></span>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th class="col-round">{{ 'calendar.table.round' | t }}</th>
+                <th class="col-event">{{ 'calendar.table.event' | t }}</th>
+                <th class="col-date">{{ 'calendar.table.date' | t }}</th>
+                <th class="col-session">{{ 'calendar.table.qualifying' | t }}</th>
+                <th class="col-session">{{ 'calendar.table.sprint' | t }}</th>
+                <th class="col-session">{{ 'calendar.table.race' | t }}</th>
+                <th class="col-actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let race of calendar; let i = index"
+                [class.row-next]="i === currentRaceIndex && !race.cancelled"
+                [class.row-past]="i < currentRaceIndex && !race.cancelled"
+                [class.row-cancelled]="race.cancelled">
+                <td class="col-round">
+                  <span class="round-badge">{{ race.race_order }}</span>
+                </td>
+                <td class="col-event">
+                  <div class="event-name">
+                    {{ race.race_id.name }}
+                    <span class="cancelled-pill" *ngIf="race.cancelled">Cancellata</span>
+                    <span
+                      class="state-pill"
+                      *ngIf="!race.cancelled && i <= currentRaceIndex"
+                      [class.state-pill--next]="i === currentRaceIndex"
+                      [class.state-pill--past]="i < currentRaceIndex">
+                      {{ getMobileRaceStateLabel(race, i) }}
+                    </span>
+                  </div>
+                  <div class="event-location">
+                    <mat-icon>location_on</mat-icon>
+                    {{ race.race_id.location }}
+                  </div>
+                </td>
+                <td class="col-date">
+                  <span class="detail-text">{{ formatEventRange(race.event_date) }}</span>
+                </td>
+                <td class="col-session">
+                  <span
+                    class="session-dot"
+                    [class.session-dot--ok]="hasCompletedLineup(race)"
+                    [attr.title]="hasCompletedLineup(race) ? 'Schieramento completato' : 'Schieramento mancante'"
+                    aria-hidden="true"></span>
+                  <span class="session-time">{{ getQualifyingDay(race.event_date, true) }} {{ race.qualifications_time ?? '10:00:00' | timeFormat }}</span>
+                </td>
+                <td class="col-session">
+                  <span
+                    class="session-dot"
+                    [class.session-dot--ok]="hasCompletedSprintBet(race)"
+                    [attr.title]="hasCompletedSprintBet(race) ? 'Scommessa sprint completata' : 'Scommessa sprint mancante'"
+                    aria-hidden="true"></span>
+                  <span class="session-time">{{ getSprintDay(race.event_date, true) }} {{ race.sprint_time ?? '15:00:00' | timeFormat }}</span>
+                </td>
+                <td class="col-session">
+                  <span
+                    class="session-dot"
+                    [class.session-dot--ok]="hasCompletedRaceBet(race)"
+                    [attr.title]="hasCompletedRaceBet(race) ? 'Scommessa gara completata' : 'Scommessa gara mancante'"
+                    aria-hidden="true"></span>
+                  <span class="session-time">{{ getRaceDay(race.event_date, true) }} {{ race.event_time ?? '14:00:00' | timeFormat }}</span>
+                </td>
+                <td class="col-actions">
+                  <button mat-icon-button class="calendar-action-btn app-nav-icon" (click)="goToRaceDetail(race)" aria-label="Apri dettagli gara">
+                    <mat-icon>chevron_right</mat-icon>
+                  </button>
+                  <button mat-icon-button class="calendar-action-btn calendar-action-btn--accent app-nav-icon app-nav-icon--accent" (click)="goToMotoGPResults(race)" aria-label="View MotoGP Results">
+                    <mat-icon>emoji_events</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── Mobile: timeline list ── -->
+      <section class="mobile-timeline mobile-only">
+        <details
+          class="calendar-race-panel"
+          *ngFor="let race of calendar; let i = index"
+          [attr.open]="isRacePanelInitiallyOpen(i) ? true : null"
+          [class.calendar-race-panel--featured]="i === currentRaceIndex && !race.cancelled"
+          [class.calendar-race-panel--past]="i < currentRaceIndex && !race.cancelled"
+          [class.calendar-race-panel--future]="i > currentRaceIndex && !race.cancelled"
+          [class.calendar-race-panel--cancelled]="race.cancelled">
+          <summary class="card-header race-panel-toggle">
+            <div class="header-content">
+              <div class="header-topline">
+                <div class="round-badge">{{ 'calendar.raceNum' | t:{num: race.race_order} }}</div>
+                <div class="header-topline-right">
+                  <span class="race-state-pill" [class.race-state-pill--current]="i === currentRaceIndex" [class.race-state-pill--past]="i < currentRaceIndex" [class.race-state-pill--future]="i > currentRaceIndex">
+                    {{ getMobileRaceStateLabel(race, i) }}
+                  </span>
+                  <span class="cancelled-pill" *ngIf="race.cancelled">Cancellata</span>
+                  <span class="panel-chevron" aria-hidden="true">
+                    <mat-icon>expand_more</mat-icon>
+                  </span>
+                </div>
+              </div>
+              <h2 class="race-title">{{ race.race_id.name }}</h2>
+              <div class="race-subtitle">
+                <div class="event-details">
+                  <div class="detail-item">
+                    <mat-icon>event</mat-icon>
+                    <span class="detail-text">{{ formatEventRange(race.event_date) }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon>location_on</mat-icon>
+                    <span class="location-text">{{ race.race_id.location }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="race-personal-status">
+                <span class="status-pill" [class.status-pill-complete]="hasCompletedLineup(race)" [class.status-pill-missing]="!hasCompletedLineup(race)">Schieramento {{ hasCompletedLineup(race) ? 'ok' : 'manca' }}</span>
+                <span class="status-pill" [class.status-pill-complete]="hasCompletedSprintBet(race)" [class.status-pill-missing]="!hasCompletedSprintBet(race)">Sprint {{ hasCompletedSprintBet(race) ? 'ok' : 'manca' }}</span>
+                <span class="status-pill" [class.status-pill-complete]="hasCompletedRaceBet(race)" [class.status-pill-missing]="!hasCompletedRaceBet(race)">Race {{ hasCompletedRaceBet(race) ? 'ok' : 'manca' }}</span>
+              </div>
+            </div>
+          </summary>
+
+          <div class="race-main">
+            <div class="race-content">
+              <div class="race-details-vertical">
+                <div class="time-detail-container">
+                  <div class="time-icon-container">
+                    <mat-icon class="time-icon">timer</mat-icon>
+                  </div>
+                  <div class="time-info">
+                    <span class="time-label">{{ 'common.qualifying' | t }}</span>
+                    <span class="time-value">{{ getQualifyingDay(race.event_date) }} {{ race.qualifications_time ?? '10:00:00' | timeFormat }}</span>
+                  </div>
+                </div>
+                <div class="time-detail-container">
+                  <div class="time-icon-container">
+                    <mat-icon class="time-icon">flag</mat-icon>
+                  </div>
+                  <div class="time-info">
+                    <span class="time-label">{{ 'common.sprint' | t }}</span>
+                    <span class="time-value">{{ getSprintDay(race.event_date) }} {{ race.sprint_time ?? '15:00:00' | timeFormat }}</span>
+                  </div>
+                </div>
+                <div class="time-detail-container">
+                  <div class="time-icon-container">
+                    <mat-icon class="time-icon">sports_motorsports</mat-icon>
+                  </div>
+                  <div class="time-info">
+                    <span class="time-label">{{ 'common.race' | t }}</span>
+                    <span class="time-value">{{ getRaceDay(race.event_date) }} {{ race.event_time ?? '14:00:00' | timeFormat }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button mat-flat-button class="race-action race-action-details" (click)="goToRaceDetail(race)">
+              <mat-icon>arrow_forward</mat-icon>
+              <span>Dettagli</span>
+            </button>
+            <button mat-flat-button class="race-action race-action-results" (click)="goToMotoGPResults(race)" aria-label="View MotoGP Results">
+              <mat-icon>emoji_events</mat-icon>
+              <span>Risultati</span>
+            </button>
+          </div>
+        </details>
+      </section>
+    </ng-container>
+  </main>
+</div>

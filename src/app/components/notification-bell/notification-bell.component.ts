@@ -147,7 +147,8 @@ import { Subscription } from 'rxjs';
       align-items: center;
       justify-content: center;
       padding: 32px 16px;
-      color: #666;
+      // #666 on the dark dropdown failed contrast
+      color: #8b909c;
       gap: 8px;
     }
     .notification-empty i {
@@ -213,8 +214,9 @@ import { Subscription } from 'rxjs';
       line-height: 1.3;
     }
     .notif-time {
-      font-size: 11px;
-      color: #666;
+      // Readability floor: >= 11.2px, contrast-safe on the dark dropdown
+      font-size: 11.5px;
+      color: #8b909c;
     }
     .notif-unread-dot {
       width: 8px;

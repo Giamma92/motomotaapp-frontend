@@ -126,6 +126,39 @@ export class RaceScheduleService {
     return now >= visibleFrom;
   }
 
+  /**
+   * Close time of whichever action window is open right now:
+   * lineups → 23:59:59 on D‑2, sprint bet → 30 min before the sprint,
+   * race bet → the race-day cutoff. Returns null when every window is closed.
+   */
+  getOpenWindowDeadline(
+    nextRace: CalendarRace | null | undefined,
+    timeZone: string = this.defaultTimezone,
+    now: Date = new Date()
+  ): Date | null {
+    if (!nextRace?.event_date || nextRace.cancelled) return null;
+    const tz = DateUtils.normalizeTimeZone(timeZone);
+
+    if (this.canShowLineups(nextRace, tz, now)) {
+      const endDate = DateUtils.addDaysToYyyyMmDd(nextRace.event_date, -2);
+      if (!endDate) return null;
+      const end = DateUtils.buildZonedDateTime(endDate, '23:59:59', tz);
+      if (end) end.setMilliseconds(999);
+      return end;
+    }
+
+    if (this.canShowSprintBet(nextRace, tz, now)) {
+      const sprintTime = this.getSprintTime(nextRace, tz);
+      return sprintTime ? new Date(sprintTime.getTime() - 30 * 60 * 1000) : null;
+    }
+
+    if (this.canShowRaceBet(nextRace, tz, now)) {
+      return this.getRaceDayCutoff(nextRace, tz);
+    }
+
+    return null;
+  }
+
   /** Returns the event start time on race day, or midnight if no time is provided. */
   getEventTime(nextRace: CalendarRace | null | undefined, timeZone: string = this.defaultTimezone): Date | null {
     if (!nextRace?.event_date || nextRace.cancelled) return null;

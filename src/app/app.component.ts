@@ -29,7 +29,6 @@ export class AppComponent {
     timer(100).pipe(
       switchMap(() => this.i18n.preloadLanguages(['en', 'it']))
     ).subscribe({
-      next: () => console.log('Languages preloaded successfully'),
       error: (err) => console.warn('Failed to preload some languages:', err)
     });
   }

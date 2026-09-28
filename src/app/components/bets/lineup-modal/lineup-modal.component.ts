@@ -14,7 +14,7 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
   template: `
     <h2 mat-dialog-title>{{ 'lineupModal.title' | t }}</h2>
     <mat-dialog-content>
-      <table mat-table [dataSource]="data.lineups" class="mat-elevation-z4">
+      <table mat-table [dataSource]="data.lineups" class="app-material-table">
         <ng-container matColumnDef="race_rider">
           <th mat-header-cell *matHeaderCellDef>{{ 'lineupModal.raceRider' | t }}</th>
           <td mat-cell *matCellDef="let lineup">
@@ -44,13 +44,10 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
       </button>
     </mat-dialog-actions>
   `,
-  styles: [`
+  styles: `
     table {
       width: 100%;
-      margin: 1rem 0;
-    }
-    th.mat-header-cell {
-      background-color: #f5f5f5;
+      margin: 0.5rem 0;
     }
     .close-button {
       margin: 8px;
@@ -59,15 +56,16 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
     .close-button:hover {
       transform: translateY(-1px);
     }
-  `]
+  `
 })
 export class LineupModalComponent {
   displayedColumns: string[] = ['race_rider', 'qualifying_rider'];
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: {lineups: LineupsResult[], riders: ChampionshipRider[]}) {}
 
-  getRiderName(riderId: number): string {
-    const rider = this.data.riders.find(r => r.rider_id.id === riderId)?.rider_id;
-    return rider ? `${rider.first_name} ${rider.last_name}` : 'Unknown Rider';
+  getRiderName(riderId: any): string {
+    const id = riderId && typeof riderId === 'object' ? riderId.id : riderId;
+    const rider = this.data.riders.find(r => r.rider_id.id === Number(id))?.rider_id;
+    return rider ? `${rider.first_name} ${rider.last_name}` : '';
   }
 }

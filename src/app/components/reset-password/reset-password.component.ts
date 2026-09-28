@@ -65,47 +65,16 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   styles: [`
     .reset-container {
       min-height: 100vh;
+      // Theme-aware backdrop: the old hardcoded white gradient clashed with
+      // the dark app background
       background:
-        radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
-        radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
-        linear-gradient(158deg, #ffffff 0%, #f8f8f9 48%, #f1f2f4 100%);
-      color: #16181d;
+        radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.16), transparent 42%),
+        radial-gradient(circle at 100% 0%, rgba(200, 16, 46, 0.06), transparent 34%),
+        var(--background-dark, #0e1015);
+      color: var(--text-primary, #ffffff);
     }
 
-    .header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: var(--app-header-height);
-      display: flex;
-      align-items: center;
-      background: rgba(17, 18, 20, 0.97);
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
-      color: #fff;
-      z-index: 1000;
-      padding: 0 clamp(10px, 2.5vw, 20px);
-    }
-
-    .header button {
-      background: #fff;
-      color: #c8102e;
-      border-radius: 50%;
-      width: 42px;
-      height: 42px;
-    }
-
-    .header h1 {
-      flex: 1;
-      text-align: center;
-      margin: 0;
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      font-size: clamp(1rem, 2.8vw, 1.5rem);
-      font-family: 'MotoGP Bold', sans-serif;
-      padding-right: 42px;
-    }
+    /* Header: canonical styles live in styles/_layout.scss */
 
     .reset-main {
       width: min(100%, 560px);
@@ -115,10 +84,10 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 
     .reset-panel {
       width: 100%;
-      border: 1px solid rgba(17, 18, 20, 0.12);
+      border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
       border-radius: 14px;
-      background: #fff;
-      box-shadow: 0 8px 18px rgba(0,0,0,.08);
+      background: var(--surface-card, #1e2128);
+      box-shadow: var(--shadow-card, 0 2px 12px rgba(0, 0, 0, 0.2));
       padding: 10px;
     }
 
@@ -140,15 +109,15 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
     }
 
     .error-message {
-      background: #ffecec;
-      color: #c8102e;
+      background: rgba(200, 16, 46, 0.1);
+      color: #ff6b81;
       padding: .72rem;
       border-radius: 8px;
       margin: 4px 0;
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      border: 1px solid #c8102e;
+      border: 1px solid rgba(200, 16, 46, 0.45);
       font-size: .86rem;
     }
 

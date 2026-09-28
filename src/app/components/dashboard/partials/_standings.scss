@@ -1,0 +1,1009 @@
+/* ============================================
+   Dashboard — Standings Section (Dark Theme)
+   Lines: table, current-user-summary, icons,
+          header redesign, card overrides
+   ============================================ */
+
+/* ---- Layout ---- */
+.standings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@keyframes pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* ---- Table wrapper ---- */
+.table-container {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---- Standings table ---- */
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 0.95em;
+
+  th {
+    padding: 0.15rem 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    /* MotoGP red accent line under the header */
+    border-bottom: 2px solid rgba(200, 16, 46, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--table-header-bg);
+    font-size: 0.8rem;
+
+    &:first-child, &:last-child { border-radius: 0; }
+  }
+
+  .th-short { display: none; }
+  .th-full  { display: inline; }
+
+  td {
+    padding: 0.15rem;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  /* Current user row — subtle red tint */
+  tr.highlight {
+    background: linear-gradient(90deg, rgba(200, 16, 46, 0.14), rgba(200, 16, 46, 0.04));
+    border-left: 4px solid var(--primary-color);
+    td {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+
+  /* Top-three rows — subtle red ramp (pure red reads clean on both
+     themes; the old black first stop looked dirty on white) */
+  tr.top-three {
+    background: linear-gradient(90deg, rgba(200, 16, 46, 0.10), rgba(200, 16, 46, 0.025));
+    border-left: 4px solid var(--primary-color);
+  }
+
+  /* ---- Rank column ---- */
+  .rank-col {
+    width: 12%;
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-primary);
+
+    .position-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+
+      .position {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+
+        /* Top-3: circular medal badge — the medal tint itself is
+           set per row below (nth-child), echoing the podium */
+        &.top-position {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          box-sizing: border-box;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          font-size: 0.95rem;
+          font-weight: 800;
+          line-height: 1;
+          box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
+        }
+      }
+    }
+  }
+
+  /* Medal tint per rank — gold / silver / bronze like the podium */
+  tr:nth-child(1) .position.top-position {
+    color: var(--medal-gold-text);
+    background: rgba(255, 215, 0, 0.16);
+    border: 1px solid rgba(255, 215, 0, 0.55);
+  }
+
+  tr:nth-child(2) .position.top-position {
+    color: var(--medal-silver-text);
+    background: rgba(201, 206, 214, 0.2);
+    border: 1px solid rgba(160, 168, 180, 0.75);
+  }
+
+  tr:nth-child(3) .position.top-position {
+    color: var(--medal-bronze-text);
+    background: rgba(205, 127, 50, 0.18);
+    border: 1px solid rgba(205, 127, 50, 0.6);
+  }
+
+  /* ---- User column ---- */
+  .user-col {
+    width: 45%;
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .user-avatar-small {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--surface-elevated);
+        border: 2px solid var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        i {
+          font-size: 1rem;
+          color: var(--primary-color);
+        }
+      }
+
+      .user-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        flex: 1;
+
+        .username {
+          font-weight: 600;
+          color: var(--text-primary);
+          font-size: 0.95rem;
+        }
+
+        .score-progress {
+          width: 100%;
+          max-width: 200px;
+
+          .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--surface-muted);
+            border-radius: 2px;
+            overflow: hidden;
+
+            .progress-fill {
+              height: 100%;
+              background: linear-gradient(90deg, var(--primary-color), #e8354a);
+              border-radius: 2px;
+              transition: width 0.3s ease;
+
+              /* Fill-level colouring driven by [data-tier] from the component:
+                 near the leader → green, mid-pack → amber, trailing → red */
+              &[data-tier='green'] {
+                background: linear-gradient(90deg, #00b140, #00e676);
+              }
+
+              &[data-tier='amber'] {
+                background: linear-gradient(90deg, #ef6c00, #ffab00);
+              }
+
+              &[data-tier='red'] {
+                background: linear-gradient(90deg, var(--primary-color), #ff4d6a);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* ---- Score column ---- */
+  .score-col {
+    width: 20%;
+    text-align: center;
+
+    .score-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.1rem;
+
+      .score-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--primary-color);
+      }
+
+      .score-label {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+
+  /* ---- Gap column ---- */
+  .gap-col {
+    width: 23%;
+    text-align: center;
+
+    .gap-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.1rem;
+
+      .gap-value {
+        font-size: 0.9rem;
+        font-weight: 600;
+        /* neutral: #9c0b22 was ~2:1 on the dark card */
+        color: var(--text-secondary);
+      }
+
+      .gap-label {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    .gap-leader {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(200, 16, 46, 0.12);
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+    }
+  }
+
+  /* Row hover — tint + red marker, no layout shift (the old
+     translateX(2px) nudged rows inside an overflow-hidden wrapper).
+     top-three/highlight rows keep their gradient below */
+  tbody tr:not(.top-three):not(.highlight):hover {
+    background-color: var(--surface-elevated);
+    box-shadow: inset 3px 0 0 rgba(200, 16, 46, 0.55);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  }
+}
+
+/* ---- Current User Summary (card variant) ---- */
+.current-user-summary {
+  margin-top: 1rem;
+
+  .summary-card {
+    background: linear-gradient(135deg, rgba(200, 16, 46, 0.10), rgba(200, 16, 46, 0.03));
+    border: 1px solid rgba(200, 16, 46, 0.25);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+    .summary-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 1rem;
+
+      i {
+        color: var(--primary-color);
+      }
+    }
+
+    .summary-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+
+      .position-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+
+        .position-number {
+          font-size: 2rem;
+          font-weight: 700;
+          color: var(--text-primary);
+        }
+
+        .position-label {
+          font-size: 0.8rem;
+          color: var(--text-secondary);
+          opacity: 0.8;
+        }
+      }
+
+      .points-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+
+        .points-value {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: var(--primary-color);
+        }
+
+        .points-label {
+          font-size: 0.8rem;
+          color: var(--primary-color);
+          opacity: 0.8;
+        }
+      }
+    }
+  }
+}
+
+/* ---- Date / location detail row ---- */
+.detail-row.date-location {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+
+  .detail-icon {
+    font-size: 1.4rem;
+    color: var(--primary-color);
+    flex-shrink: 0;
+    vertical-align: middle;
+  }
+
+  @media (min-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+
+    .detail-icon {
+      font-size: 2rem;
+      margin-right: 1rem;
+      background: rgba(200, 16, 46, 0.15);
+      padding: 8px;
+      border-radius: 50%;
+    }
+
+    .detail-text {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+
+  @media (min-width: 1200px) {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+
+    .detail-icon {
+      font-size: 2.5rem;
+      padding: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+/* ---- Time grid ---- */
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+
+    .time-item {
+      flex-direction: column;
+      padding: 1.5rem;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+
+      .time-icon-container {
+        width: auto;
+        margin-bottom: 1rem;
+
+        .time-icon {
+          font-size: 1.4rem;
+          padding: 12px;
+          background: rgba(200, 16, 46, 0.12);
+          border-radius: 50%;
+          color: var(--primary-color);
+        }
+      }
+
+      .time-label {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+
+      .time-value {
+        font-size: 1.4rem;
+        color: var(--text-primary);
+      }
+    }
+  }
+
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+
+    .time-item {
+      padding: 2rem;
+      border-radius: 16px;
+
+      .time-icon {
+        font-size: 3rem;
+        padding: 16px;
+      }
+
+      .time-label {
+        font-size: 1.1rem;
+      }
+
+      .time-value {
+        font-size: 1.6rem;
+      }
+    }
+  }
+}
+
+/* ---- Font Awesome icon helpers ---- */
+.fa-solid {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+i.fa-solid {
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+}
+
+.schedule-icon i,
+.config-icon i,
+.rule-icon i,
+.user-avatar i,
+.user-avatar-small i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.podium-rank i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mat-mdc-card-title i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5rem;
+}
+
+button i {
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5rem;
+}
+
+.mat-menu-item i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5rem;
+}
+
+/* ---- Crown colours ---- */
+.crown-gold   { color: #FFD700 !important; }
+.crown-silver { color: #C0C0C0 !important; }
+.crown-bronze { color: #CD7F32 !important; }
+
+/* Bright metals disappear on white */
+[data-theme='light'] .crown-gold   { color: #b8860b !important; }
+[data-theme='light'] .crown-silver { color: #767e8c !important; }
+[data-theme='light'] .crown-bronze { color: #9a5a22 !important; }
+
+/* ---- Mobile: hide elements + bottom padding ---- */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding-bottom: 90px;
+  }
+
+  .mobile-hidden {
+    display: none !important;
+  }
+}
+
+/* ================================================
+   MotoGP redesign overrides — Dark Theme
+   ================================================ */
+
+/* ---- Dashboard header ---- */
+.dashboard-header {
+  height: auto;
+  min-height: var(--app-header-height);
+  padding: 6px clamp(10px, 2.5vw, 16px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--header-bg);
+  border-bottom: 0;
+  box-shadow: none;
+  backdrop-filter: blur(6px);
+  transition: transform 0.22s ease, opacity 0.2s ease, background 0.2s ease;
+}
+
+.dashboard-header .header-brand {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.dashboard-header .brand-kicker {
+  font-family: 'MotoGP Bold', sans-serif;
+  // Readability floor: >= 11.2px and theme-aware colour (white was invisible
+  // on the light header background)
+  font-size: 0.7rem;
+  letter-spacing: 1.15px;
+  color: var(--text-secondary);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-family: 'MotoGP Bold', sans-serif;
+  font-size: clamp(0.95rem, 2.9vw, 1.45rem);
+  line-height: 1.05;
+  letter-spacing: 0.25px;
+  color: var(--text-primary);
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-header .header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+/* Hide quick links on mobile, show only icon buttons + bell */
+.dashboard-header .header-quick-link:not(.notification-bell-btn) {
+  display: none;
+}
+
+.dashboard-header .header-menu-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: var(--surface-elevated);
+  color: var(--primary-color);
+  border: 1px solid var(--border-medium);
+}
+
+.dashboard-header .header-menu-btn i {
+  margin-right: 0;
+  color: currentColor;
+}
+
+.dashboard-header .header-menu-btn:hover {
+  border-color: rgba(200, 16, 46, 0.45);
+}
+
+/* Desktop: show quick links as chips.
+   NOTE: the base rule above uses :not(.notification-bell-btn) (0,3,0) — the
+   restore must repeat it or it loses the cascade and chips stay hidden
+   at every viewport size */
+@media (min-width: 769px) {
+  .dashboard-header .header-quick-link:not(.notification-bell-btn) {
+    display: inline-flex;
+    min-height: 36px;
+    padding-inline: 12px;
+    gap: 6px;
+  }
+
+  .dashboard-header .header-actions {
+    gap: 8px;
+  }
+}
+
+/* ---- Current User Summary — compact pill variant ---- */
+.current-user-summary {
+  margin-top: 0.4rem;
+  flex-shrink: 0;
+}
+
+.current-user-summary .summary-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-medium);
+  background: var(--surface-elevated);
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.current-user-summary .summary-compact::-webkit-scrollbar {
+  display: none;
+}
+
+.current-user-summary .summary-kicker {
+  font-size: 0.7rem; /* 11.2px, same as mobile floor */
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+  padding-right: 0.15rem;
+}
+
+.current-user-summary .summary-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.28rem 0.5rem;
+  border-radius: 999px;
+}
+
+.current-user-summary .position-pill {
+  background: var(--surface-muted);
+  color: var(--text-primary);
+}
+
+.current-user-summary .points-pill {
+  background: rgba(200, 16, 46, 0.18);
+  color: var(--primary-color);
+}
+
+/* ---- Grid content ---- */
+.grid-content {
+  width: 100%;
+  max-width: 1320px;
+  gap: 16px;
+  padding: 12px;
+}
+
+/* ---- Card overrides (transparent / dark) ---- */
+.mat-mdc-card.fantasy-team-card,
+.mat-mdc-card.next-race-card,
+.mat-mdc-card.standings-card,
+.mat-mdc-card.championship-config-card {
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  overflow: visible;
+}
+
+.standings-card mat-card-header,
+.next-race-card mat-card-header,
+.fantasy-team-card mat-card-header,
+.championship-config-card mat-card-header {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: var(--text-primary) !important;
+  padding: 0 0 8px 0;
+  margin-bottom: 8px;
+}
+
+.standings-card .mat-mdc-card-title,
+.next-race-card .mat-mdc-card-title,
+.fantasy-team-card .mat-mdc-card-title,
+.championship-config-card .mat-mdc-card-title {
+  color: var(--text-primary) !important;
+  font-size: clamp(1rem, 2vw, 1.25rem) !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 2px solid var(--primary-color);
+  padding: 0 0 7px 0;
+}
+
+.standings-card mat-card-content,
+.next-race-card mat-card-content,
+.fantasy-team-card mat-card-content,
+.championship-config-card mat-card-content,
+.standings-card mat-card-actions,
+.next-race-card mat-card-actions,
+.fantasy-team-card mat-card-actions,
+.championship-config-card mat-card-actions {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
+/* ---- Standings table — MotoGP dark overrides ---- */
+.table-container {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+}
+
+.standings-table th {
+  background: var(--table-header-bg) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 2px solid rgba(200, 16, 46, 0.5) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+}
+
+.standings-table tr.top-three {
+  background: linear-gradient(90deg, rgba(200, 16, 46, 0.10), rgba(200, 16, 46, 0.025)) !important;
+  border-left: 3px solid var(--primary-color) !important;
+}
+
+.standings-table tr.highlight {
+  background: linear-gradient(90deg, rgba(200, 16, 46, 0.14), rgba(200, 16, 46, 0.04)) !important;
+  border-left: 3px solid var(--primary-color) !important;
+}
+
+.standings-table .score-value {
+  color: var(--primary-color) !important;
+}
+
+.standings-table .gap-value {
+  /* neutral: #9c0b22 was ~2:1 on the dark card, fine on white */
+  color: var(--text-secondary) !important;
+}
+
+/* ---- Standings actions ---- */
+.standings-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 1.05rem 1rem;
+}
+
+/* The pill styling (999px radius, filled) made this button the odd
+   one out: let it inherit the global stroked style (radius-sm,
+   transparent, MotoGP Bold uppercase) used by every other secondary
+   action — only the red icon marks it as this section's shortcut */
+.standings-breakdown-btn i {
+  margin-right: 0.45rem;
+  color: var(--primary-color);
+}
+
+/* ---- Fix: standings table overflow + readable header ---- */
+.standings-card .table-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden !important;
+  overflow-y: auto;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.standings-card .standings-table {
+  width: 100% !important;
+  max-width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.standings-card .standings-table th,
+.standings-card .standings-table td {
+  box-sizing: border-box;
+}
+
+.standings-card .standings-table thead th {
+  background: var(--table-header-bg) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 2px solid rgba(200, 16, 46, 0.5) !important;
+  text-shadow: none !important;
+}
+
+.standings-card .standings-table thead th .th-full,
+.standings-card .standings-table thead th .th-short {
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
+}
+
+/* ---- Responsive: max-width 768px ---- */
+@media (max-width: 768px) {
+  .standings-card .table-container {
+    overflow-x: hidden !important;
+  }
+
+  .standings-card .standings-table {
+    table-layout: fixed;
+  }
+
+  .standings-card .standings-table .user-col {
+    width: 40%;
+
+    .user-info {
+      gap: 0.5rem;
+
+      .user-avatar-small {
+        width: 28px;
+        height: 28px;
+      }
+
+      .user-details .username {
+        font-size: 0.82rem;
+      }
+
+      .user-details .score-progress .progress-bar {
+        height: 3px;
+      }
+
+      .user-details .score-progress .score-progress {
+        max-width: 120px;
+      }
+    }
+  }
+
+  .standings-card .standings-table .score-col {
+    width: 15%;
+
+    .score-display .score-value {
+      font-size: 1rem;
+    }
+
+    .score-display .score-label {
+      font-size: 0.7rem; /* readability floor: was 0.6rem = 9.6px */
+    }
+  }
+
+  .standings-card .standings-table .gap-col {
+    width: 10%;
+
+    .gap-display .gap-value {
+      font-size: 0.8rem;
+    }
+
+    .gap-display .gap-label {
+      font-size: 0.7rem; /* readability floor: was 0.6rem = 9.6px */
+    }
+
+    .gap-leader {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.4rem;
+    }
+  }
+
+  .standings-card .standings-table th, td {
+    padding: 8px 4px;
+  }
+
+  .standings-card .current-user-summary {
+    margin-top: 0.2rem;
+  }
+
+  .standings-card .current-user-summary .summary-compact {
+    padding: 0.34rem 0.44rem;
+    gap: 0.32rem;
+  }
+
+  .standings-card .current-user-summary .summary-kicker {
+    font-size: 0.6rem;
+    letter-spacing: 0.3px;
+  }
+
+  .standings-card .current-user-summary .summary-pill {
+    font-size: 0.63rem;
+    padding: 0.24rem 0.42rem;
+  }
+
+  .standings-card .standings-table .gap-label,
+  .standings-card .standings-table .gap-leader {
+    font-size: 0.62rem;
+  }
+
+  /* Full-width secondary action: matches the app's mobile CTA
+     pattern and gives a 44px tap target */
+  .standings-actions {
+    padding: 0 1rem 1.1rem;
+  }
+
+  .standings-actions .standings-breakdown-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+/* ---- Dashboard section titles ---- */
+.dashboard-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--text-primary) !important;
+  font-family: 'MotoGP Bold', sans-serif !important;
+  font-size: clamp(1.05rem, 2vw, 1.34rem) !important;
+  letter-spacing: 0.55px !important;
+  line-height: 1.1;
+  text-transform: uppercase;
+  border-bottom: 0 !important;
+  padding: 0 !important;
+}
+
+.dashboard-section-title i,
+.dashboard-section-title mat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 10px;
+  background: var(--primary-color);
+  color: #ffffff !important;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+/* ---- Card title + header refinements ---- */
+.standings-card .mat-mdc-card-title,
+.next-race-card .mat-mdc-card-title,
+.fantasy-team-card .mat-mdc-card-title,
+.championship-config-card .mat-mdc-card-title {
+  border-bottom: 0;
+  letter-spacing: 0.55px;
+}
+
+.standings-card mat-card-header,
+.next-race-card mat-card-header,
+.fantasy-team-card mat-card-header,
+.championship-config-card mat-card-header {
+  padding-top: 14px;
+  padding-bottom: 14px;
+  margin-bottom: 10px;
+}
+
+/* ---- Responsive: max-width 640px ---- */
+@media (max-width: 640px) {
+  .standings-card mat-card-header,
+  .next-race-card mat-card-header,
+  .fantasy-team-card mat-card-header,
+  .championship-config-card mat-card-header {
+    padding-top: 12px;
+    margin-bottom: 8px;
+  }
+
+  .dashboard-section-title {
+    gap: 8px;
+    font-size: 1rem !important;
+  }
+
+  .dashboard-section-title i,
+  .dashboard-section-title mat-icon {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+}

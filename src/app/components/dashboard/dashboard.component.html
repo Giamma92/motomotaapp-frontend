@@ -1,0 +1,897 @@
+    <div class="dashboard-container" @cardAnimation>
+      <header class="header dashboard-header">
+        <div class="header-brand">
+          <span class="brand-kicker">MOTO MOTA</span>
+          <h1>{{ 'dashboard.title' | t }}</h1>
+        </div>
+
+        <div class="header-actions">
+          <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="goTo('calendar')" [attr.aria-label]="'dashboard.header.openCalendarAria' | t">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>{{ 'dashboard.header.calendar' | t }}</span>
+          </button>
+          <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="goTo('teams')" [attr.aria-label]="'dashboard.header.openTeamsAria' | t">
+            <i class="fa-solid fa-people-group"></i>
+            <span>Teams</span>
+          </button>
+
+          <app-notification-bell></app-notification-bell>
+
+          <button
+            type="button"
+            mat-icon-button
+            class="header-theme-btn app-nav-icon app-nav-icon--light"
+            (click)="theme.toggle()"
+            [attr.aria-label]="theme.mode() === 'dark' ? ('common.theme.toLight' | t) : ('common.theme.toDark' | t)"
+            [title]="theme.mode() === 'dark' ? ('common.theme.toLight' | t) : ('common.theme.toDark' | t)">
+            <i class="fa-solid" [class.fa-sun]="theme.mode() === 'dark'" [class.fa-moon]="theme.mode() === 'light'"></i>
+          </button>
+
+          <button mat-icon-button class="header-menu-btn app-nav-icon app-nav-icon--light" [matMenuTriggerFor]="menu" [attr.aria-label]="'dashboard.header.menuAria' | t">
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+        </div>
+        <mat-menu #menu="matMenu">
+          <!-- Mobile only: the header chips are hidden below 769px, so keep these pages reachable -->
+          <button mat-menu-item class="menu-mobile-only" (click)="goTo('calendar')">
+            <i class="fa-solid fa-calendar-days"></i> {{ 'dashboard.header.calendar' | t }}
+          </button>
+          <button mat-menu-item class="menu-mobile-only" (click)="goTo('teams')">
+            <i class="fa-solid fa-people-group"></i> Teams
+          </button>
+          <button mat-menu-item (click)="goTo('profile')">
+            <i class="fa-solid fa-user"></i> {{ 'dashboard.menu.profile' | t }}
+          </button>
+          <button mat-menu-item (click)="goTo('settings')">
+            <i class="fa-solid fa-gear"></i> {{ 'dashboard.menu.settings' | t }}
+          </button>
+          <button mat-menu-item *ngIf="isAdmin()" (click)="goTo('translation')">
+            <i class="fa-solid fa-language"></i> {{ 'dashboard.menu.translation' | t }}
+          </button>
+          <button *ngIf="isAdmin()" mat-menu-item (click)="goTo('admin')">
+            <i class="fa-solid fa-shield-halved"></i> {{ 'dashboard.menu.admin' | t }}
+          </button>
+
+          <button mat-menu-item (click)="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i> {{ 'dashboard.menu.logout' | t }}
+          </button>
+        </mat-menu>
+
+      </header>
+      <main class="grid-content"(pointerdown)="onSwipeStart($event)" (pointerup)="onSwipeEnd($event)">
+        <div class="cards-wrapper">
+          <div class="dash-col dash-col-a">
+          <!-- Standings: loading skeleton -->
+          <mat-card class="standings-card skeleton-card fullbleed-panel"
+          *ngIf="loadingStandings"
+          [class.mobile-hidden]="!isActive('standings')"
+          aria-hidden="true">
+            <mat-card-header class="standings-header">
+              <mat-card-title class="dashboard-section-title"><span class="sk sk-title"></span></mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="skeleton-content">
+              <span class="sk sk-summary"></span>
+              <span class="sk sk-podium"></span>
+              <span class="sk sk-line sk-w90"></span>
+              <span class="sk sk-line sk-w75"></span>
+              <span class="sk sk-line sk-w85"></span>
+              <span class="sk sk-line sk-w70"></span>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Standings: error state -->
+          <mat-card class="standings-card state-card fullbleed-panel"
+          *ngIf="!loadingStandings && errorStandings"
+          [class.mobile-hidden]="!isActive('standings')">
+            <mat-card-content>
+              <div class="card-state" role="alert">
+                <i class="fa-solid fa-triangle-exclamation state-icon"></i>
+                <p class="state-title">{{ 'common.error.title' | t }}</p>
+                <button mat-stroked-button type="button" (click)="reload()">
+                  <i class="fa-solid fa-rotate-right"></i> {{ 'common.error.retry' | t }}
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Standings: empty state -->
+          <mat-card class="standings-card state-card fullbleed-panel"
+          *ngIf="!loadingStandings && !errorStandings && !classificationData?.length"
+          [class.mobile-hidden]="!isActive('standings')">
+            <mat-card-content>
+              <div class="card-state">
+                <i class="fa-solid fa-trophy state-icon"></i>
+                <p class="state-title">{{ 'dashboard.standings.empty' | t }}</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="standings-card fullbleed-panel"
+          *ngIf="!loadingStandings && !errorStandings && classificationData && classificationData.length"
+          [class.mobile-hidden]="!isActive('standings')">
+            <mat-card-header class="standings-header">
+               <mat-card-title class="dashboard-section-title">
+                 <i class="fa-solid fa-trophy"></i>
+                 {{ 'dashboard.standings.title' | t }}
+               </mat-card-title>
+             </mat-card-header>
+            <mat-card-content>
+              <div class="standings-container">
+                <!-- Current User Summary -->
+                <div class="current-user-summary" *ngIf="currentUserPosition">
+                  <div class="summary-compact">
+                    <span class="summary-kicker">{{ 'dashboard.standings.yourPosition' | t }}</span>
+                    <span class="summary-pill position-pill">
+                      #{{ currentUserPosition }} {{ 'dashboard.standings.of' | t:{total: classificationData.length} }}
+                    </span>
+                    <span class="summary-pill points-pill">
+                      {{ currentUserPoints | number:'1.0-0' }} {{ 'dashboard.standings.points' | t }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Top 3 Podium Section -->
+                <div class="podium-section" *ngIf="classificationData?.length">
+                  <div class="podium-intro">
+                    <div class="podium-copy">
+                      <span class="podium-kicker">{{ 'dashboard.standings.podiumKicker' | t }}</span>
+                      <h3>{{ 'dashboard.standings.podiumTitle' | t }}</h3>
+                    </div>
+                    <div class="podium-flag" aria-hidden="true"></div>
+                  </div>
+                  <div class="podium-steps">
+
+                    <!-- 2nd place -->
+                    <div class="step step-2" *ngIf="classificationData[1] as r2">
+                      <div class="step-plate">
+                        <span class="step-mark">2</span>
+                      </div>
+                      <div class="step-corner" aria-hidden="true">
+                        <i class="fa-solid fa-crown crown-silver"></i>
+                      </div>
+                      <div class="step-body">
+                        <div class="step-meta">
+                          <span class="podium-points">{{ r2?.score | number:'1.0-0' }} pts</span>
+                        </div>
+                        <div class="name" [title]="(r2?.user_id?.first_name || '') + ' ' + (r2?.user_id?.last_name || '')">
+                          {{ (r2?.user_id?.first_name || '') + ' ' + (r2?.user_id?.last_name || '') || ('dashboard.anonymousRider' | t) }}
+                        </div>
+                      </div>
+                      <div class="step-lane" aria-hidden="true"></div>
+                    </div>
+
+                    <!-- 1st place -->
+                    <div class="step step-1 champion" *ngIf="classificationData[0] as r1">
+                      <div class="step-plate">
+                        <span class="step-mark">1</span>
+                      </div>
+                      <div class="step-corner" aria-hidden="true">
+                        <i class="fa-solid fa-crown crown-gold"></i>
+                      </div>
+                      <div class="step-body">
+                        <div class="step-meta">
+                          <span class="podium-points">{{ r1?.score | number:'1.0-0' }} pts</span>
+                        </div>
+                        <div class="name" [title]="(r1?.user_id?.first_name || '') + ' ' + (r1?.user_id?.last_name || '')">
+                          {{ (r1?.user_id?.first_name || '') + ' ' + (r1?.user_id?.last_name || '') || ('dashboard.anonymousRider' | t) }}
+                        </div>
+                      </div>
+                      <div class="step-lane" aria-hidden="true"></div>
+                    </div>
+
+                    <!-- 3rd place -->
+                    <div class="step step-3" *ngIf="classificationData[2] as r3">
+                      <div class="step-plate">
+                        <span class="step-mark">3</span>
+                      </div>
+                      <div class="step-corner" aria-hidden="true">
+                        <i class="fa-solid fa-crown crown-bronze"></i>
+                      </div>
+                      <div class="step-body">
+                        <div class="step-meta">
+                          <span class="podium-points">{{ r3?.score | number:'1.0-0' }} pts</span>
+                        </div>
+                        <div class="name" [title]="(r3?.user_id?.first_name || '') + ' ' + (r3?.user_id?.last_name || '')">
+                          {{ (r3?.user_id?.first_name || '') + ' ' + (r3?.user_id?.last_name || '') || ('dashboard.anonymousRider' | t) }}
+                        </div>
+                      </div>
+                      <div class="step-lane" aria-hidden="true"></div>
+                    </div>
+
+                  </div>
+                </div>
+
+
+                <!-- Full Standings Table -->
+                <div class="table-container">
+                  <table class="standings-table">
+                    <thead>
+                      <tr>
+                        <th class="rank-col" [attr.aria-label]="'dashboard.standings.rank' | t">
+                          <span class="th-full">{{ 'dashboard.standings.rank' | t }}</span>
+                          <span class="th-short">#</span>
+                        </th>
+                        <th class="user-col" [attr.aria-label]="'dashboard.standings.user' | t">
+                          <span class="th-full">{{ 'dashboard.standings.user' | t }}</span>
+                          <span class="th-short">{{ 'dashboard.standings.userShort' | t }}</span>
+                        </th>
+                        <th class="score-col" [attr.aria-label]="'dashboard.standings.score' | t">
+                          <span class="th-full">{{ 'dashboard.standings.score' | t }}</span>
+                          <span class="th-short">Pts</span>
+                        </th>
+                        <th class="gap-col" [attr.aria-label]="'dashboard.standings.gap' | t">
+                          <span class="th-full">{{ 'dashboard.standings.gap' | t }}</span>
+                          <span class="th-short">&Delta;</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let row of classificationData; let i = index"
+                          [class.highlight]="row.user_id.id === loggedUserId"
+                          [class.top-three]="i < 3">
+                        <td class="rank-col">
+                          <div class="position-container">
+                            <span class="position" [class.top-position]="i < 3">{{ row.position }}</span>
+                          </div>
+                        </td>
+                        <td class="user-col">
+                          <div class="user-info">
+                            <div class="user-avatar-small">
+                              <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div class="user-details">
+                              <span class="username">{{ row.user_id.first_name + ' ' + row.user_id.last_name || ('dashboard.anonymousRider' | t) }}</span>
+                              <div class="score-progress" *ngIf="classificationData[0]">
+                                <div class="progress-bar">
+                                  <div class="progress-fill"
+                                       [style.width.%]="progressPct(row.score, classificationData[0].score)"
+                                       [attr.data-tier]="barTier(row.score, classificationData[0].score)"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="score-col">
+                          <div class="score-display">
+                            <span class="score-value">{{ row.score | number:'1.0-0' }}</span>
+                            <span class="score-label">pts</span>
+                          </div>
+                        </td>
+                        <td class="gap-col">
+                          <div class="gap-display" *ngIf="i < classificationData.length - 1">
+                            <span class="gap-value">+{{ Math.abs(row.score - classificationData[i + 1].score) | number:'1.0-0' }}</span>
+                            <span class="gap-label">pts</span>
+                          </div>
+                          <span class="gap-leader" *ngIf="i === 0">{{ 'dashboard.standings.leader' | t }}</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </mat-card-content>
+            <mat-card-actions class="standings-actions">
+              <button mat-stroked-button class="standings-breakdown-btn" (click)="goTo('standings-breakdown')">
+                <i class="fa-solid fa-table-list"></i>
+                {{ 'dashboard.actions.standingsBreakdown' | t }}
+              </button>
+            </mat-card-actions>
+          </mat-card>
+
+          <!-- Fantasy team: loading skeleton -->
+          <mat-card class="fantasy-team-card skeleton-card fullbleed-panel"
+          *ngIf="loadingTeam"
+          [class.mobile-hidden]="!isActive('team')"
+          aria-hidden="true">
+             <mat-card-header>
+               <mat-card-title class="team-title dashboard-section-title"><span class="sk sk-title"></span></mat-card-title>
+             </mat-card-header>
+             <mat-card-content class="skeleton-content">
+               <span class="sk sk-line sk-w55"></span>
+               <span class="sk sk-row"></span>
+               <span class="sk sk-row"></span>
+               <span class="sk sk-row"></span>
+               <span class="sk sk-line sk-w70"></span>
+             </mat-card-content>
+          </mat-card>
+
+          <!-- Fantasy team: error state -->
+          <mat-card class="fantasy-team-card state-card fullbleed-panel"
+          *ngIf="!loadingTeam && errorTeam"
+          [class.mobile-hidden]="!isActive('team')">
+            <mat-card-content>
+              <div class="card-state" role="alert">
+                <i class="fa-solid fa-triangle-exclamation state-icon"></i>
+                <p class="state-title">{{ 'common.error.title' | t }}</p>
+                <button mat-stroked-button type="button" (click)="reload()">
+                  <i class="fa-solid fa-rotate-right"></i> {{ 'common.error.retry' | t }}
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Fantasy team: empty state -->
+          <mat-card class="fantasy-team-card state-card fullbleed-panel"
+          *ngIf="!loadingTeam && !errorTeam && !fantasyTeam"
+          [class.mobile-hidden]="!isActive('team')">
+            <mat-card-content>
+              <div class="card-state">
+                <i class="fa-solid fa-users state-icon"></i>
+                <p class="state-title">{{ 'dashboard.team.empty' | t }}</p>
+                <button mat-stroked-button type="button" (click)="goTo('teams')">
+                  <i class="fa-solid fa-list"></i> {{ 'dashboard.actions.viewAllTeams' | t }}
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="fantasy-team-card fullbleed-panel"
+          *ngIf="!loadingTeam && !errorTeam && fantasyTeam"
+          [class.mobile-hidden]="!isActive('team')">
+             <mat-card-header>
+               <mat-card-title class="team-title dashboard-section-title">
+                 <i class="fa-solid fa-users"></i>
+                 {{ fantasyTeam.name }}
+               </mat-card-title>
+             </mat-card-header>
+             <mat-card-content>
+               <div class="team-image-container" *ngIf="fantasyTeam.team_image">
+                 <img [src]="fantasyTeam.team_image" alt="{{ fantasyTeam.name }} Logo">
+               </div>
+
+               <!-- Team Riders Section -->
+               <div class="team-riders-section">
+                 <h3 class="section-title">{{ 'dashboard.team.teamRiders' | t }}</h3>
+
+                                   <div class="rider-grid">
+                    <mat-expansion-panel class="rider first-tier">
+                      <mat-expansion-panel-header class="rider-header">
+                        <div class="rider-header-main">
+                          <span class="rider-role">{{ 'dashboard.team.firstTierPilot' | t }}</span>
+                          <div class="rider-name-row">
+                            <span class="rider-name">{{ fantasyTeam.official_rider_1.first_name }} {{ fantasyTeam.official_rider_1.last_name }}</span>
+                            <span class="rider-header-number">#{{ fantasyTeam.official_rider_1.number }}</span>
+                          </div>
+                        </div>
+                      </mat-expansion-panel-header>
+                      <div class="rider-info">
+                        <div class="rider-stats">
+                          <div class="stat-row">
+                            <span class="stat-label">{{ 'dashboard.team.lineupsUsed' | t }}</span>
+                            <span class="stat-value">{{ getRiderLineupsCount(fantasyTeam.official_rider_1.id) }}</span>
+                          </div>
+                          <div class="stat-row">
+                            <span class="stat-label">{{ 'dashboard.team.qualifyingRider' | t }}</span>
+                            <span class="stat-value">{{ getRiderQualifyingCount(fantasyTeam.official_rider_1.id) }}</span>
+                          </div>
+                          <div class="stat-row">
+                            <span class="stat-label">{{ 'dashboard.team.raceRider' | t }}</span>
+                            <span class="stat-value">{{ getRiderRaceCount(fantasyTeam.official_rider_1.id) }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </mat-expansion-panel>
+
+                    <mat-expansion-panel class="rider second-tier" *ngIf="fantasyTeam.official_rider_2">
+                      <mat-expansion-panel-header class="rider-header">
+                        <div class="rider-header-main">
+                          <span class="rider-role">{{ 'dashboard.team.secondTierPilot' | t }}</span>
+                          <div class="rider-name-row">
+                            <span class="rider-name">{{ fantasyTeam.official_rider_2.first_name }} {{ fantasyTeam.official_rider_2.last_name }}</span>
+                            <span class="rider-header-number">#{{ fantasyTeam.official_rider_2.number }}</span>
+                          </div>
+                        </div>
+                      </mat-expansion-panel-header>
+                      <div class="rider-info">
+                        <div class="rider-stats">
+                          <div class="stat-row">
+                            <span class="stat-label">{{ 'dashboard.team.lineupsUsed' | t }}</span>
+                            <span class="stat-value">{{ getRiderLineupsCount(fantasyTeam.official_rider_2.id) }}</span>
+                          </div>
+                          <div class="stat-row">
+                            <span class="stat-label">{{ 'dashboard.team.qualifyingRider' | t }}</span>
+                            <span class="stat-value">{{ getRiderQualifyingCount(fantasyTeam.official_rider_2.id) }}</span>
+                          </div>
+                          <div class="stat-row">
+                            <span class="stat-label">{{ 'dashboard.team.raceRider' | t }}</span>
+                            <span class="stat-value">{{ getRiderRaceCount(fantasyTeam.official_rider_2.id) }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </mat-expansion-panel>
+
+                    <mat-expansion-panel class="rider third-tier">
+                      <mat-expansion-panel-header class="rider-header">
+                        <div class="rider-header-main">
+                          <span class="rider-role">{{ 'dashboard.team.thirdTierPilot' | t }}</span>
+                          <div class="rider-name-row">
+                            <span class="rider-name">{{ fantasyTeam.reserve_rider.first_name }} {{ fantasyTeam.reserve_rider.last_name }}</span>
+                            <span class="rider-header-number">#{{ fantasyTeam.reserve_rider.number }}</span>
+                          </div>
+                        </div>
+                      </mat-expansion-panel-header>
+                      <div class="rider-info">
+                        <div class="rider-stats">
+                          <div class="stat-row">
+                            <span class="stat-label">{{ 'dashboard.team.lineupsUsed' | t }}</span>
+                            <span class="stat-value">{{ getRiderLineupsCount(fantasyTeam.reserve_rider.id) }}</span>
+                          </div>
+                          <div class="stat-row">
+                            <span class="stat-label">{{ 'dashboard.team.qualifyingRider' | t }}</span>
+                            <span class="stat-value">{{ getRiderQualifyingCount(fantasyTeam.reserve_rider.id) }}</span>
+                          </div>
+                          <div class="stat-row">
+                            <span class="stat-label">{{ 'dashboard.team.raceRider' | t }}</span>
+                            <span class="stat-value">{{ getRiderRaceCount(fantasyTeam.reserve_rider.id) }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </mat-expansion-panel>
+                  </div>
+               </div>
+
+               <!-- Betting Statistics Section -->
+               <div class="betting-stats-section" *ngIf="getBettingStats().length > 0">
+                 <h3 class="section-title">{{ 'dashboard.team.bettingStatistics' | t }}</h3>
+
+                 <div class="betting-stats-table">
+                   <table>
+                     <thead>
+                       <tr>
+                         <th>{{ 'dashboard.team.pilot' | t }}</th>
+                         <th>{{ 'dashboard.team.sprintBets' | t }}</th>
+                         <th>{{ 'dashboard.team.raceBets' | t }}</th>
+                         <th>{{ 'dashboard.team.totalBets' | t }}</th>
+                       </tr>
+                     </thead>
+                     <tbody>
+                       <tr *ngFor="let stat of getBettingStats()">
+                         <td class="pilot-name">
+                           <span class="name">{{ stat.pilotName }}</span>
+                           <span class="number">#{{ stat.pilotNumber }}</span>
+                         </td>
+                         <td class="sprint-bets">{{ stat.sprintBets }}</td>
+                         <td class="race-bets">{{ stat.raceBets }}</td>
+                         <td class="total-bets">{{ stat.totalBets }}</td>
+                       </tr>
+                     </tbody>
+                   </table>
+                 </div>
+               </div>
+             </mat-card-content>
+                           <mat-card-actions>
+                <button mat-raised-button color="primary" (click)="goTo('teams')">
+                  <i class="fa-solid fa-list"></i> {{ 'dashboard.actions.viewAllTeams' | t }}
+                </button>
+              </mat-card-actions>
+          </mat-card>
+          </div>
+
+          <div class="dash-col dash-col-b">
+          <!-- Next race: loading skeleton -->
+          <mat-card class="next-race-card skeleton-card fullbleed-panel"
+          *ngIf="loadingNext"
+          [class.mobile-hidden]="!isActive('next')"
+          aria-hidden="true">
+             <mat-card-header class="next-race-header">
+               <mat-card-title class="dashboard-section-title"><span class="sk sk-title"></span></mat-card-title>
+             </mat-card-header>
+             <mat-card-content class="skeleton-content">
+               <span class="sk sk-hero"></span>
+               <span class="sk sk-line sk-w60"></span>
+               <span class="sk sk-pills"><span class="sk sk-pill"></span><span class="sk sk-pill"></span><span class="sk sk-pill"></span></span>
+               <span class="sk sk-line sk-w80"></span>
+               <span class="sk sk-line sk-w65"></span>
+             </mat-card-content>
+          </mat-card>
+
+          <!-- Next race: error state -->
+          <mat-card class="next-race-card state-card fullbleed-panel"
+          *ngIf="!loadingNext && errorNext"
+          [class.mobile-hidden]="!isActive('next')">
+            <mat-card-content>
+              <div class="card-state" role="alert">
+                <i class="fa-solid fa-triangle-exclamation state-icon"></i>
+                <p class="state-title">{{ 'common.error.title' | t }}</p>
+                <button mat-stroked-button type="button" (click)="reload()">
+                  <i class="fa-solid fa-rotate-right"></i> {{ 'common.error.retry' | t }}
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Next race: empty state (season over) -->
+          <mat-card class="next-race-card state-card fullbleed-panel"
+          *ngIf="!loadingNext && !errorNext && !nextCalendarRace"
+          [class.mobile-hidden]="!isActive('next')">
+            <mat-card-content>
+              <div class="card-state">
+                <i class="fa-solid fa-flag-checkered state-icon"></i>
+                <p class="state-title">{{ 'dashboard.nextRace.empty' | t }}</p>
+                <button mat-stroked-button type="button" (click)="goTo('calendar')">
+                  <i class="fa-solid fa-calendar"></i> {{ 'dashboard.actions.viewAllRaces' | t }}
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="next-race-card fullbleed-panel"
+          *ngIf="!loadingNext && !errorNext && nextCalendarRace"
+          [class.mobile-hidden]="!isActive('next')">
+             <mat-card-header class="next-race-header">
+               <mat-card-title class="dashboard-section-title">
+                 <i class="fa-solid fa-flag-checkered"></i>
+                 {{ (isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t)) }}
+               </mat-card-title>
+             </mat-card-header>
+             <mat-card-content>
+               <div class="race-content">
+                  <section class="action-hero" *ngIf="nextCalendarRace">
+                    <div class="action-hero-copy">
+                      <span class="action-kicker">{{ 'dashboard.nextRace.actionKicker' | t }}</span>
+                      <h3>{{ getPrimaryActionTitle() | t }}</h3>
+                      <p>{{ getPrimaryActionDescription() | t }}</p>
+                      <div class="race-countdown" *ngIf="countdownParts as cd" role="timer">
+                        <span class="countdown-label"><i class="fa-regular fa-hourglass-half"></i> {{ 'dashboard.nextRace.countdown' | t }}</span>
+                        <span class="countdown-value">
+                          <ng-container *ngIf="cd.d > 0"><b>{{ cd.d }}</b><em>{{ 'dashboard.nextRace.countdownDay' | t }}</em></ng-container>
+                          <b>{{ cd.h }}</b><em>{{ 'dashboard.nextRace.countdownHour' | t }}</em>
+                          <b>{{ cd.m }}</b><em>{{ 'dashboard.nextRace.countdownMinute' | t }}</em>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="action-hero-meta">
+                      <span class="action-pill" [class.action-pill-warn]="!hasCompletedLineup(nextCalendarRace.id)">
+                        {{ 'dashboard.nextRace.lineupsLabel' | t }}: {{ hasCompletedLineup(nextCalendarRace.id) ? ('common.ok' | t) : ('common.missing' | t) }}
+                      </span>
+                      <span class="action-pill" [class.action-pill-warn]="showSprintBetButton && !hasCompletedSprintBet(nextCalendarRace.id)">
+                        {{ 'common.sprint' | t }}: {{ hasCompletedSprintBet(nextCalendarRace.id) ? ('common.ok' | t) : ('common.missing' | t) }}
+                      </span>
+                      <span class="action-pill" [class.action-pill-warn]="showPlaceBetButton && !hasCompletedRaceBet(nextCalendarRace.id)">
+                        {{ 'common.race' | t }}: {{ hasCompletedRaceBet(nextCalendarRace.id) ? ('common.ok' | t) : ('common.missing' | t) }}
+                      </span>
+                      <span class="action-pill">
+                        {{ getRaceWindowStatus() | t }}
+                      </span>
+                      <span class="action-pill action-pill-deadline" *ngIf="openDeadline as dl" [class.action-pill-warn]="dl.getTime() - now < 86400000">
+                        <i class="fa-regular fa-alarm-clock"></i>
+                        {{ 'dashboard.nextRace.deadline' | t }}: {{ formatDeadline(dl) }}
+                      </span>
+                    </div>
+                    <div class="action-hero-actions">
+                      <button mat-raised-button color="warn" class="main-btn app-nav-chip app-nav-chip--accent" (click)="goTo(getPrimaryActionRoute(), nextCalendarRace.id)">
+                        <i class="fa-solid fa-bolt"></i>
+                        {{ getPrimaryActionLabel() | t }}
+                      </button>
+                      <button
+                        *ngIf="getPrimaryActionRoute() !== 'race-detail'"
+                        mat-stroked-button
+                        class="main-btn main-btn-ghost app-nav-chip app-nav-chip--light"
+                        (click)="goTo('race-detail', nextCalendarRace.id)">
+                        <i class="fa-solid fa-list-check"></i>
+                        {{ 'dashboard.actions.openRaceHub' | t }}
+                      </button>
+                    </div>
+                  </section>
+
+                  <section class="race-info-section race-overview">
+                    <div class="race-overview-main">
+                      <h2 class="grand-prix-name">{{ nextCalendarRace.race_id.name }}</h2>
+                      <span class="cancelled-race-banner" *ngIf="nextCalendarRace.cancelled">
+                        <i class="fa-solid fa-ban"></i>
+                        {{ 'dashboard.nextRace.cancelled' | t }}
+                      </span>
+                      <div class="race-meta-inline" [attr.aria-label]="'dashboard.nextRace.metaAria' | t">
+                        <span class="meta-pill meta-pill--compact">
+                          <i class="fa-solid fa-calendar-days"></i>
+                          <span class="meta-label">{{ 'common.date' | t }}</span>
+                          <span class="meta-value">{{ formatEventRange(nextCalendarRace.event_date) }}</span>
+                        </span>
+                        <span class="meta-pill meta-pill--compact">
+                          <i class="fa-solid fa-hashtag"></i>
+                          <span class="meta-label">{{ 'dashboard.nextRace.roundShort' | t }}</span>
+                          <span class="meta-value">{{ nextCalendarRace.race_order }}<ng-container *ngIf="totalRaces as tot"> / {{ tot }}</ng-container></span>
+                        </span>
+                        <span class="meta-pill meta-pill--compact">
+                          <i class="fa-solid fa-location-dot"></i>
+                          <span class="meta-label">{{ 'common.location' | t }}</span>
+                          <span class="meta-value">{{ nextCalendarRace.race_id.location }}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <details class="race-timing-details">
+                      <summary class="race-timing-toggle">
+                        <span class="toggle-copy">
+                          <i class="fa-regular fa-clock"></i>
+                          <span>{{ 'dashboard.nextRace.weekendSchedule' | t }}</span>
+                        </span>
+                        <i class="fa-solid fa-angle-down toggle-chevron" aria-hidden="true"></i>
+                      </summary>
+                      <div class="race-timing-list" role="list" [attr.aria-label]="'dashboard.nextRace.weekendAria' | t">
+                        <div class="timing-row" role="listitem">
+                          <div class="timing-main">
+                            <i class="fa-solid fa-stopwatch"></i>
+                            <span class="timing-name">{{ 'common.qualifying' | t }}</span>
+                          </div>
+                          <span class="timing-day">{{ getQualifyingDay(nextCalendarRace.event_date) }}</span>
+                          <span class="timing-time">{{ nextCalendarRace.qualifications_time ?? '10:00:00' | timeFormat }}</span>
+                        </div>
+
+                        <div class="timing-row" role="listitem">
+                          <div class="timing-main">
+                            <i class="fa-solid fa-flag-checkered"></i>
+                            <span class="timing-name">{{ 'common.sprint' | t }}</span>
+                          </div>
+                          <span class="timing-day">{{ getSprintDay(nextCalendarRace.event_date) }}</span>
+                          <span class="timing-time">{{ nextCalendarRace.sprint_time ?? '15:00:00' | timeFormat }}</span>
+                        </div>
+
+                        <div class="timing-row timing-row-race" role="listitem">
+                          <div class="timing-main">
+                            <i class="fa-solid fa-motorcycle"></i>
+                            <span class="timing-name">{{ 'common.race' | t }}</span>
+                          </div>
+                          <span class="timing-day">{{ getRaceDay(nextCalendarRace.event_date) }}</span>
+                          <span class="timing-time">{{ nextCalendarRace.event_time ?? '14:00:00' | timeFormat }}</span>
+                        </div>
+                      </div>
+                    </details>
+                  </section>
+               </div>
+             </mat-card-content>
+             <mat-card-actions>
+               <div class="main-actions">
+                 <button mat-raised-button color="accent" class="main-btn main-btn-secondary app-nav-chip app-nav-chip--accent" (click)="goTo('motogp-results', nextCalendarRace.id)">
+                   <i class="fa-solid fa-trophy"></i>
+                   {{ 'dashboard.actions.viewMotoGPResults' | t }}
+                 </button>
+                 <button mat-raised-button color="primary" class="main-btn main-btn-ghost app-nav-chip app-nav-chip--light" (click)="goTo('calendar')">
+                   <i class="fa-solid fa-calendar"></i>
+                   {{ 'dashboard.actions.viewAllRaces' | t }}
+                 </button>
+               </div>
+             </mat-card-actions>
+          </mat-card>
+
+          <!-- Championship config: loading skeleton -->
+          <mat-card class="championship-config-card skeleton-card fullbleed-panel"
+          *ngIf="loadingConfig"
+          [class.mobile-hidden]="!isActive('config')"
+          aria-hidden="true">
+            <mat-card-header>
+              <mat-card-title class="config-title dashboard-section-title"><span class="sk sk-title"></span></mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="skeleton-content">
+              <span class="sk sk-line sk-w50"></span>
+              <span class="sk sk-row"></span>
+              <span class="sk sk-row"></span>
+              <span class="sk sk-row"></span>
+              <span class="sk sk-row"></span>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Championship config: error state -->
+          <mat-card class="championship-config-card state-card fullbleed-panel"
+          *ngIf="!loadingConfig && errorConfig"
+          [class.mobile-hidden]="!isActive('config')">
+            <mat-card-content>
+              <div class="card-state" role="alert">
+                <i class="fa-solid fa-triangle-exclamation state-icon"></i>
+                <p class="state-title">{{ 'common.error.title' | t }}</p>
+                <button mat-stroked-button type="button" (click)="reload()">
+                  <i class="fa-solid fa-rotate-right"></i> {{ 'common.error.retry' | t }}
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Championship config: empty state -->
+          <mat-card class="championship-config-card state-card fullbleed-panel"
+          *ngIf="!loadingConfig && !errorConfig && !championshipConfig"
+          [class.mobile-hidden]="!isActive('config')">
+            <mat-card-content>
+              <div class="card-state">
+                <i class="fa-solid fa-gear state-icon"></i>
+                <p class="state-title">{{ 'dashboard.championship.empty' | t }}</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Championship Configuration Card -->
+          <mat-card class="championship-config-card fullbleed-panel"
+          *ngIf="!loadingConfig && !errorConfig && championshipConfig"
+          [class.mobile-hidden]="!isActive('config')">
+            <mat-card-header>
+              <mat-card-title class="config-title dashboard-section-title">
+                <i class="fa-solid fa-gear"></i>
+                {{ 'dashboard.championship.configuration' | t }}
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="config-content">
+                <!-- Championship Info Section -->
+                <details class="config-section config-info-section config-details" open>
+                  <summary class="config-details-summary">
+                    <h3 class="section-title"><i class="fa-solid fa-circle-info"></i> {{ 'dashboard.championship.info' | t }}</h3>
+                    <i class="fa-solid fa-angle-down config-details-chevron" aria-hidden="true"></i>
+                  </summary>
+                  <div class="config-grid">
+                    <div class="config-item">
+                      <div class="config-icon">
+                        <i class="fa-solid fa-trophy"></i>
+                      </div>
+                      <div class="config-info">
+                        <span class="config-label">{{ 'dashboard.championship.name' | t }}</span>
+                        <span class="config-value">{{ championshipConfig.name }}</span>
+                      </div>
+                    </div>
+                    <div class="config-item">
+                      <div class="config-icon">
+                        <i class="fa-solid fa-calendar-days"></i>
+                      </div>
+                      <div class="config-info">
+                        <span class="config-label">{{ 'dashboard.championship.season' | t }}</span>
+                        <span class="config-value">{{ championshipConfig.season }}</span>
+                      </div>
+                    </div>
+                    <div class="config-item">
+                      <div class="config-icon">
+                        <i class="fa-solid fa-flag-checkered"></i>
+                      </div>
+                      <div class="config-info">
+                        <span class="config-label">{{ 'dashboard.championship.status' | t }}</span>
+                        <span class="config-value" [class.active]="championshipConfig.is_active" [class.inactive]="!championshipConfig.is_active">
+                          {{ championshipConfig.is_active ? ('dashboard.championship.active' | t) : ('dashboard.championship.inactive' | t) }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="config-item">
+                      <div class="config-icon">
+                        <i class="fa-solid fa-clock"></i>
+                      </div>
+                      <div class="config-info">
+                        <span class="config-label">{{ 'common.timezone' | t }}</span>
+                        <span class="config-value">{{ championshipConfig.timezone || 'Europe/Rome' }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                                    <!-- Scoring System Section -->
+                  <details class="config-section config-scoring-section config-details" open>
+                    <summary class="config-details-summary">
+                      <h3 class="section-title"><i class="fa-solid fa-chart-line"></i> {{ 'dashboard.championship.scoringSystem' | t }}</h3>
+                      <i class="fa-solid fa-angle-down config-details-chevron" aria-hidden="true"></i>
+                    </summary>
+                    <div class="scoring-grid">
+                      <mat-expansion-panel class="scoring-item">
+                        <mat-expansion-panel-header>
+                          <mat-panel-title>
+                            <i class="fa-solid fa-motorcycle"></i>
+                            <span>{{ 'dashboard.championship.raceScoring' | t }}</span>
+                          </mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <div class="scoring-points">
+                          <div class="point-item" *ngFor="let point of getRaceScoringPoints()">
+                            <span class="position">{{ point.position }}</span>
+                            <span class="points">{{ point.points }} pts</span>
+                          </div>
+                        </div>
+                      </mat-expansion-panel>
+                      <mat-expansion-panel class="scoring-item">
+                        <mat-expansion-panel-header>
+                          <mat-panel-title>
+                            <i class="fa-solid fa-flag-checkered"></i>
+                            <span>{{ 'dashboard.championship.sprintScoring' | t }}</span>
+                          </mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <div class="scoring-points">
+                          <div class="point-item" *ngFor="let point of getSprintScoringPoints()">
+                            <span class="position">{{ point.position }}</span>
+                            <span class="points">{{ point.points }} pts</span>
+                          </div>
+                        </div>
+                      </mat-expansion-panel>
+                    </div>
+                  </details>
+
+                <!-- Rules Section -->
+                <details class="config-section config-rules-section config-details">
+                  <summary class="config-details-summary">
+                    <h3 class="section-title"><i class="fa-solid fa-shield-halved"></i> {{ 'dashboard.championship.rules' | t }}</h3>
+                    <i class="fa-solid fa-angle-down config-details-chevron" aria-hidden="true"></i>
+                  </summary>
+                  <div class="rules-grid">
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                      <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.betsLimitRace' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.bets_limit_race || ('common.unlimited' | t) }}</span>
+                      </div>
+                    </div>
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.betsLimitSprintRace' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.bets_limit_sprint_race || ('common.unlimited' | t) }}</span>
+                      </div>
+                    </div>
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                      <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.betsLimitPoints' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.bets_limit_points || ('common.unlimited' | t) }}</span>
+                      </div>
+                    </div>
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                      <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.betsLimitSprintPoints' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.bets_limit_sprint_points || ('common.unlimited' | t) }}</span>
+                      </div>
+                    </div>
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                      <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.betsLimitDriver' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.bets_limit_driver || ('common.unlimited' | t) }}</span>
+                      </div>
+                    </div>
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                      <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.betsLimitSprintDriver' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.bets_limit_sprint_driver || ('common.unlimited' | t) }}</span>
+                      </div>
+                    </div>
+                    <div class="rule-item">
+                      <div class="rule-icon">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                      </div>
+                      <div class="rule-info">
+                        <span class="rule-label">{{ 'dashboard.championship.formationLimitDriver' | t }}</span>
+                        <span class="rule-value">{{ championshipConfig.formation_limit_driver || ('common.unlimited' | t) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </mat-card-content>
+          </mat-card>
+          </div>
+        </div>
+      </main>
+    </div>
+    <nav class="bottom-nav" [attr.aria-label]="'common.nav.primary' | t">
+      <button class="item" [class.active]="isActive('standings')" (click)="setTab('standings')" [attr.aria-label]="'dashboard.standings.title' | t">
+        <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+        <span class="label">{{ 'dashboard.standings.title' | t }}</span>
+      </button>
+      <button class="item" [class.active]="isActive('next')" (click)="setTab('next')" [attr.aria-label]="(isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t))">
+        <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>
+        <span class="label">{{ isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t) }}</span>
+      </button>
+      <button class="item" [class.active]="isActive('team')" (click)="setTab('team')" [attr.aria-label]="'dashboard.team.teamRiders' | t">
+        <i class="fa-solid fa-users" aria-hidden="true"></i>
+        <span class="label">{{ 'dashboard.team.teamRiders' | t }}</span>
+      </button>
+      <button class="item" [class.active]="isActive('config')" (click)="setTab('config')" [attr.aria-label]="'dashboard.championship.configuration' | t">
+        <i class="fa-solid fa-gear" aria-hidden="true"></i>
+        <span class="label">{{ 'dashboard.championship.configuration' | t }}</span>
+      </button>
+
+    </nav>

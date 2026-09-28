@@ -47,7 +47,7 @@ interface TranslationValue {
   template: `
     <div class="translation-container">
       <header class="header">
-        <button mat-icon-button class="app-back-arrow" (click)="goBack()">
+        <button mat-icon-button class="app-back-arrow" (click)="goBack()" aria-label="Back">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ 'translation.title' | t }}</h1>
@@ -184,22 +184,14 @@ interface TranslationValue {
   styles: [`
     .translation-container {
       min-height: 100vh;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      // Theme-aware backdrop (the colored gradient clashed with dark mode)
+      background:
+        radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.16), transparent 42%),
+        var(--background-dark, #0e1015);
       padding: 80px 20px 20px 20px;
     }
 
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 20px;
-      color: white;
-
-      h1 {
-        margin: 0;
-        font-size: 1.8rem;
-      }
-    }
+    /* Header: canonical styles live in styles/_layout.scss */
 
     .content {
       max-width: 1200px;
@@ -213,10 +205,12 @@ interface TranslationValue {
     .add-translation-card,
     .cache-card,
     .recent-translations-card {
-      background: rgba(255, 255, 255, 0.95) !important;
+      background: var(--surface-card, #1e2128) !important;
+      border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
       border-radius: 12px !important;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+      box-shadow: var(--shadow-card, 0 2px 12px rgba(0, 0, 0, 0.2)) !important;
       margin-bottom: 0 !important; /* Remove default margin */
+      color: var(--text-primary, #ffffff);
     }
 
     /* Add spacing to card headers */
@@ -225,7 +219,7 @@ interface TranslationValue {
     .recent-translations-card mat-card-header {
       padding-bottom: 16px !important;
       margin-bottom: 16px !important;
-      border-bottom: 1px solid #e0e0e0 !important;
+      border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)) !important;
     }
 
     /* Add spacing between form elements */
@@ -263,7 +257,7 @@ interface TranslationValue {
       max-height: 400px; /* Limit table height */
       overflow-y: auto; /* Add vertical scrollbar when needed */
       overflow-x: auto; /* Allow horizontal scrolling for table */
-      border: 1px solid #e0e0e0;
+      border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
       border-radius: 4px;
     }
 
@@ -279,17 +273,17 @@ interface TranslationValue {
     }
 
     .table-container::-webkit-scrollbar-track {
-      background: #f1f1f1;
+      background: var(--surface-muted, #2a2e37);
       border-radius: 4px;
     }
 
     .table-container::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
+      background: var(--border-strong, rgba(255, 255, 255, 0.18));
       border-radius: 4px;
     }
 
     .table-container::-webkit-scrollbar-thumb:hover {
-      background: #a8a8a8;
+      background: var(--text-muted, #6b7080);
     }
 
     .translation-input {

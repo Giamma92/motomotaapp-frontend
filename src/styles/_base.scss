@@ -1,8 +1,10 @@
+/* ─── Font Faces ─── */
 @font-face {
   font-family: 'MotoGP Regular';
   src: url('/assets/fonts/MotoGPText-Regular.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -10,48 +12,73 @@
   src: url('/assets/fonts/MotoGPDisplay-Bold.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
-* {
+/* ─── Reset ─── */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html,
 body {
   height: 100%;
-  background: #0b0c10;
+  background: var(--background-dark);
 }
 
 body {
-  margin: 0;
-  font-family: 'MotoGP Regular', 'Helvetica Neue', sans-serif;
-  line-height: 1.4;
-  color: var(--text-dark);
-  background: #0b0c10;
+  font-family: 'MotoGP Regular', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--background-dark);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
+/* ─── App Root ─── */
 app-root {
   display: block;
   min-height: 100%;
-  background:
-    radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.16), transparent 42%),
-    radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.04), transparent 36%),
-    linear-gradient(160deg, #ffffff 0%, #f9f9fa 48%, #f1f2f4 100%);
+  background: var(--background-dark);
 }
 
-h1,
-h2,
-h3 {
+/* ─── Typography ─── */
+h1, h2, h3, h4, h5, h6 {
   font-family: 'MotoGP Bold', sans-serif;
-  letter-spacing: 0.2px;
+  color: var(--text-primary);
+  letter-spacing: 0.3px;
+  line-height: 1.2;
 }
 
-button,
-[role='button'],
+h1 { font-size: clamp(1.4rem, 3vw, 1.8rem); }
+h2 { font-size: clamp(1.1rem, 2.5vw, 1.4rem); }
+h3 { font-size: clamp(0.9rem, 2vw, 1.1rem); }
+
+p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
 a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+/* ─── Interactive Elements ─── */
+button,
+[role='button'] {
   touch-action: manipulation;
+  cursor: pointer;
 }
 
 button:focus-visible,
@@ -59,6 +86,68 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid rgba(216, 27, 96, 0.35);
+  outline: 2px solid rgba(200, 16, 46, 0.5);
   outline-offset: 2px;
+}
+
+/* ─── Native form controls (non-Material, dark) ─── */
+select,
+input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not(.mdc-text-field__input),
+textarea:not(.mdc-text-field__input) {
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+
+  &::placeholder {
+    color: var(--text-tertiary, #6b7080);
+    opacity: 1;
+  }
+
+  &:hover {
+    border-color: var(--border-strong, rgba(255, 255, 255, 0.24));
+  }
+
+  &:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.18);
+  }
+}
+
+select {
+  cursor: pointer;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--primary-color);
+  cursor: pointer;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* ─── Selection ─── */
+::selection {
+  background: rgba(200, 16, 46, 0.4);
+  color: #fff;
 }

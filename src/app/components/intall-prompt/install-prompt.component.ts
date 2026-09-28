@@ -61,15 +61,13 @@ export class InstallPromptComponent implements OnInit {
       e.preventDefault();
       // Save the event for later use and show the prompt UI.
       this.deferredPrompt = e;
-      console.log('Install prompt event captured', e);
     });
   }
 
   promptInstallation() {
     if (this.deferredPrompt) {
       this.deferredPrompt.prompt();
-      this.deferredPrompt.userChoice.then((choiceResult: any) => {
-        console.log(`User response to the install prompt: ${choiceResult.outcome}`);
+      this.deferredPrompt.userChoice.then(() => {
         // Optionally, hide the prompt after the user makes a choice.
         this.deferredPrompt = null;
       });

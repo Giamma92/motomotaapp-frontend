@@ -61,7 +61,8 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 1;
-  font-size: 0.68rem;
+  // Readability floor: >= 11.2px
+  font-size: 0.7rem;
   letter-spacing: 0.2px;
   color: rgba(255, 255, 255, 0.75);
   text-transform: none;
@@ -219,8 +220,24 @@
   }
 }
 
+/* Login panel is light → re-declare dark tokens locally so Material text
+   inside the form is dark (inherits closer to the inputs than :root) */
+.login-form {
+  --mat-sys-on-surface: #111214;
+  --mat-sys-on-surface-variant: rgba(0, 0, 0, 0.6);
+  --mat-sys-surface-variant: #ffffff;
+  --mat-sys-outline: rgba(0, 0, 0, 0.32);
+  --mat-sys-outline-variant: rgba(0, 0, 0, 0.12);
+}
+
 .login-form .mat-mdc-text-field-wrapper {
-  background: #ffffff;
+  background: #ffffff !important;
+}
+
+.login-form input:-webkit-autofill,
+.login-form input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #111214;
+  box-shadow: 0 0 0 1000px #ffffff inset;
 }
 
 .login-form .mdc-notched-outline__leading,

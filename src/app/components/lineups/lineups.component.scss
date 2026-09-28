@@ -1,268 +1,685 @@
 app-lineups {
   .settings-container {
-    display: block;
     min-height: 100vh;
+    background: var(--background-dark, #0e1015);
+    color: var(--text-primary, #ffffff);
+    padding: calc(var(--app-header-height) + 12px) clamp(12px, 2.8vw, 28px) clamp(18px, 4vw, 36px);
+  }
+
+  /* Header: canonical styles live in styles/_layout.scss */
+
+  .lineup-hero,
+  .lineup-progress,
+  .settings-card {
+    width: min(100%, 920px);
+    margin-inline: auto;
+  }
+
+  /* ═══════════ Hero ═══════════ */
+  .lineup-hero {
+    position: relative;
+    margin-bottom: 12px;
+    padding: 1.1rem 1.15rem;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
     background:
-      radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
-      radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
-      linear-gradient(158deg, #ffffff 0%, #f8f8f9 48%, #f1f2f4 100%);
-    padding: calc(var(--app-header-height) + 10px) 10px 12px;
-    color: #16181d;
-  }
-
-  .header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    height: var(--app-header-height);
-    margin: 0;
-    padding: 0 8px;
-    background: rgba(17, 18, 20, 0.97);
+      radial-gradient(circle at top right, rgba(200, 16, 46, 0.22), transparent 36%),
+      linear-gradient(155deg, rgba(17, 18, 20, 0.98), rgba(35, 39, 46, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.09);
     color: #fff;
-    box-shadow: var(--shadow-md);
-    z-index: 1000;
+    box-shadow: 0 18px 34px rgba(8, 11, 18, 0.18);
   }
 
-  .header h1 {
+  .lineup-hero::after {
+    content: '';
+    position: absolute;
+    inset: auto -18% -42% auto;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent 68%);
+    pointer-events: none;
+  }
+
+  .lineup-hero-main {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .lineup-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: rgba(255, 255, 255, 0.82);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.35px;
+    text-transform: uppercase;
+  }
+
+  .lineup-kicker i {
+    color: #ff6e84;
+  }
+
+  .lineup-hero-title {
     margin: 0;
-    flex: 1;
-    text-align: center;
     color: #fff;
     font-family: 'MotoGP Bold', sans-serif;
-    font-size: clamp(1rem, 2.7vw, 1.3rem);
+    font-size: clamp(1.3rem, 3.6vw, 1.85rem);
+    line-height: 1.02;
     letter-spacing: 0.3px;
     text-transform: uppercase;
-    padding-right: 42px;
   }
 
-  .settings-card {
-    width: min(100%, 720px);
-    margin: 0 auto;
-    padding: 0;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-  }
-
-  mat-card-header {
-    margin-bottom: 0;
-    padding: 0;
-  }
-
-  .header-content {
-    background: #111214;
-    color: #fff;
-    border-radius: 12px 12px 0 0;
-    padding: 0.8rem 0.95rem;
-  }
-
-  .race-title {
+  .lineup-hero-subtitle {
     margin: 0;
-    color: #fff;
-    font-family: 'MotoGP Bold', sans-serif;
-    font-size: 1.08rem;
-    letter-spacing: 0.38px;
-    text-transform: uppercase;
-  }
-
-  .race-title h3 {
-    margin: 0;
-    font: inherit;
-  }
-
-  .session-info {
-    margin-top: 0.2rem;
-    color: rgba(255, 255, 255, 0.84);
+    color: rgba(255, 255, 255, 0.74);
     font-size: 0.85rem;
-    letter-spacing: 0.18px;
   }
 
-  mat-card-content {
-    background: rgba(255, 255, 255, 0.98);
-    border: 1px solid var(--border-subtle);
-    border-top: 0;
-    border-radius: 0 0 12px 12px;
-    padding: 0.7rem 0.75rem 0.55rem;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .full-width {
-    width: 100%;
-    margin-bottom: 0.4rem;
-  }
-
-  .lineup-status {
+  .lineup-hero-pills {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    margin-top: 0.25rem;
+  }
+
+  .hero-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  .hero-pill i {
+    color: #ff6e84;
+  }
+
+  .hero-pill-primary {
+    background: rgba(255, 110, 132, 0.12);
+    border-color: rgba(255, 110, 132, 0.28);
+  }
+
+  /* ═══════════ Progress ═══════════ */
+  .lineup-progress {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(120px, 320px) auto;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-lg);
+    background: var(--surface-elevated);
+    border: 1px solid var(--border-subtle);
   }
 
-  .status-chip {
-    display: inline-grid;
+  .lineup-progress-copy {
+    display: grid;
     gap: 2px;
-    padding: 10px 12px;
-    border: 1px solid rgba(17, 18, 20, 0.1);
-    border-radius: 12px;
-    background: #f7f8fa;
-    min-width: 132px;
+    min-width: 0;
   }
 
-  .status-label,
-  .summary-label {
-    color: #616875;
-    font-size: 0.72rem;
+  .summary-kicker {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
 
-  .selection-section {
+  .lineup-progress-copy strong {
+    color: var(--text-primary);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lineup-progress-track {
+    height: 8px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+  }
+
+  .lineup-progress-track span {
+    display: block;
+    height: 100%;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(90deg, var(--primary-color), #ff6e84);
+    transition: width 0.4s ease;
+  }
+
+  .lineup-progress.is-dirty .lineup-progress-track span {
+    background: linear-gradient(90deg, #b26a00, #ffab00);
+  }
+
+  .lineup-progress.is-complete .lineup-progress-track span {
+    background: linear-gradient(90deg, #1f8f43, #4ade80);
+  }
+
+  .lineup-progress-value {
+    min-width: 46px;
+    text-align: right;
+    color: var(--text-primary);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 1rem;
+  }
+
+  [data-theme='light'] .lineup-progress-track {
+    background: rgba(0, 0, 0, 0.08);
+  }
+
+  /* ═══════════ Card chrome ═══════════ */
+  .settings-card {
+    overflow: hidden;
+  }
+
+  .card-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 44px;
+    padding: 0.7rem 0.9rem;
+    background: #111214;
+    color: #fff;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.92rem;
+    letter-spacing: 0.22px;
+    text-transform: uppercase;
+  }
+
+  .card-header > i {
+    color: #ff6e84;
+    font-size: 0.95rem;
+  }
+
+  .card-header-meta {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+  }
+
+  .settings-card mat-card-content {
+    display: block;
+    padding: 12px !important;
+  }
+
+  .meta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 26px;
+    padding: 0 10px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-muted);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .meta-tag.ok-tag {
+    background: rgba(31, 143, 67, 0.16);
+    border-color: rgba(31, 143, 67, 0.4);
+    color: #4ade80;
+  }
+
+  .meta-tag.ko-tag {
+    background: rgba(200, 16, 46, 0.16);
+    border-color: rgba(200, 16, 46, 0.42);
+    color: #ff6e84;
+  }
+
+  .meta-tag.pending-tag {
+    background: rgba(237, 108, 2, 0.14);
+    border-color: rgba(237, 108, 2, 0.4);
+    color: #ffab00;
+  }
+
+  [data-theme='light'] .meta-tag.ok-tag { color: #1f8f43; }
+  [data-theme='light'] .meta-tag.ko-tag { color: #c8102e; }
+  [data-theme='light'] .meta-tag.pending-tag { color: #b26a00; }
+
+  /* ═══════════ Slots ═══════════ */
+  .slot-grid {
     display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
     margin-bottom: 12px;
   }
 
-  .selection-heading h3,
-  .lineup-summary h3 {
-    margin: 0 0 4px;
+  .slot-card {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px dashed var(--border-medium);
+    border-radius: 14px;
+    background: var(--surface-elevated);
+    transition: border-color 0.18s ease;
+    min-width: 0;
+  }
+
+  .slot-card.filled {
+    border-style: solid;
+    border-color: rgba(31, 143, 67, 0.4);
+    background: linear-gradient(180deg, rgba(31, 143, 67, 0.08), var(--surface-elevated));
+  }
+
+  .slot-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
     font-family: 'MotoGP Bold', sans-serif;
-    font-size: 0.94rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
-  .selection-heading p {
+  .slot-kicker i {
+    color: var(--primary-color);
+  }
+
+  .slot-rider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .slot-empty {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+
+  .slot-clear {
+    margin-left: auto;
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-card);
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .slot-clear:hover {
+    border-color: rgba(200, 16, 46, 0.5);
+    color: var(--primary-color);
+  }
+
+  .slot-error-msg {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     margin: 0;
-    color: #616875;
-    font-size: 0.82rem;
+    color: #ff6e84;
+    font-size: 0.76rem;
   }
 
-  .rider-picks {
+  [data-theme='light'] .slot-error-msg {
+    color: #ba1a1a;
+  }
+
+  /* ═══════════ Selection ═══════════ */
+  .selection-section {
+    display: grid;
+    gap: 10px;
+  }
+
+  .section-head h3 {
+    margin: 0 0 4px;
+    color: var(--text-primary);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .section-head p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+  }
+
+  .empty-note {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+  }
+
+  .rider-list {
     display: grid;
     gap: 10px;
   }
 
   .rider-card {
-    width: 100%;
-    border: 1px solid rgba(17, 18, 20, 0.12);
-    background: #fff;
-    border-radius: 14px;
-    padding: 12px;
-    text-align: left;
     display: grid;
     gap: 10px;
-    transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+    padding: 12px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: var(--surface-elevated);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
   }
 
   .rider-card.selected {
     border-color: rgba(200, 16, 46, 0.5);
-    box-shadow: 0 10px 20px rgba(200, 16, 46, 0.08);
+    box-shadow: 0 10px 20px rgba(200, 16, 46, 0.1);
   }
 
   .rider-card.blocked {
-    opacity: 0.6;
+    opacity: 0.62;
   }
 
   .rider-card-main {
     display: flex;
-    gap: 12px;
     align-items: center;
+    gap: 12px;
+    min-width: 0;
   }
 
   .rider-number {
+    flex: 0 0 auto;
     width: 42px;
     height: 42px;
     border-radius: 12px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #111214;
-    color: #fff;
+    background: rgba(200, 16, 46, 0.15);
+    color: var(--primary-color);
     font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.86rem;
   }
 
   .rider-copy {
     display: grid;
     gap: 2px;
+    min-width: 0;
+  }
+
+  .rider-copy strong {
+    color: var(--text-primary);
+    font-size: 0.88rem;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .rider-copy span {
-    color: #616875;
-    font-size: 0.79rem;
+    color: var(--text-secondary);
+    font-size: 0.74rem;
   }
 
-  .rider-card-tags,
-  .summary-grid {
+  .rider-remaining {
+    margin-left: auto;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-muted);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .rider-remaining.tag-danger {
+    background: rgba(200, 16, 46, 0.15);
+    border-color: rgba(200, 16, 46, 0.42);
+    color: #ff6e84;
+  }
+
+  [data-theme='light'] .rider-remaining.tag-danger {
+    color: #c8102e;
+  }
+
+  .rider-tags {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
   }
 
-  .tag,
-  .summary-item {
+  .tag {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    min-height: 28px;
+    min-height: 26px;
     padding: 0 10px;
-    border-radius: 999px;
-    background: #f2f4f7;
-    color: #313744;
-    font-size: 0.76rem;
-  }
-
-  .tag-danger {
-    background: rgba(200, 16, 46, 0.08);
-    color: #a30d25;
-  }
-
-  .lineup-summary {
-    display: grid;
-    gap: 10px;
-    margin-top: 12px;
-    padding: 12px;
-    border-radius: 14px;
-    background: linear-gradient(180deg, rgba(17, 18, 20, 0.04), rgba(17, 18, 20, 0.01));
-    border: 1px solid rgba(17, 18, 20, 0.08);
-  }
-
-  .summary-item {
-    display: grid;
-    gap: 4px;
-    align-items: start;
-    border-radius: 12px;
-    padding: 10px 12px;
-    min-width: 180px;
-  }
-
-  .full-width .mat-mdc-form-field-subscript-wrapper {
-    padding-top: 0.2rem;
-  }
-
-  mat-card-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    flex-wrap: wrap;
-    padding: 8px 0 0;
-  }
-
-  mat-card-actions button {
-    min-height: 40px;
-    border-radius: 10px;
-    padding: 0 14px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-muted);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
     font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
   }
 
-  @media (max-width: 768px) {
+  .tag-ok {
+    background: rgba(31, 143, 67, 0.16);
+    border-color: rgba(31, 143, 67, 0.4);
+    color: #4ade80;
+  }
+
+  .tag-warning {
+    background: rgba(200, 16, 46, 0.15);
+    border-color: rgba(200, 16, 46, 0.42);
+    color: #ff6e84;
+  }
+
+  [data-theme='light'] .tag-ok { color: #1f8f43; }
+  [data-theme='light'] .tag-warning { color: #c8102e; }
+
+  .rider-assign {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .assign-btn {
+    min-height: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--border-medium);
+    background: var(--surface-card);
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .assign-btn:hover:not(:disabled) {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-1px);
+  }
+
+  .assign-btn.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    border-color: rgba(200, 16, 46, 0.6);
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(200, 16, 46, 0.28);
+  }
+
+  .assign-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  /* ═══════════ Actions ═══════════ */
+  .settings-card.lineup-card mat-card-actions.lineup-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    justify-content: stretch !important;
+    gap: 8px !important;
+    padding: 0 12px 12px !important;
+  }
+
+  .save-button {
+    width: 100%;
+    min-height: 46px;
+    font-size: 0.85rem;
+    letter-spacing: 0.4px;
+    box-shadow: 0 8px 18px rgba(200, 16, 46, 0.3);
+  }
+
+  .save-button .mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-right: 6px;
+  }
+
+  .save-button:disabled {
+    box-shadow: none;
+    opacity: 0.6;
+  }
+
+  .secondary-button {
+    min-height: 46px;
+    padding: 0 16px;
+    font-size: 0.76rem;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  .secondary-button .mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    color: currentColor;
+  }
+
+  .secondary-button:disabled {
+    opacity: 0.5;
+  }
+
+  /* ═══════════ Mobile (≤820) ═══════════ */
+  @media (max-width: 820px) {
     .settings-container {
-      padding: calc(var(--app-header-height) + 8px) 8px 10px;
+      padding: calc(var(--app-header-height) + 8px) 8px 14px;
     }
 
-    .header-content {
-      padding: 0.72rem 0.8rem;
+    .lineup-hero {
+      padding: 0.95rem 0.9rem;
+      margin-bottom: 10px;
+      border-radius: var(--radius-lg);
+    }
+
+    .lineup-hero-title {
+      font-size: clamp(1.2rem, 5.5vw, 1.5rem);
+    }
+
+    .lineup-hero-subtitle {
+      font-size: 0.8rem;
+    }
+
+    .hero-pill {
+      font-size: 0.72rem;
+      min-height: 30px;
+      padding: 0 10px;
+    }
+
+    .lineup-progress {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      padding: 10px 12px;
+    }
+
+    .lineup-progress-track {
+      grid-column: 1 / -1;
+      order: 3;
+    }
+
+    .lineup-progress-copy strong {
+      font-size: 0.9rem;
+    }
+
+    .card-header {
+      padding: 0.65rem 0.75rem;
+      font-size: 0.84rem;
+      padding-right: 150px;
+    }
+
+    .settings-card mat-card-content {
+      padding: 10px !important;
+    }
+
+    .slot-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .rider-number {
+      width: 38px;
+      height: 38px;
+      font-size: 0.8rem;
+    }
+
+    .rider-copy strong {
+      font-size: 0.85rem;
+    }
+
+    .rider-copy span {
+      font-size: 0.72rem;
+    }
+
+    .assign-btn {
+      min-height: 44px;
+      font-size: 0.76rem;
+    }
+
+    .settings-card.lineup-card mat-card-actions.lineup-actions {
+      grid-template-columns: 1fr;
+      gap: 6px !important;
+    }
+
+    .secondary-button {
+      min-height: 44px;
+      font-size: 0.78rem;
     }
   }
 }

@@ -20,7 +20,7 @@ import { RaceDetailService, RaceDetails } from '../../services/race-detail.servi
   template: `
     <div class="page-container">
       <header class="header">
-        <button mat-icon-button class="app-back-arrow" (click)="goBack()">
+        <button mat-icon-button class="app-back-arrow" (click)="goBack()" aria-label="Back">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <h1>{{ 'teams.title' | t }}</h1>

@@ -1,0 +1,699 @@
+/* ============================================
+   Dashboard — Fantasy Team Card Section
+   Lines: team card, rider grid, betting stats
+   Dark MotoGP Theme
+   ============================================ */
+
+.fantasy-team-card {
+  background: var(--surface-card, #1a1c22) !important;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+
+  .team-title {
+    font-size: 1.5rem;
+    color: var(--text-primary, #ffffff);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      color: var(--primary-color, #c8102e);
+    }
+  }
+
+  .team-image-container {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    background: var(--surface-elevated, #1e2026);
+    border-radius: 8px;
+    text-align: center;
+
+    img {
+      max-width: 80px;
+      border: 2px solid var(--primary-color, #c8102e);
+      padding: 2px;
+      border-radius: 50%;
+    }
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    color: var(--text-primary, #ffffff);
+    margin: 1rem 0 0.75rem 0;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+    font-weight: 600;
+  }
+
+  .team-riders-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .rider-grid {
+    display: grid;
+    gap: 1rem;
+    margin: 0.75rem 0;
+
+    .rider {
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+      background: var(--surface-elevated, #1e2026);
+      transition: all 0.3s ease;
+      overflow: hidden;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.04);
+      }
+
+      .mat-expansion-panel-header {
+        min-height: 68px;
+        height: auto;
+        padding: 8px 10px;
+        background: transparent;
+        border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+      }
+
+      .mat-expansion-panel-body {
+        padding: 1rem;
+      }
+
+      .rider-info {
+        .rider-stats {
+          display: grid;
+          gap: 0.4rem;
+
+          .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem;
+            background: var(--surface-card, #1a1c22);
+            border-radius: 6px;
+            border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+
+            .stat-label {
+              color: var(--text-muted, #6b7080);
+              font-size: 0.9rem;
+              font-weight: 500;
+            }
+
+            .stat-value {
+              color: var(--primary-color, #c8102e);
+              font-weight: 600;
+              font-size: 1rem;
+              background: rgba(200, 16, 46, 0.15);
+              padding: 2px 8px;
+              border-radius: 12px;
+              min-width: 30px;
+              text-align: center;
+            }
+          }
+        }
+      }
+
+      .rider-header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0;
+
+        .rider-header-main {
+          min-width: 0;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 2px;
+
+          .rider-role {
+            font-size: 0.72rem;
+            line-height: 1.05;
+            text-transform: uppercase;
+            letter-spacing: 0.35px;
+            color: var(--text-muted, #6b7080);
+            font-weight: 700;
+            font-family: 'MotoGP Bold', sans-serif;
+          }
+
+          .rider-name-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            min-width: 0;
+          }
+
+          .rider-name {
+            color: var(--text-primary, #ffffff);
+            font-size: 1.02rem;
+            line-height: 1.15;
+            font-weight: 700;
+            font-family: 'MotoGP Bold', sans-serif;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+
+        .rider-header-number {
+          color: var(--primary-color, #c8102e);
+          border-left: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+          padding-left: 8px;
+          font-size: 0.76rem;
+          letter-spacing: 0.15px;
+          font-weight: 600;
+          font-family: 'MotoGP Bold', sans-serif;
+          white-space: nowrap;
+          flex: 0 0 auto;
+        }
+      }
+    }
+
+    .first-tier {
+      background: linear-gradient(135deg, rgba(255, 193, 7, 0.06), rgba(255, 193, 7, 0.03));
+      border-left: 4px solid #ffc107;
+
+      .rider-header i {
+        color: #ffc107;
+      }
+    }
+
+    .second-tier {
+      background: linear-gradient(135deg, rgba(33, 150, 243, 0.06), rgba(33, 150, 243, 0.03));
+      border-left: 4px solid #2196f3;
+
+      .rider-header i {
+        color: #2196f3;
+      }
+    }
+
+    .third-tier {
+      background: linear-gradient(135deg, rgba(156, 39, 176, 0.06), rgba(156, 39, 176, 0.03));
+      border-left: 4px solid #9c27b0;
+
+      .rider-header i {
+        color: #9c27b0;
+      }
+    }
+  }
+
+  .betting-stats-section {
+    margin-top: 1.5rem;
+
+    .betting-stats-table {
+      background: var(--surface-elevated, #1e2026);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+
+        th {
+          background: var(--surface-card, #1a1c22);
+          padding: 8px 12px;
+          text-align: left;
+          font-weight: 600;
+          color: var(--text-primary, #ffffff);
+          font-size: 0.85rem;
+          border-bottom: 2px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+        }
+
+        td {
+          padding: 8px 12px;
+          border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+          vertical-align: middle;
+
+          &.pilot-name {
+            .name {
+              display: block;
+              font-weight: 600;
+              color: var(--text-primary, #ffffff);
+              font-size: 0.9rem;
+            }
+
+            .number {
+              display: block;
+              color: var(--text-secondary, #a0a5b0);
+              font-size: 0.75rem;
+              margin-top: 1px;
+            }
+          }
+
+          &.sprint-bets,
+          &.race-bets,
+          &.total-bets {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+
+            &.sprint-bets {
+              color: #e91e63;
+            }
+
+            &.race-bets {
+              color: var(--primary-color, #c8102e);
+            }
+
+            &.total-bets {
+              color: var(--primary-color, #c8102e);
+              background: rgba(200, 16, 46, 0.15);
+              border-radius: 4px;
+            }
+          }
+        }
+
+        tr:hover {
+          background-color: rgba(255, 255, 255, 0.03);
+        }
+      }
+    }
+  }
+
+  mat-card-actions {
+    margin-top: auto;
+    button {
+      i {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .team-image-container {
+      margin: 0.25rem 0;
+      padding: 0.25rem;
+
+      img {
+        max-width: 60px;
+      }
+    }
+
+    .rider-grid {
+      gap: 0.75rem;
+
+      .rider {
+        .mat-expansion-panel-header {
+          padding: 0.75rem;
+
+          .mat-expansion-panel-header-title {
+            font-size: 1rem;
+
+            i {
+              font-size: 1.1rem;
+            }
+
+            h4 {
+              font-size: 1rem;
+            }
+          }
+        }
+
+        .mat-expansion-panel-body {
+          padding: 0.75rem;
+        }
+
+        .rider-info .rider-basic {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.4rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .rider-stats {
+          gap: 0.3rem;
+
+          .stat-row {
+            padding: 0.3rem;
+          }
+        }
+      }
+    }
+
+    .betting-stats-table {
+      table {
+        th, td {
+          padding: 6px 8px;
+          font-size: 0.8rem;
+        }
+      }
+    }
+  }
+}
+
+/* Championship Config Card (team-related) */
+.championship-config-card {
+  background: var(--surface-card, #1a1c22) !important;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+
+  .config-title {
+    font-size: 1.5rem;
+    color: var(--text-primary, #ffffff);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      color: var(--primary-color, #c8102e);
+    }
+  }
+
+  .config-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Desktop: the config card spans the full width → lay the three
+     sections side by side when there is enough space */
+  @media (min-width: 1024px) {
+    .config-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 1.5rem;
+      align-items: start;
+    }
+  }
+
+  .config-section {
+    .section-title {
+      font-size: 1.1rem;
+      color: var(--text-primary, #ffffff);
+      margin: 0 0 1rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+      font-weight: 600;
+    }
+  }
+
+  /* Config sections as native <details> accordions */
+  .config-details {
+    > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      list-style: none;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    > summary .section-title {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .config-details-chevron {
+      flex-shrink: 0;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      transition: transform 0.2s ease;
+    }
+
+    &[open] .config-details-chevron {
+      transform: rotate(180deg);
+    }
+
+    /* Collapsed sections: keep the underline tight against the summary */
+    &:not([open]) > summary .section-title {
+      margin-bottom: 0;
+    }
+  }
+
+  .config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .config-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--surface-elevated, #1e2026);
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+
+    .config-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(200, 16, 46, 0.15);
+      color: var(--primary-color, #c8102e);
+      flex-shrink: 0;
+    }
+
+    /* Template uses .config-info (not .config-details): stack label over value */
+    .config-info {
+      min-width: 0;
+
+      .config-label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-muted, #6b7080);
+        margin-bottom: 0.25rem;
+      }
+
+      .config-value {
+        display: block;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary, #ffffff);
+      }
+    }
+  }
+
+  .scoring-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    /* Expansion panels: keep closed siblings collapsed instead of
+       stretching them to the height of the open panel */
+    align-items: start;
+    gap: 0.75rem;
+  }
+
+  .scoring-item {
+    background: var(--surface-elevated, #1e2026);
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+
+    .mat-expansion-panel-header {
+      min-height: 48px;
+      padding: 0 12px;
+    }
+
+    .mat-expansion-panel-header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--text-primary, #ffffff) !important;
+      font-family: 'MotoGP Bold', sans-serif;
+      font-size: 0.85rem;
+
+      i {
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: rgba(200, 16, 46, 0.15);
+        color: var(--primary-color, #c8102e);
+        font-size: 0.8rem;
+      }
+
+      span {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    .scoring-points {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+      gap: 6px;
+      padding: 8px 12px;
+    }
+
+    .point-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: var(--surface-card, #1e2128);
+      border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+    }
+
+    .point-item .position {
+      font-weight: 600;
+      font-size: 0.78rem;
+      color: var(--text-secondary, #a0a5b0);
+    }
+
+    .point-item .points {
+      font-weight: 700;
+      font-size: 0.78rem;
+      color: var(--primary-color, #c8102e);
+    }
+  }
+
+  .rules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .rule-item {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--surface-elevated, #1e2026);
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+
+    .rule-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(200, 16, 46, 0.15);
+      color: var(--primary-color, #c8102e);
+      font-size: 0.85rem;
+    }
+
+    /* Stack label above value (was inline → looked overlapping) */
+    .rule-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .rule-label {
+      font-size: 0.85rem;
+      color: var(--text-muted, #6b7080);
+      font-weight: 500;
+    }
+
+    .rule-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary, #ffffff);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .config-content {
+      gap: 10px;
+    }
+
+    .config-section {
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .config-section .section-title {
+      margin-bottom: 8px !important;
+      font-size: 0.76rem !important;
+    }
+
+    .config-grid {
+      grid-template-columns: 1fr;
+      gap: 7px;
+    }
+
+    .scoring-grid {
+      grid-template-columns: 1fr;
+      gap: 7px;
+    }
+
+    .rules-grid {
+      grid-template-columns: 1fr;
+      gap: 7px;
+    }
+
+    .rule-item {
+      grid-template-columns: 26px 1fr;
+      padding: 7px 8px;
+    }
+
+    .rule-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      font-size: 0.66rem;
+    }
+
+    .rule-label {
+      font-size: 0.64rem;
+    }
+
+    .rule-value {
+      font-size: 0.78rem;
+    }
+  }
+}
+
+/* Animation overrides for cards */
+.mat-mdc-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(255, 255, 255, 0.04);
+  }
+
+  &.standings-card,
+  &.next-race-card,
+  &.fantasy-team-card {
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+mat-card-actions button {
+  transition: transform 0.2s ease-in-out;
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.rider-grid .rider {
+  transition: transform 0.3s, box-shadow 0.3s;
+
+  &:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.04);
+  }
+}
+
+.time-item {
+  transition: background 0.3s, transform 0.3s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+    transform: scale(1.02);
+  }
+}

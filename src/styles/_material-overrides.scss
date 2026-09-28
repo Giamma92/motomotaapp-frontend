@@ -1,31 +1,127 @@
+/* ═══════════════════════════════════════
+   Angular Material Overrides — MotoGP Dark
+   ═══════════════════════════════════════ */
+
+/* ─── M3 Token Bridge (dark) ───
+   azure-blue.css is a LIGHT theme: it defines --mat-sys-* tokens that drive
+   every Material component's colors (input text = #1a1b1f, fills = light gray).
+   Overriding them here (loaded after the theme) makes ALL Material components
+   dark: form fields, selects, menus, dialogs, datepickers, ripples. */
+:root {
+  --mat-sys-primary: #c8102e;
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-primary-container: #7d1024;
+  --mat-sys-on-primary-container: #ffe9ec;
+
+  --mat-sys-secondary: #ff8ca0;
+  --mat-sys-on-secondary: #3b0010;
+  --mat-sys-secondary-container: #4a1520;
+  --mat-sys-on-secondary-container: #ffd6dc;
+
+  --mat-sys-surface: #0e1015;
+  --mat-sys-surface-dim: #0e1015;
+  --mat-sys-surface-bright: #1a1d24;
+  --mat-sys-surface-container-lowest: #0b0c10;
+  --mat-sys-surface-container-low: #14161c;
+  --mat-sys-surface-container: #1a1d24;
+  --mat-sys-surface-container-high: #1e2128;
+  --mat-sys-surface-container-highest: #22262e;
+  --mat-sys-surface-variant: #22262e;
+  --mat-sys-surface-tint: #000000;
+
+  --mat-sys-on-surface: #ffffff;
+  --mat-sys-on-surface-variant: #a0a5b0;
+  --mat-sys-background: #0e1015;
+  --mat-sys-on-background: #ffffff;
+
+  --mat-sys-outline: rgba(255, 255, 255, 0.32);
+  --mat-sys-outline-variant: rgba(255, 255, 255, 0.12);
+
+  --mat-sys-error: #ff6b6b;
+  --mat-sys-on-error: #ffffff;
+  --mat-sys-error-container: rgba(255, 107, 107, 0.14);
+  --mat-sys-on-error-container: #ffb3b3;
+
+  --mat-sys-inverse-surface: #22262e;
+  --mat-sys-inverse-on-surface: #ffffff;
+  --mat-sys-inverse-primary: #c8102e;
+  --mat-sys-shadow: #000000;
+  --mat-sys-scrim: #000000;
+}
+
+/* ─── M3 Token Bridge (light) ───
+   Light counterpart for <html data-theme="light">: white/light surfaces,
+   dark text, same MotoGP red primary. */
+[data-theme='light'] {
+  --mat-sys-primary: #c8102e;
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-primary-container: #ffe9ec;
+  --mat-sys-on-primary-container: #7d1024;
+
+  --mat-sys-secondary: #a8445a;
+  --mat-sys-on-secondary: #ffffff;
+  --mat-sys-secondary-container: #ffdadf;
+  --mat-sys-on-secondary-container: #63202f;
+
+  --mat-sys-surface: #f4f5f7;
+  --mat-sys-surface-dim: #d9dade;
+  --mat-sys-surface-bright: #ffffff;
+  --mat-sys-surface-container-lowest: #ffffff;
+  --mat-sys-surface-container-low: #f2f3f6;
+  --mat-sys-surface-container: #eceef2;
+  --mat-sys-surface-container-high: #e7e9ee;
+  --mat-sys-surface-container-highest: #e1e3e9;
+  --mat-sys-surface-variant: #e7e9ee;
+  --mat-sys-surface-tint: #c8102e;
+
+  --mat-sys-on-surface: #111214;
+  --mat-sys-on-surface-variant: #44474f;
+  --mat-sys-background: #f4f5f7;
+  --mat-sys-on-background: #111214;
+
+  --mat-sys-outline: #74777f;
+  --mat-sys-outline-variant: #c4c6d0;
+
+  --mat-sys-error: #ba1a1a;
+  --mat-sys-on-error: #ffffff;
+  --mat-sys-error-container: #ffdad6;
+  --mat-sys-on-error-container: #410002;
+
+  --mat-sys-inverse-surface: #2f3033;
+  --mat-sys-inverse-on-surface: #f1f0f4;
+  --mat-sys-inverse-primary: #ffb3b9;
+  --mat-sys-shadow: #000000;
+  --mat-sys-scrim: #000000;
+}
+
+/* ─── Header Icon Buttons ─── */
 .header button[mat-icon-button] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
-  min-width: 46px;
-  min-height: 46px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   padding: 0;
   line-height: 1;
   flex-shrink: 0;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: #111318;
-  color: #ffffff;
-  box-shadow: 0 8px 18px rgba(8, 11, 18, 0.14);
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
 }
 
 .header button[mat-icon-button]:hover {
   transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 14px 24px rgba(8, 11, 18, 0.12);
+  border-color: var(--border-medium);
+  box-shadow: var(--shadow-md);
 }
 
 .header button[mat-icon-button]:active {
   transform: translateY(0);
-  box-shadow: 0 8px 16px rgba(8, 11, 18, 0.1);
 }
 
 .header button[mat-icon-button] i,
@@ -34,12 +130,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.08rem;
-  height: 1.08rem;
-  min-width: 1.08rem;
-  min-height: 1.08rem;
+  width: 1rem;
+  height: 1rem;
+  min-width: 1rem;
+  min-height: 1rem;
   line-height: 1;
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: currentColor;
   margin: 0;
   flex: 0 0 auto;
@@ -52,23 +148,25 @@
 }
 
 .header button[mat-icon-button] .fa-arrow-left {
-  font-size: 0.96rem;
-}
-
-.header button[mat-icon-button] .fa-ellipsis-vertical {
   font-size: 0.92rem;
 }
 
-.header button.app-back-arrow,
-.header button.app-back-arrow[mat-icon-button] {
-  background: #111318;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 18px rgba(8, 11, 18, 0.14);
+.header button[mat-icon-button] .fa-ellipsis-vertical {
+  font-size: 0.88rem;
 }
 
+/* ─── Back Arrow ─── */
+.header button.app-back-arrow,
+.header button.app-back-arrow[mat-icon-button] {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ─── Card Overrides ─── */
 .mat-mdc-card-title {
-  font-family: 'MotoGP Regular', 'Helvetica Neue', sans-serif;
+  font-family: 'MotoGP Bold', sans-serif;
   padding: 16px 16px 0;
 }
 
@@ -77,7 +175,9 @@
 }
 
 mat-card.mat-mdc-card {
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-subtle) !important;
 }
 
 mat-card-actions.mat-mdc-card-actions.mdc-card__actions {
@@ -88,50 +188,73 @@ mat-card-actions.mat-mdc-card-actions.mdc-card__actions {
   flex-wrap: wrap;
 }
 
-mat-card.mat-mdc-card.mdc-card.calendar-card {
-  color: black;
-}
-
-button.mat-raised-button {
-  background-color: var(--primary-color);
-  color: var(--text-light);
-  min-height: 44px;
-  border-radius: 10px;
-  padding-inline: 14px;
+/* ─── Raised Buttons ─── */
+button.mat-raised-button,
+.mat-mdc-raised-button {
+  background-color: var(--primary-color) !important;
+  color: #ffffff !important;
+  min-height: 40px;
+  border-radius: var(--radius-sm);
+  padding-inline: 16px;
   font-weight: 600;
+  font-family: 'MotoGP Bold', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
 
   &:hover {
-    background-color: #c40000;
+    background-color: var(--primary-hover) !important;
+    box-shadow: 0 4px 12px rgba(200, 16, 46, 0.3);
   }
 }
 
-mat-card.mat-mdc-card.mdc-card.calendar-card {
-  color: var(--secondary-color);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+/* ─── Stroked Buttons ─── */
+button.mat-stroked-button,
+.mat-mdc-outlined-button {
+  border-color: var(--border-medium) !important;
+  color: var(--text-primary) !important;
+  background: transparent !important;
+  min-height: 40px;
+  border-radius: var(--radius-sm);
+  font-family: 'MotoGP Bold', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+
+  &:hover {
+    border-color: var(--border-strong) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+  }
 }
 
-mat-card.race-section-card,
-mat-mdc-card.mdc-card.race-section-card {
-  border-radius: 18px;
-  overflow: hidden;
+/* ─── Text Buttons ─── */
+button.mat-button,
+.mat-mdc-text-button {
+  color: var(--primary-color) !important;
+
+  &:hover {
+    background: rgba(200, 16, 46, 0.08) !important;
+  }
 }
 
+/* ─── Tabs ─── */
 .app-material-tabs.mat-mdc-tab-group .mat-mdc-tab-header {
   border-bottom: 1px solid var(--border-subtle);
-  background: #fff;
+  background: var(--surface-card);
 }
 
 .app-material-tabs.mat-mdc-tab-group .mdc-tab {
-  min-width: 84px;
-  height: 42px;
+  min-width: 80px;
+  height: 40px;
   padding: 0 10px;
 }
 
 .app-material-tabs.mat-mdc-tab-group .mdc-tab__text-label {
-  color: #111214;
+  color: var(--text-secondary);
   font-family: 'MotoGP Bold', sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.35px;
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
@@ -143,35 +266,82 @@ mat-mdc-card.mdc-card.race-section-card {
   border-color: var(--primary-color);
 }
 
+/* ─── Tables ─── */
 .app-material-table .mat-mdc-header-row {
-  background: #111214;
+  background: var(--table-header-bg);
 }
 
 .app-material-table .mat-mdc-header-cell {
-  color: #fff;
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.35px;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
 .app-material-table .mat-mdc-header-cell,
 .app-material-table .mat-mdc-cell {
-  padding: 0.65rem 0.55rem;
+  padding: 0.6rem 0.5rem;
+  border-bottom-color: var(--border-subtle);
+}
+
+.app-material-table .mat-mdc-row {
+  background: var(--surface-card);
 }
 
 .app-material-table .mat-mdc-row:nth-child(even) {
-  background: #fbfbfb;
+  background: var(--surface-elevated);
 }
 
 .app-material-table .mat-mdc-row:hover {
   background: rgba(200, 16, 46, 0.06);
 }
 
-.app-expansion-panel .mat-expansion-panel-header {
-  min-height: 58px;
+/* ─── Expansion Panel ─── */
+.mat-expansion-panel {
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: none !important;
+}
+
+.mat-expansion-panel-header {
+  min-height: 52px;
   height: auto;
   padding: 6px 8px;
+}
+
+.mat-expansion-panel-header-title {
+  color: var(--text-primary) !important;
+}
+
+.mat-expansion-panel-header-description {
+  color: var(--text-secondary) !important;
+}
+
+.mat-expansion-panel-header:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* ─── Menu ─── */
+.mat-mdc-menu-panel {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.mat-mdc-menu-item {
+  color: var(--text-primary) !important;
+  font-family: 'MotoGP Regular', sans-serif;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  i {
+    color: var(--text-secondary);
+    margin-right: 10px;
+  }
 }
 
 span.mat-mdc-menu-item-text {
@@ -180,11 +350,68 @@ span.mat-mdc-menu-item-text {
   gap: 10px;
 }
 
+/* ─── Form Fields ───
+   Input text / labels / outlines / fills all come from the M3 token bridge
+   above (--mat-sys-on-surface = white, --mat-sys-surface-variant = dark).
+   Do NOT force a background on the wrapper: outlined fields stay transparent,
+   filled fields get their dark container color from the tokens. */
+.mat-mdc-form-field {
+  color: var(--text-primary);
+}
+
+/* Keep browser autofill readable on dark fields */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-primary);
+  caret-color: var(--text-primary);
+  box-shadow: 0 0 0 1000px var(--surface-elevated) inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* ─── Dialog ─── */
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-color: var(--surface-card);
+}
+
+/* ─── Snackbar ─── */
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: var(--surface-elevated);
+  --mdc-snackbar-supporting-text-color: var(--text-primary);
+}
+
+/* ─── Tooltip ─── */
+.mat-mdc-tooltip .mdc-tooltip__surface {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+}
+
+/* ─── Progress Bar ─── */
+.mat-mdc-progress-bar {
+  --mdc-linear-progress-active-indicator-color: var(--primary-color);
+  --mdc-linear-progress-track-color: var(--surface-muted);
+}
+
+/* ─── Checkbox / Radio ─── */
+.mat-mdc-checkbox {
+  --mdc-checkbox-selected-checkmark-color: #fff;
+  --mdc-checkbox-selected-focus-icon-color: var(--primary-color);
+  --mdc-checkbox-selected-hover-icon-color: var(--primary-color);
+  --mdc-checkbox-selected-icon-color: var(--primary-color);
+  --mdc-checkbox-selected-pressed-icon-color: var(--primary-color);
+}
+
+/* ─── Responsive ─── */
 @media (max-width: 768px) {
   .header button[mat-icon-button] {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
-    min-height: 48px;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    min-height: 42px;
   }
 }

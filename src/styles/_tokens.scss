@@ -1,29 +1,123 @@
 :root {
+  /* ─── MotoGP Brand Palette ─── */
   --primary-color: #c8102e;
-  --secondary-color: #f4f4f4;
-  --accent-red: #e40000;
-  --accent-black: #000000;
+  --primary-hover: #a80d26;
+  --secondary-color: #16181d;
+
+  /* ─── Dark surfaces (MotoGP-style) ─── */
+  --background-dark: #0e1015;
+  --surface-color: #1a1d24;
+  --surface-elevated: #22262e;
+  --surface-card: #1e2128;
+  --surface-muted: #2a2e37;
+  --surface-strong: #14161c;
+
+  /* ─── Text ─── */
+  --text-primary: #ffffff;
+  --text-secondary: #a0a5b0;
+  --text-muted: #6b7080;
   --text-dark: #141414;
   --text-light: #ffffff;
-  --text-muted: #646b77;
-  --background-light: #f3f3f3;
-  --surface-color: #ffffff;
-  --surface-muted: #ececec;
-  --surface-elevated: #f8f8f9;
-  --surface-strong: #111318;
-  --border-subtle: rgba(17, 18, 20, 0.1);
-  --border-strong: rgba(17, 18, 20, 0.16);
-  --shadow-sm: 0 6px 14px rgba(8, 11, 18, 0.06);
-  --shadow-md: 0 10px 24px rgba(8, 11, 18, 0.1);
-  --shadow-lg: 0 16px 34px rgba(8, 11, 18, 0.14);
-  --app-header-height: 64px;
-  --content-max-width: 1280px;
+
+  /* ─── Accent colors ─── */
+  --accent-red: #e40000;
+  --accent-black: #000000;
+  --accent-green: #00c853;
+  --accent-amber: #ffab00;
+
+  /* ─── Medal accents (podium + standings rank badges) ───
+     -text = readable on dark surfaces; light theme overrides both */
+  --medal-gold: #ffd700;
+  --medal-silver: #c9ced6;
+  --medal-bronze: #cd7f32;
+  --medal-gold-text: #ffe27a;
+  --medal-silver-text: #e8edf5;
+  --medal-bronze-text: #efb184;
+
+  /* ─── Borders & Shadows ─── */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.2);
+
+  /* ─── Layout ─── */
+  --app-header-height: 60px;
+  --content-max-width: 100%;
+  --bottom-nav-height: 64px;
+
+  /* ─── Spacing ─── */
   --space-2xs: 0.25rem;
   --space-xs: 0.5rem;
   --space-sm: 0.75rem;
   --space-md: 1rem;
   --space-lg: 1.5rem;
-  --radius-md: 14px;
-  --radius-lg: 18px;
+  --space-xl: 2rem;
+
+  /* ─── Radius ─── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
   --radius-pill: 999px;
+
+  /* ─── Theme-dependent surfaces (overridden in light mode) ─── */
+  --header-bg: rgba(14, 16, 21, 0.92);
+  --page-gradient: linear-gradient(160deg, #0b0c10 0%, #111318 46%, #1a1c22 100%);
+  --page-shade: radial-gradient(circle at 100% -10%, rgba(0, 0, 0, 0.20), transparent 34%);
+  --podium-gradient: linear-gradient(160deg, #1a1c22 0%, #16181d 58%, #111318 100%);
+  --table-header-bg: #111318;
+  --bottomnav-bg: rgba(30, 33, 40, 0.96);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.15);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
+}
+
+/* ═══════════════════════════════════════════════
+   Light theme — activated by ThemeService via
+   <html data-theme="light">
+   ═══════════════════════════════════════════════ */
+[data-theme='light'] {
+  /* ─── Surfaces ─── */
+  --background-dark: #f4f5f7;
+  --surface-color: #ffffff;
+  --surface-elevated: #f0f1f4;
+  --surface-card: #ffffff;
+  --surface-muted: #e7e9ee;
+  --surface-strong: #ffffff;
+
+  /* ─── Text ─── */
+  --text-primary: #111214;
+  --text-secondary: #565b66;
+  --text-muted: #8a8f9b;
+  --text-dark: #141414;
+  --text-light: #ffffff;
+
+  /* ─── Borders & Shadows ─── */
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-medium: rgba(0, 0, 0, 0.14);
+  --border-strong: rgba(0, 0, 0, 0.22);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  /* ─── Medal accents — darker so they read on white ─── */
+  --medal-gold: #c08a00;
+  --medal-silver: #7d8694;
+  --medal-bronze: #a05f22;
+  --medal-gold-text: #8a6508;
+  --medal-silver-text: #5b6472;
+  --medal-bronze-text: #8f4f1c;
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.14);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+  /* ─── Theme-dependent surfaces ─── */
+  --header-bg: rgba(255, 255, 255, 0.94);
+  --page-gradient: linear-gradient(160deg, #eceef2 0%, #f4f5f7 46%, #fafbfc 100%);
+  --page-shade: radial-gradient(circle at 100% -10%, rgba(0, 0, 0, 0.05), transparent 34%);
+  --podium-gradient: linear-gradient(160deg, #ffffff 0%, #f4f5f7 58%, #eceef2 100%);
+  --table-header-bg: #eceef2;
+  --bottomnav-bg: rgba(255, 255, 255, 0.96);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.18);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.32);
 }

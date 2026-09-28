@@ -39,7 +39,9 @@ import { InAppNotificationService, NotificationSettings } from '../../services/i
       <main class="settings-main">
         <section class="settings-panel">
           <div class="panel-head">
-            <h2>{{ 'settings.title' | t }}</h2>
+            <span class="panel-kicker">Preferenze</span>
+            <h2>Campionato e lingua</h2>
+            <p class="panel-sub">Seleziona il campionato di riferimento e la lingua dell'interfaccia.</p>
           </div>
 
           <form class="settings-form" [formGroup]="settingsForm" (ngSubmit)="save()">
@@ -72,7 +74,9 @@ import { InAppNotificationService, NotificationSettings } from '../../services/i
 
         <section class="settings-panel notification-settings-panel" *ngIf="selectedChampionshipId">
           <div class="panel-head">
+            <span class="panel-kicker">Promemoria</span>
             <h2>Notifiche</h2>
+            <p class="panel-sub">Scegli quali aggiornamenti ricevere per questo campionato. Le modifiche vengono salvate subito.</p>
           </div>
 
           <div class="notification-toggles">

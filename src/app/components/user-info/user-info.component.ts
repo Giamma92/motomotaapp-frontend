@@ -69,47 +69,16 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
   styles: [`
     .profile-container {
       min-height: 100vh;
+      // Theme-aware backdrop: the old hardcoded white gradient was invisible
+      // against the dark app background
       background:
-        radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
-        radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
-        linear-gradient(158deg, #ffffff 0%, #f8f8f9 48%, #f1f2f4 100%);
-      color: #16181d;
+        radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.16), transparent 42%),
+        radial-gradient(circle at 100% 0%, rgba(200, 16, 46, 0.06), transparent 34%),
+        var(--background-dark, #0e1015);
+      color: var(--text-primary, #ffffff);
     }
 
-    .header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: var(--app-header-height);
-      display: flex;
-      align-items: center;
-      background: rgba(17, 18, 20, 0.97);
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
-      color: #fff;
-      z-index: 1000;
-      padding: 0 clamp(10px, 2.5vw, 20px);
-    }
-
-    .header button {
-      background: #fff;
-      color: #c8102e;
-      border-radius: 50%;
-      width: 42px;
-      height: 42px;
-    }
-
-    .header h1 {
-      flex: 1;
-      text-align: center;
-      margin: 0;
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      font-size: clamp(1rem, 2.8vw, 1.5rem);
-      font-family: 'MotoGP Bold', sans-serif;
-      padding-right: 42px;
-    }
+    /* Header: canonical styles live in styles/_layout.scss */
 
     .profile-main {
       width: min(100%, 760px);
@@ -119,10 +88,10 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
 
     .profile-panel {
       width: 100%;
-      border: 1px solid rgba(17, 18, 20, 0.12);
+      border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
       border-radius: 14px;
-      background: #fff;
-      box-shadow: 0 8px 18px rgba(0,0,0,.08);
+      background: var(--surface-card, #1e2128);
+      box-shadow: var(--shadow-card, 0 2px 12px rgba(0, 0, 0, 0.2));
       padding: 10px;
     }
 
@@ -131,7 +100,7 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
       align-items: center;
       gap: 10px;
       padding-bottom: 8px;
-      border-bottom: 1px solid rgba(17, 18, 20, 0.1);
+      border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
     }
 
     .profile-image-container img {
@@ -148,13 +117,13 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
       font-family: 'MotoGP Bold', sans-serif;
       text-transform: uppercase;
       letter-spacing: 0.15px;
-      color: #111214;
+      color: var(--text-primary, #ffffff);
       font-size: clamp(1.02rem, 2.5vw, 1.25rem);
     }
 
     .profile-subid {
       font-size: 0.72rem;
-      color: #626977;
+      color: var(--text-secondary, #a0a5b0);
     }
 
     .profile-details {
@@ -168,10 +137,10 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
       grid-template-columns: minmax(96px, 1fr) minmax(0, 1.4fr);
       gap: 8px;
       align-items: center;
-      border: 1px solid rgba(17, 18, 20, 0.1);
+      border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
       border-radius: 9px;
       padding: 6px 8px;
-      background: #fff;
+      background: var(--surface-elevated, #22262e);
     }
 
     .kv-key {
@@ -179,10 +148,11 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
       align-items: center;
       gap: 6px;
       font-family: 'MotoGP Bold', sans-serif;
-      font-size: 0.63rem;
+      // Readability floor: >= 11.2px
+      font-size: 0.7rem;
       letter-spacing: 0.28px;
       text-transform: uppercase;
-      color: #5c6471;
+      color: var(--text-secondary, #a0a5b0);
     }
 
     .kv-key mat-icon {
@@ -197,7 +167,7 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
       text-align: right;
       font-size: 0.82rem;
       font-weight: 700;
-      color: #111214;
+      color: var(--text-primary, #ffffff);
       overflow-wrap: anywhere;
     }
 
@@ -211,11 +181,11 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
       margin: 0;
       font-family: 'MotoGP Bold', sans-serif;
       font-size: 1.1rem;
-      color: #111214;
+      color: var(--text-primary, #ffffff);
     }
 
     .empty-content {
-      color: #4a4f58;
+      color: var(--text-secondary, #a0a5b0);
       font-size: 0.9rem;
       padding-top: 8px;
     }

@@ -15,7 +15,7 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
   template: `
     <h2 mat-dialog-title>{{ 'existingBets.title' | t }}</h2>
     <mat-dialog-content>
-      <table mat-table [dataSource]="data.bets" class="mat-elevation-z4">
+      <table mat-table [dataSource]="data.bets" class="app-material-table">
         <ng-container matColumnDef="rider">
           <th mat-header-cell *matHeaderCellDef>{{ 'existingBets.rider' | t }}</th>
           <td mat-cell *matCellDef="let bet">
@@ -25,12 +25,12 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
 
         <ng-container matColumnDef="position">
           <th mat-header-cell *matHeaderCellDef>{{ 'existingBets.position' | t }}</th>
-          <td mat-cell *matCellDef="let bet"> {{ bet.position }} </td>
+          <td mat-cell *matCellDef="let bet"> {{ bet.position }} / {{ bet.position + 1 }} </td>
         </ng-container>
 
         <ng-container matColumnDef="points">
           <th mat-header-cell *matHeaderCellDef>{{ 'existingBets.points' | t }}</th>
-          <td mat-cell *matCellDef="let bet"> {{ bet.points }} </td>
+          <td mat-cell *matCellDef="let bet"> {{ bet.points }} pt </td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
@@ -55,13 +55,10 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
       </button>
     </mat-dialog-actions>
   `,
-  styles: [`
+  styles: `
     table {
       width: 100%;
-      margin: 1rem 0;
-    }
-    th.mat-header-cell {
-      background-color: #f5f5f5;
+      margin: 0.5rem 0;
     }
     .close-button {
       margin: 8px;
@@ -70,7 +67,7 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
     .close-button:hover {
       transform: translateY(-1px);
     }
-  `]
+  `
 })
 export class ExistingBetsModalComponent {
   displayedColumns: string[] = ['rider', 'position', 'points', 'actions'];
@@ -89,11 +86,12 @@ export class ExistingBetsModalComponent {
   ) {}
 
   deleteBet(bet: BetResult) {
-    const url = `championship/${this.data.champId}/${this.data.betEndpoint}/${this.data.raceId}/${bet.rider_id}`;
+    const riderId = this.normalizeRiderId(bet.rider_id);
+    const url = `championship/${this.data.champId}/${this.data.betEndpoint}/${this.data.raceId}/${riderId}`;
     this.http.genericDelete(url).subscribe({
       next: () => {
         // remove the deleted bet locally so the row disappears
-        this.data.bets = this.data.bets.filter(b => b.rider_id !== bet.rider_id);
+        this.data.bets = this.data.bets.filter(b => this.normalizeRiderId(b.rider_id) !== riderId);
         this.notificationService.showSuccess('bets.deleteSuccess');
         this.dialogRef.close();
       },
@@ -104,8 +102,14 @@ export class ExistingBetsModalComponent {
     });
   }
 
-  getRiderName(riderId: number): string {
-    const rider = this.data.riders.find(r => r.rider_id.id === riderId)?.rider_id;
-    return rider ? `${rider.first_name} ${rider.last_name}` : 'Unknown Rider';
+  getRiderName(riderId: any): string {
+    const id = this.normalizeRiderId(riderId);
+    const rider = this.data.riders.find(r => r.rider_id.id === id)?.rider_id;
+    return rider ? `${rider.first_name} ${rider.last_name}` : 'Pilota sconosciuto';
+  }
+
+  private normalizeRiderId(value: any): number {
+    if (value && typeof value === 'object') return Number(value.id) || 0;
+    return Number(value);
   }
 }

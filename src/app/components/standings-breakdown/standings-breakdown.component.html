@@ -1,0 +1,259 @@
+<div class="page-shell">
+  <header class="header">
+    <button mat-icon-button class="app-back-arrow" (click)="goBack()" aria-label="Back">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Dettaglio punteggi</h1>
+  </header>
+
+  <main class="content">
+    <!-- ── Filters ── -->
+    <mat-card class="filters-card">
+      <div class="filters-grid">
+        <label class="filter-field">
+          <span>Gara</span>
+          <select [(ngModel)]="selectedRaceId" (ngModelChange)="hoverIdx = null">
+            <option value="">Tutte</option>
+            <option *ngFor="let race of raceOptions" [value]="race.id">{{ race.label }}</option>
+          </select>
+        </label>
+
+        <label class="filter-field">
+          <span>Partecipante</span>
+          <select [(ngModel)]="selectedParticipantId" (ngModelChange)="onParticipantChange()">
+            <option value="">Tutti</option>
+            <option *ngFor="let participant of participantOptions" [value]="participant.id">{{ participant.label }}</option>
+          </select>
+        </label>
+      </div>
+    </mat-card>
+
+    <!-- ── Season trend chart ── -->
+    <mat-card class="chart-card skeleton-card">
+      <div class="card-head">
+        <div>
+          <span class="card-kicker">Season trend</span>
+          <h2>Andamento punti</h2>
+        </div>
+        <div class="view-toggle" role="group" aria-label="Modalità del grafico">
+          <button type="button" [class.active]="cumulative" (click)="setCumulative(true)">Cumulativo</button>
+          <button type="button" [class.active]="!cumulative" (click)="setCumulative(false)">Per gara</button>
+        </div>
+      </div>
+
+      <div class="metric-tabs" role="tablist" aria-label="Categoria di punteggio">
+        <button
+          *ngFor="let m of metrics"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="metric === m.id"
+          [class.active]="metric === m.id"
+          (click)="setMetric(m.id)">
+          {{ m.label }}
+        </button>
+      </div>
+
+      <div class="chart-legend" *ngIf="series.length">
+        <button
+          *ngFor="let s of series"
+          type="button"
+          class="legend-chip"
+          [class.off]="!isActive(s)"
+          [class.is-me]="s.isMe"
+          [disabled]="!!selectedParticipantId"
+          (click)="toggleSeries(s)">
+          <span class="legend-dot" [style.background]="s.color"></span>
+          {{ s.name }}
+        </button>
+      </div>
+
+      <div class="chart-box" #chartBox>
+        <div class="skeleton-content" *ngIf="loading">
+          <span class="sk sk-title"></span>
+          <span class="sk sk-pills"></span>
+          <span class="sk sk-chart"></span>
+        </div>
+
+        <ng-container *ngIf="!loading && chartW > 0 && rounds.length && activeSeries.length">
+          <svg
+            class="trend-svg"
+            [attr.viewBox]="'0 0 ' + chartW + ' ' + chartH"
+            role="img"
+            (mouseleave)="hoverIdx = null">
+            <title>Andamento dei punteggi gara per gara</title>
+
+            <!-- plot background -->
+            <rect class="plot-bg" [attr.x]="PAD.l" [attr.y]="PAD.t" [attr.width]="plotW" [attr.height]="plotH" rx="10" />
+
+            <!-- selected race focus band -->
+            <rect
+              *ngIf="focusIdx >= 0"
+              class="focus-band"
+              [attr.x]="focusX"
+              [attr.y]="PAD.t"
+              [attr.width]="focusW"
+              [attr.height]="plotH"
+              rx="8" />
+
+            <!-- y grid + labels -->
+            <line
+              *ngFor="let t of plot.ticks"
+              class="grid-line"
+              [attr.x1]="PAD.l"
+              [attr.x2]="PAD.l + plotW"
+              [attr.y1]="yFor(t)"
+              [attr.y2]="yFor(t)" />
+            <text
+              *ngFor="let t of plot.ticks"
+              class="axis-label"
+              [attr.x]="PAD.l - 8"
+              [attr.y]="yFor(t) + 3.5"
+              text-anchor="end">{{ fmtAxis(t) }}</text>
+
+            <!-- zero line -->
+            <line
+              *ngIf="plot.min < 0 && plot.max > 0"
+              class="zero-line"
+              [attr.x1]="PAD.l"
+              [attr.x2]="PAD.l + plotW"
+              [attr.y1]="yFor(0)"
+              [attr.y2]="yFor(0)" />
+
+            <!-- hover guide -->
+            <line
+              *ngIf="hoverIdx !== null"
+              class="guide-line"
+              [attr.x1]="xAt(hoverIdx)"
+              [attr.x2]="xAt(hoverIdx)"
+              [attr.y1]="PAD.t"
+              [attr.y2]="PAD.t + plotH" />
+
+            <!-- series -->
+            <g class="series" *ngFor="let s of activeSeries">
+              <polyline
+                class="trend-line"
+                [style.stroke]="s.color"
+                [attr.stroke-width]="s.isMe ? 3.2 : 2"
+                [attr.points]="linePoints(s)" />
+              <circle
+                *ngFor="let p of s.points; let i = index"
+                class="trend-dot"
+                [attr.cx]="xAt(i)"
+                [attr.cy]="yFor(p)"
+                [attr.r]="s.isMe ? 4 : 3"
+                [style.fill]="s.color" />
+            </g>
+
+            <!-- x labels -->
+            <ng-container *ngFor="let r of rounds; let i = index">
+              <text
+                *ngIf="showXLabel(i)"
+                class="axis-label"
+                [attr.x]="xAt(i)"
+                [attr.y]="chartH - 9"
+                text-anchor="middle">{{ r.short }}</text>
+            </ng-container>
+
+            <!-- hover targets (top layer) -->
+            <rect
+              *ngFor="let r of rounds; let i = index"
+              class="hover-col"
+              [attr.x]="hoverX(i)"
+              [attr.y]="PAD.t"
+              [attr.width]="hoverW(i)"
+              [attr.height]="plotH"
+              (mouseenter)="hoverIdx = i" />
+          </svg>
+
+          <div class="chart-tip" *ngIf="hoverIdx !== null" [style.left.px]="tipLeft" [style.transform]="tipTransform()">
+            <span class="tip-round">{{ tipRoundLabel() }}</span>
+            <div class="tip-row" *ngFor="let t of tipRows()">
+              <span class="tip-dot" [style.background]="t.color"></span>
+              <span class="tip-name">{{ t.shortName }}</span>
+              <span class="tip-val" [class.is-neg]="t.v < 0">{{ t.v | number: '1.0-0' }}</span>
+            </div>
+          </div>
+        </ng-container>
+
+        <div class="state-box" *ngIf="!loading && !rounds.length">Nessun dato disponibile per il grafico.</div>
+        <div class="state-box" *ngIf="!loading && rounds.length && !activeSeries.length">
+          Seleziona almeno un partecipante dalle etichette sopra.
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- ── Race-by-race breakdown ── -->
+    <mat-card class="breakdown-card skeleton-card">
+      <div class="card-head">
+        <div>
+          <span class="card-kicker">Race by race</span>
+          <h2>Breakdown gara</h2>
+        </div>
+        <span class="results-pill">{{ filteredRows.length }} {{ filteredRows.length === 1 ? 'riga' : 'righe' }}</span>
+      </div>
+
+      <div class="skeleton-content" *ngIf="loading">
+        <span class="sk sk-title"></span>
+        <span class="sk sk-row" *ngFor="let i of [1, 2, 3]"></span>
+      </div>
+
+      <div class="state-box" *ngIf="!loading && !filteredRows.length">Nessun dettaglio disponibile.</div>
+
+      <div class="table-wrap desktop-only" *ngIf="!loading && filteredRows.length">
+        <table class="breakdown-table">
+          <thead>
+            <tr>
+              <th class="col-text">Gara</th>
+              <th class="col-text">Partecipante</th>
+              <th class="col-num">Qualifica</th>
+              <th class="col-num">Gara</th>
+              <th class="col-num">Sprint bet</th>
+              <th class="col-num">Race bet</th>
+              <th class="col-num col-total">Totale</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of filteredRows" [class.current-user]="row.user_id.id === loggedUserId">
+              <td>
+                <div class="race-cell">
+                  <span class="round-badge">R{{ row.calendar_id.race_order }}</span>
+                  <div class="race-names">
+                    <strong>{{ row.calendar_id.race_id.name }}</strong>
+                    <span>{{ row.calendar_id.race_id.location }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="name-col">{{ fullName(row) }}</td>
+              <td class="col-num" [class.is-neg]="row.qualifying_score < 0">{{ row.qualifying_score | number: '1.0-0' }}</td>
+              <td class="col-num" [class.is-neg]="row.race_score < 0">{{ row.race_score | number: '1.0-0' }}</td>
+              <td class="col-num" [class.is-neg]="sprintBetValue(row) < 0">{{ sprintBetValue(row) | number: '1.0-0' }}</td>
+              <td class="col-num" [class.is-neg]="raceBetValue(row) < 0">{{ raceBetValue(row) | number: '1.0-0' }}</td>
+              <td class="col-num total-col">{{ row.score | number: '1.0-0' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mobile-list" *ngIf="!loading && filteredRows.length">
+        <article class="mobile-row" *ngFor="let row of filteredRows" [class.current-user]="row.user_id.id === loggedUserId">
+          <header class="mobile-row-head">
+            <div class="mobile-race">
+              <span class="round-badge">R{{ row.calendar_id.race_order }}</span>
+              <div>
+                <strong>{{ row.calendar_id.race_id.name }}</strong>
+                <span>{{ fullName(row) }}</span>
+              </div>
+            </div>
+            <span class="total-pill" [class.is-neg]="row.score < 0">{{ row.score | number: '1.0-0' }} pts</span>
+          </header>
+          <div class="mobile-grid">
+            <span>Qualifica <strong [class.is-neg]="row.qualifying_score < 0">{{ row.qualifying_score | number: '1.0-0' }}</strong></span>
+            <span>Gara <strong [class.is-neg]="row.race_score < 0">{{ row.race_score | number: '1.0-0' }}</strong></span>
+            <span>Sprint bet <strong [class.is-neg]="sprintBetValue(row) < 0">{{ sprintBetValue(row) | number: '1.0-0' }}</strong></span>
+            <span>Race bet <strong [class.is-neg]="raceBetValue(row) < 0">{{ raceBetValue(row) | number: '1.0-0' }}</strong></span>
+          </div>
+        </article>
+      </div>
+    </mat-card>
+  </main>
+</div>
