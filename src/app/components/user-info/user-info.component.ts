@@ -83,7 +83,7 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
     .profile-main {
       width: min(100%, 760px);
       margin: 0 auto;
-      padding: calc(var(--app-header-height) + 10px) 10px 12px;
+      padding: var(--content-offset-top) 10px 12px;
     }
 
     .profile-panel {
@@ -192,7 +192,7 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
 
     @media (max-width: 600px) {
       .profile-main {
-        padding: calc(var(--app-header-height) + 8px) 8px 10px;
+        padding: var(--content-offset-top) 8px 10px;
       }
 
       .profile-panel {

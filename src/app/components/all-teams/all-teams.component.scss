@@ -7,11 +7,90 @@ app-all-teams {
 
   /* Header: canonical styles live in styles/_layout.scss */
 
+  /* Header offset: owned by the canonical .page-container padding
+     (--content-offset-top) — never stack a second one here. */
   .main-content {
-    padding: calc(var(--app-header-height) + 14px) 14px 18px;
     width: 100%;
     max-width: none;
   }
+
+  .loading-container { padding: 4rem 1rem; }
+
+  .retry-btn i { margin-right: 6px; }
+
+  .teams-layout {
+    display: grid;
+    gap: 14px;
+  }
+
+  /* ═══════════════ Riepilogo (stile condiviso con la pagina risultati) ═══════════════ */
+
+  .stats-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .stat-tile {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 13px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-card);
+    box-shadow: var(--shadow-sm);
+    min-width: 0;
+  }
+
+  .stat-tile > i {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    background: rgba(200, 16, 46, 0.1);
+    border: 1px solid rgba(200, 16, 46, 0.22);
+    color: var(--primary-color);
+    font-size: 0.9rem;
+  }
+
+  .stat-copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .stat-label {
+    color: var(--text-muted);
+    font-family: 'MotoGP Bold', sans-serif;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+  }
+
+  .stat-value {
+    color: var(--text-primary);
+    font-size: 0.92rem;
+    font-weight: 800;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .stat-sub {
+    color: var(--text-secondary);
+    /* Readability floor: >= 11.2px */
+    font-size: 0.72rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ═══════════════ Griglia squadre ═══════════════ */
 
   .teams-grid {
     display: grid;
@@ -22,6 +101,8 @@ app-all-teams {
 
   .team-card {
     position: relative;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     background: var(--surface-card, #1e2128);
     border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
@@ -36,113 +117,176 @@ app-all-teams {
     border-color: rgba(200, 16, 46, 0.25);
   }
 
-  .team-header {
-    position: relative;
+  /* Podio classifica: bordo oro/argento/bronzo */
+  .team-card.rank-1 { border-color: rgba(244, 195, 0, 0.5); }
+  .team-card.rank-2 { border-color: rgba(190, 197, 205, 0.45); }
+  .team-card.rank-3 { border-color: rgba(217, 139, 74, 0.45); }
+
+  .team-card.rank-1:hover { border-color: rgba(244, 195, 0, 0.75); }
+  .team-card.rank-2:hover { border-color: rgba(190, 197, 205, 0.65); }
+  .team-card.rank-3:hover { border-color: rgba(217, 139, 74, 0.65); }
+
+  /* ─── Testata ─── */
+
+  .team-top {
     display: flex;
     align-items: center;
-    gap: 14px;
-    width: 100%;
-    padding: 16px;
+    gap: 12px;
+    padding: 14px 16px;
     background: var(--surface-elevated, #22262e);
     border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
   }
 
-  .team-header::after {
-    content: '';
-    position: absolute;
-    inset: auto 16px 0;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0));
+  .rank-badge {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--surface-card, #1e2128);
+    border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.12));
+    color: var(--text-secondary, #a0a5b0);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1;
   }
 
-  .team-image-container,
-  .team-image-placeholder {
-    flex-basis: 56px;
-    width: 56px;
-    height: 56px;
+  .rank-badge.rank-1 {
+    background: rgba(244, 195, 0, 0.16);
+    border-color: rgba(244, 195, 0, 0.55);
+    color: #f4c300;
   }
 
-  .team-image-container img,
-  .team-image-placeholder {
-    width: 56px;
-    height: 56px;
-    border-radius: 18px;
+  .rank-badge.rank-2 {
+    background: rgba(190, 197, 205, 0.14);
+    border-color: rgba(190, 197, 205, 0.5);
+    color: #cfd4dc;
+  }
+
+  .rank-badge.rank-3 {
+    background: rgba(217, 139, 74, 0.14);
+    border-color: rgba(217, 139, 74, 0.5);
+    color: #d98b4a;
+  }
+
+  .team-logo {
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+  }
+
+  .team-logo img,
+  .team-logo .logo-ph {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   }
 
-  .team-image-container img {
+  .team-logo img {
     object-fit: cover;
   }
 
-  .team-image-placeholder {
-    display: flex;
+  .team-logo .logo-ph {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     background: rgba(200, 16, 46, 0.15);
-  }
-
-  .team-image-placeholder mat-icon {
     color: var(--primary-color, #c8102e);
   }
 
-  .header-content {
+  .team-ident {
     flex: 1;
     min-width: 0;
+    display: grid;
+    gap: 6px;
   }
 
   .team-name {
     margin: 0;
-    padding: 0;
-    color: #fff;
+    color: var(--text-primary, #ffffff);
     font-family: 'MotoGP Bold', sans-serif;
-    font-size: 1.08rem;
+    font-size: 1.05rem;
     letter-spacing: 0.3px;
-    line-height: 1.08;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .user-details {
+  .user-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 8px;
+    gap: 6px;
   }
 
-  .username,
-  .user-id {
+  .chip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    min-height: 28px;
-    padding: 0 11px;
+    gap: 5px;
+    min-height: 24px;
+    max-width: 100%;
+    padding: 0 9px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    font-size: 0.76rem;
+    background: var(--surface-card, #1e2128);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+    color: var(--text-secondary, #a0a5b0);
+    /* Readability floor: >= 11.2px */
+    font-size: 0.74rem;
     font-weight: 600;
-    backdrop-filter: blur(8px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .username mat-icon,
-  .user-id mat-icon {
-    width: 13px;
-    height: 13px;
-    font-size: 13px;
+  .chip mat-icon {
+    width: 12px;
+    height: 12px;
+    font-size: 12px;
+    flex-shrink: 0;
     color: var(--primary-color, #c8102e);
   }
 
-  mat-card-content {
-    padding: 14px;
+  .score-box {
+    display: grid;
+    justify-items: end;
+    gap: 1px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-left: 14px;
+    border-left: 1px dashed var(--border-subtle, rgba(255, 255, 255, 0.1));
   }
+
+  .score-value {
+    color: var(--primary-color, #c8102e);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .score-label {
+    color: var(--text-muted, #6b7080);
+    font-family: 'MotoGP Bold', sans-serif;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+  }
+
+  /* ─── Piloti ─── */
 
   .rider-grid {
     display: grid;
-    gap: 12px;
+    gap: 10px;
+    padding: 12px 14px;
   }
 
   .rider-panel {
-    border-radius: 18px;
+    border-radius: 14px;
     border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
     background: var(--surface-elevated, #22262e);
     box-shadow: none;
@@ -150,12 +294,12 @@ app-all-teams {
   }
 
   .rider-panel .mat-expansion-panel-header {
-    min-height: 74px;
-    padding: 12px 14px;
+    min-height: 68px;
+    padding: 10px 12px;
   }
 
   .rider-panel .mat-expansion-panel-body {
-    padding: 0 14px 14px;
+    padding: 0 12px 12px;
   }
 
   .rider-header {
@@ -166,14 +310,14 @@ app-all-teams {
   .rider-header-main {
     display: grid;
     gap: 2px;
-    width: 100%;
+    flex: 1;
     min-width: 0;
   }
 
   .rider-role {
     color: var(--text-muted, #6b7080);
     font-family: 'MotoGP Bold', sans-serif;
-    // Readability floor: >= 11.2px
+    /* Readability floor: >= 11.2px */
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.42px;
@@ -188,6 +332,14 @@ app-all-teams {
     min-width: 0;
   }
 
+  .rider-name-row .rider-name {
+    flex: 1 1 auto;
+  }
+
+  .rider-name-row .rider-header-number {
+    flex-shrink: 0;
+  }
+
   .rider-name {
     min-width: 0;
     overflow: hidden;
@@ -195,7 +347,7 @@ app-all-teams {
     white-space: nowrap;
     color: var(--text-primary, #ffffff);
     font-family: 'MotoGP Bold', sans-serif;
-    font-size: 1rem;
+    font-size: 0.98rem;
     line-height: 1.14;
     font-weight: 700;
   }
@@ -210,8 +362,66 @@ app-all-teams {
     font-weight: 600;
   }
 
+  /* Chip team/costruttore (condiviso con la pagina risultati) */
+  .maker-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 1 auto;
+    min-width: 56px;
+    max-width: 170px;
+    padding: 1px 7px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-medium);
+    background: var(--surface-card);
+    color: var(--text-secondary);
+    font-family: 'MotoGP Bold', sans-serif;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .maker-chip i {
+    flex-shrink: 0;
+    font-size: 0.5rem;
+    color: var(--maker, #78909c);
+  }
+
+  .maker-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Contatore schieramenti sempre visibile in testata */
+  .usage-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    margin-left: auto;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(200, 16, 46, 0.12);
+    border: 1px solid rgba(200, 16, 46, 0.3);
+    color: var(--primary-color, #c8102e);
+    font-family: 'MotoGP Bold', sans-serif;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .usage-pill i {
+    font-size: 0.66rem;
+  }
+
   .rider-info {
-    padding: 0 8px 8px;
+    padding: 0 4px 4px;
   }
 
   .rider-stats {
@@ -225,18 +435,21 @@ app-all-teams {
     align-items: center;
     gap: 10px;
     padding: 10px 12px;
-    border-radius: 14px;
+    border-radius: 12px;
     background: var(--surface-card, #1e2128);
     border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
   }
 
-  .stat-label {
+  .stat-row .stat-label {
     color: var(--text-muted, #6b7080);
+    font-family: inherit;
     font-size: 0.79rem;
     font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
   }
 
-  .stat-value {
+  .stat-row .stat-value {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -251,21 +464,23 @@ app-all-teams {
   }
 
   .first-tier {
-    border-left: 5px solid #c8102e;
-    background: var(--surface-elevated, #22262e);
+    border-left: 4px solid var(--primary-color, #c8102e);
   }
 
   .second-tier {
-    border-left: 5px solid var(--text-secondary, #a0a5b0);
-    background: var(--surface-elevated, #22262e);
+    border-left: 4px solid var(--text-secondary, #a0a5b0);
   }
 
   .third-tier {
-    border-left: 5px solid var(--text-muted, #6b7080);
-    background: var(--surface-elevated, #22262e);
+    border-left: 4px solid var(--text-muted, #6b7080);
   }
 
+  /* ─── Azioni ─── */
+
   .team-card-actions {
+    margin-top: auto;
+    display: flex;
+    justify-content: flex-end;
     padding: 10px 14px 14px;
     border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
   }
@@ -280,7 +495,8 @@ app-all-teams {
     border-radius: 999px;
     background: var(--surface-muted, #2a2e37);
     color: var(--text-primary, #ffffff);
-    font-size: 0.82rem;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.76rem;
     font-weight: 700;
     letter-spacing: 0.2px;
     border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
@@ -290,6 +506,11 @@ app-all-teams {
     color: var(--primary-color, #c8102e);
   }
 
+  .view-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
   .no-teams {
     margin-top: 8px;
     color: var(--text-muted, #6b7080);
@@ -297,50 +518,83 @@ app-all-teams {
     text-align: center;
   }
 
-  @media (min-width: 1200px) {
+  /* ═══════════════ Responsive ═══════════════ */
+
+  @media (min-width: 821px) {
     .teams-grid {
-      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
     }
   }
 
-  @media (max-width: 768px) {
-    .main-content {
-      padding: calc(var(--app-header-height) + 10px) 10px 14px;
+  @media (max-width: 820px) {
+    .stats-strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .stat-tile {
+      padding: 10px;
+      gap: 9px;
     }
 
     .teams-grid {
       gap: 12px;
     }
 
-    .team-header {
-      align-items: flex-start;
-      padding: 14px;
-    }
-
-    .team-image-container,
-    .team-image-placeholder,
-    .team-image-container img,
-    .team-image-placeholder {
-      width: 52px;
-      height: 52px;
-      flex-basis: 52px;
-    }
-
-    mat-card-content {
+    .team-top {
+      flex-wrap: wrap;
       padding: 12px;
+      gap: 10px;
+    }
+
+    .team-ident {
+      min-width: 140px;
+    }
+
+    /* Il punteggio passa su una riga propria: separatore tratteggiato orizzontale */
+    .score-box {
+      width: 100%;
+      grid-template-columns: auto auto;
+      justify-items: start;
+      align-items: baseline;
+      justify-content: start;
+      gap: 7px;
+      text-align: left;
+      padding: 9px 0 0;
+      border-left: none;
+      border-top: 1px dashed var(--border-subtle, rgba(255, 255, 255, 0.1));
+    }
+
+    .score-value {
+      font-size: 1.15rem;
+    }
+
+    .rider-grid {
+      gap: 8px;
+      padding: 10px 12px;
     }
 
     .rider-panel .mat-expansion-panel-header {
-      min-height: 70px;
-      padding: 11px 12px;
+      min-height: 64px;
+      padding: 9px 10px;
     }
 
-    .rider-panel .mat-expansion-panel-body {
-      padding: 0 12px 12px;
+    .rider-name {
+      font-size: 0.93rem;
+    }
+
+    .usage-pill {
+      padding: 3px 7px;
     }
 
     .team-card-actions {
       padding: 8px 12px 12px;
     }
+  }
+
+  @media (max-width: 480px) {
+    /* Mantenuto: il nome pilota si contrae con l'ellipsis, chip e numero restano visibili */
+    .rider-name { font-size: 0.9rem; }
+    .maker-chip { padding: 1px 5px; }
   }
 }

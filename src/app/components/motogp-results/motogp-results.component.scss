@@ -1,648 +1,878 @@
-    .page-container {
-      min-height: 100vh;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: #fff;
-    }
+/* ═══════════════════════════════════════════════
+   MotoGP results — "Risultati MotoGP"
+   Structure: hero → admin → session pills →
+              podium → stats → results list
+   Theme-aware via global tokens (dark / light).
+   NOTE: ViewEncapsulation.None → everything below is
+   nested under the `app-motogp-results` host.
+   ═══════════════════════════════════════════════ */
 
-    /* Header: canonical styles live in styles/_layout.scss */
+app-motogp-results {
+  .page-container {
+    min-height: 100vh;
+    color: var(--text-primary);
+    background:
+      radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
+      var(--page-shade),
+      var(--page-gradient);
+  }
 
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+    /* Top offset comes from the canonical .page-container padding
+       (--content-offset-top) — never stack a second one here. */
+  }
+
+  .results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .loading-container { padding: 4rem 1rem; }
+
+  .retry-btn i { margin-right: 6px; }
+
+  /* ═══════════════ Hero ═══════════════ */
+
+  .results-hero {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 1.1rem 1.15rem;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top right, rgba(200, 16, 46, 0.22), transparent 36%),
+      linear-gradient(155deg, rgba(17, 18, 20, 0.98), rgba(35, 39, 46, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    color: #fff;
+    box-shadow: 0 18px 34px rgba(8, 11, 18, 0.18);
+  }
+
+  .results-hero::after {
+    content: '';
+    position: absolute;
+    inset: auto -18% -42% auto;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent 68%);
+    pointer-events: none;
+  }
+
+  .hero-main {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .hero-kicker {
+    font-family: 'MotoGP Bold', sans-serif;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.35px;
+    text-transform: uppercase;
+    color: #ff6e84;
+  }
+
+  .hero-title {
+    margin: 0;
+    color: #fff;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: clamp(1.2rem, 3vw, 1.7rem);
+    letter-spacing: 0.24px;
+    line-height: 1.04;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+  }
+
+  .hero-sub {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .hero-sub span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.82);
+  }
+
+  .hero-sub i { color: #ff6e84; }
+
+  .hero-side {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 6px;
+    max-width: 100%;
+  }
+
+  .session-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.92);
+    font-family: 'MotoGP Bold', sans-serif;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  .session-tag i { color: #ff6e84; font-size: 0.7rem; }
+  .session-tag.tag-RAC { background: rgba(255, 110, 132, 0.12); border-color: rgba(255, 110, 132, 0.26); }
+
+  /* ═══════════════ Admin card ═══════════════ */
+
+  .admin-actions-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    color: var(--text-primary);
+  }
+
+  .admin-actions-card .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.9rem;
+    background: #111214;
+    color: #fff;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .admin-actions-card .card-header i { color: #ff6e84; }
+
+  .admin-actions-card mat-card-content { padding: 0.75rem 0.9rem; }
+
+  .admin-actions-card .admin-buttons {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .admin-actions-card .admin-buttons button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 38px;
+    padding: 0.5rem 0.95rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.78rem;
+  }
+
+  .admin-actions-card .admin-buttons button[color='primary'] {
+    background: #111214;
+    color: #fff;
+  }
+
+  .admin-actions-card .admin-buttons button[color='accent'] {
+    background: #c8102e;
+    color: #fff;
+  }
+
+  /* ═══════════════ Session switcher ═══════════════ */
+
+  .session-switch {
+    display: flex;
+    gap: 6px;
+    padding: 6px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-card);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .session-switch::-webkit-scrollbar { display: none; }
+
+  .session-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex: 1 1 auto;
+    min-width: 96px;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'MotoGP Bold', sans-serif;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .session-tab i { font-size: 0.78rem; }
+
+  .session-tab:hover {
+    background: var(--surface-elevated);
+    color: var(--text-primary);
+  }
+
+  .session-tab.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    border-color: rgba(200, 16, 46, 0.4);
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .session-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.14);
+    font-family: 'MotoGP Bold', sans-serif;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.7rem;
+    color: inherit;
+  }
+
+  .session-tab:not(.active) .session-count {
+    background: var(--surface-elevated);
+    color: var(--text-muted);
+  }
+
+  /* ═══════════════ Podium ═══════════════ */
+
+  .podium {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .podium-card {
+    position: relative;
+    display: grid;
+    gap: 8px;
+    padding: 14px 14px 12px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+    background: var(--podium-gradient);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .podium-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--rank-accent, var(--border-medium));
+  }
+
+  .podium-card.rank-1 { --rank-accent: var(--medal-gold); }
+  .podium-card.rank-2 { --rank-accent: var(--medal-silver); }
+  .podium-card.rank-3 { --rank-accent: var(--medal-bronze); }
+
+  .podium-rank {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border-medium);
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .podium-card.rank-1 .podium-rank {
+    background: rgba(255, 215, 0, 0.14);
+    border-color: rgba(255, 215, 0, 0.4);
+    color: var(--medal-gold-text);
+  }
+  .podium-card.rank-2 .podium-rank {
+    background: rgba(201, 206, 214, 0.14);
+    border-color: rgba(201, 206, 214, 0.4);
+    color: var(--medal-silver-text);
+  }
+  .podium-card.rank-3 .podium-rank {
+    background: rgba(205, 127, 50, 0.14);
+    border-color: rgba(205, 127, 50, 0.4);
+    color: var(--medal-bronze-text);
+  }
+
+  .podium-body {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .podium-rider {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+  }
+
+  .podium-num {
+    display: inline-grid;
+    place-items: center;
+    min-width: 40px;
+    height: 30px;
+    padding: 0 6px;
+    border-radius: var(--radius-sm);
+    background: #111214;
+    border: 1px solid var(--border-medium);
+    color: #fff;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.82rem;
+  }
+
+  .podium-copy { min-width: 0; }
+
+  .podium-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.15;
+    min-width: 0;
+  }
+
+  .podium-name strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .podium-team {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 3px;
+    color: var(--text-muted);
+    /* Readability floor: >= 11.2px */
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .podium-stat {
+    display: grid;
+    justify-items: end;
+    gap: 2px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .podium-stat strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--primary-color);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.86rem;
+  }
+
+  .podium-stat span {
+    color: var(--text-muted);
+    /* Readability floor: >= 11.2px */
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* Shared bits */
+  .flag { line-height: 1; }
+
+  .maker-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 7px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-medium);
+    background: var(--surface-elevated);
+    color: var(--text-secondary);
+    font-family: 'MotoGP Bold', sans-serif;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+
+  .maker-chip i {
+    font-size: 0.5rem;
+    color: var(--maker, #78909c);
+  }
+
+  .fl-pill {
+    display: inline-grid;
+    place-items: center;
+    height: 16px;
+    padding: 0 5px;
+    border-radius: 5px;
+    background: rgba(200, 16, 46, 0.12);
+    border: 1px solid rgba(200, 16, 46, 0.3);
+    color: var(--primary-color);
+    font-family: 'MotoGP Bold', sans-serif;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.7rem;
+    font-style: normal;
+  }
+
+  /* ═══════════════ Stats strip ═══════════════ */
+
+  .stats-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .stat-tile {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 13px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-card);
+    box-shadow: var(--shadow-sm);
+    min-width: 0;
+  }
+
+  .stat-tile > i {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    background: rgba(200, 16, 46, 0.1);
+    border: 1px solid rgba(200, 16, 46, 0.22);
+    color: var(--primary-color);
+    font-size: 0.9rem;
+  }
+
+  .stat-copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .stat-label {
+    color: var(--text-muted);
+    font-family: 'MotoGP Bold', sans-serif;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+  }
+
+  .stat-value {
+    color: var(--text-primary);
+    font-size: 0.92rem;
+    font-weight: 800;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .stat-sub {
+    color: var(--text-secondary);
+    /* Readability floor: >= 11.2px */
+    font-size: 0.72rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ═══════════════ Results panel ═══════════════ */
+
+  .results-panel {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-card);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0.75rem 0.9rem;
+    background: var(--table-header-bg);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .panel-head h3 {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--text-primary);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .panel-head h3 i { color: var(--primary-color); font-size: 0.8rem; }
+
+  .panel-meta {
+    color: var(--text-muted);
+    /* Readability floor: >= 11.2px */
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  /* Rows — desktop: aligned flex columns */
+  .res-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background 0.15s ease;
+  }
+
+  .res-row:last-child { border-bottom: 0; }
+
+  .res-row:not(.res-head):hover { background: rgba(200, 16, 46, 0.05); }
+
+  .res-row.is-winner {
+    background: rgba(255, 215, 0, 0.05);
+    border-left: 3px solid var(--medal-gold);
+    padding-left: calc(0.9rem - 3px);
+  }
+
+  .res-row.is-out .cell-rider { opacity: 0.72; }
+
+  .res-head {
+    background: var(--table-header-bg);
+    border-bottom: 1px solid var(--border-medium);
+  }
+
+  .res-head .cell {
+    color: var(--text-muted);
+    font-family: 'MotoGP Bold', sans-serif;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    font-weight: 700;
+  }
+
+  .cell {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    color: var(--text-primary);
+    /* Readability floor: >= 11.2px */
+    font-size: 0.78rem;
+  }
+
+  .cell-pos { flex: 0 0 54px; align-items: center; }
+  .cell-rider { flex: 1 1 250px; flex-direction: row; align-items: center; gap: 9px; }
+
+  .pos-badge {
+    display: inline-grid;
+    place-items: center;
+    min-width: 30px;
+    height: 30px;
+    padding: 0 6px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-elevated);
+    border: 1px solid var(--border-medium);
+    color: var(--text-secondary);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 900;
+  }
+
+  .pos-badge.gold {
+    background: rgba(255, 215, 0, 0.16);
+    border-color: rgba(255, 215, 0, 0.45);
+    color: var(--medal-gold-text);
+  }
+  .pos-badge.silver {
+    background: rgba(201, 206, 214, 0.16);
+    border-color: rgba(201, 206, 214, 0.45);
+    color: var(--medal-silver-text);
+  }
+  .pos-badge.bronze {
+    background: rgba(205, 127, 50, 0.16);
+    border-color: rgba(205, 127, 50, 0.45);
+    color: var(--medal-bronze-text);
+  }
+
+  .rider-num {
+    display: inline-grid;
+    place-items: center;
+    min-width: 40px;
+    height: 30px;
+    padding: 0 6px;
+    border-radius: var(--radius-sm);
+    background: #111214;
+    border: 1px solid var(--border-medium);
+    color: #fff;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  .rider-main { display: grid; gap: 3px; min-width: 0; }
+
+  .rider-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 0.84rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rider-team {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    color: var(--text-muted);
+    /* Readability floor: >= 11.2px */
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .lap-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--primary-color);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+  }
+
+  .gap-val,
+  .num-val {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .points-val {
+    display: inline-grid;
+    place-items: center;
+    min-width: 32px;
+    height: 24px;
+    padding: 0 7px;
+    border-radius: var(--radius-pill);
+    background: rgba(200, 16, 46, 0.1);
+    border: 1px solid rgba(200, 16, 46, 0.24);
+    color: var(--primary-color);
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.76rem;
+  }
+
+  .cell-sub {
+    color: var(--text-muted);
+    /* Readability floor: >= 11.2px */
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  .status-chip {
+    display: inline-grid;
+    place-items: center;
+    width: fit-content;
+    min-height: 24px;
+    padding: 2px 9px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-medium);
+    background: var(--surface-elevated);
+    color: var(--text-secondary);
+    font-family: 'MotoGP Bold', sans-serif;
+    /* Readability floor: >= 11.2px */
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  .status-chip.status-completed {
+    background: rgba(31, 143, 67, 0.12);
+    border-color: rgba(31, 143, 67, 0.3);
+    color: #1f8f43;
+  }
+  .status-chip.status-dnf {
+    background: rgba(200, 16, 46, 0.12);
+    border-color: rgba(200, 16, 46, 0.3);
+    color: var(--primary-color);
+  }
+  .status-chip.status-dns {
+    background: rgba(239, 108, 0, 0.12);
+    border-color: rgba(239, 108, 0, 0.3);
+    color: #d06a00;
+  }
+
+  /* ═══════════════ Empty / error states ═══════════════ */
+
+  .no-results-card .no-results-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+
+  /* ═══════════════ Responsive — mobile at 820px (CSS only) ═══════════════ */
+
+  @media (max-width: 820px) {
     .main-content {
-      display: flex; flex-direction: column; align-items: stretch;
-      padding: 0; max-width: var(--content-max-width); margin: 0 auto; width: 100%;
-    }
-
-    .loading-container { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 4rem; color: #fff; }
-    .results-container { width: 100%; display: flex; flex-direction: column; gap: 1rem; }
-
-    .event-info-card, .admin-actions-card, .results-card {
-      background: var(--surface-card, #1e2128); border-radius: 14px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.14); color: var(--text-dark);
-      border-left: 4px solid var(--accent-red);
-    }
-    .card-header {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: #fff; padding: 1.25rem; display: flex; align-items: center; gap: .75rem;
-      font-family: 'MotoGP Bold', sans-serif; font-size: 1.15rem;
-    }
-    .event-meta-chips { display: flex; gap: .5rem; padding: .9rem 1rem 1rem; flex-wrap: wrap; }
-    .event-meta-chips .meta-chip {
-      display: inline-flex; align-items: center; gap: .5rem; padding: .35rem .6rem;
-      border-radius: 999px; font-weight: 700; font-size: .9rem; border: 1px solid #e9ecef; background: var(--surface-card, #1e2128); color: var(--text-primary, #ffffff);
-    }
-    .event-meta-chips .meta-chip.year { border-left: 4px solid #1976d2; }
-    .event-meta-chips .meta-chip.code { border-left: 4px solid #d32f2f; }
-
-    .admin-actions-card mat-card-content { padding: 1.5rem; }
-    .admin-actions-card .admin-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
-    .admin-actions-card .admin-buttons button { display: flex; align-items: center; gap: .5rem; padding: .75rem 1.5rem; font-weight: 500; border-radius: 8px; transition: all .3s ease; }
-
-    .results-tabs .mat-mdc-tab-labels { background: var(--surface-elevated, #22262e); }
-    .results-tabs .mat-mdc-tab-label { color: var(--primary-color); font-family: 'MotoGP Bold', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
-    .results-tabs .mdc-tab--active .mdc-tab__text-label { color: var(--primary-color) !important; }
-    .results-tabs .mat-mdc-ink-bar { background: var(--primary-color); height: 3px; }
-
-    .session-results { padding: 1rem; }
-
-    .result-table { width: 100%; border-radius: 10px; overflow: hidden; }
-    .result-table .mat-mdc-header-row { position: sticky; top: 0; z-index: 1; background: var(--surface-elevated, #22262e); }
-    .result-table .mat-mdc-header-cell { color: var(--text-primary, #ffffff); font-weight: 800; padding: .9rem 1rem; }
-    .result-table .mat-mdc-cell { padding: .9rem 1rem; vertical-align: middle; }
-    .result-table .mat-mdc-row:nth-child(even) { background: #fbfbfb; }
-    .result-table .mat-mdc-row:hover { background: rgba(0,0,0,.03); }
-
-    .rider-info { display: flex; align-items: center; gap: .75rem; }
-    .rider-number { background: var(--primary-color); color: #fff; padding: .2rem .5rem; border-radius: 6px; font-weight: 800; min-width: 2rem; text-align: center; font-size: .9rem; }
-    .rider-details .rider-name { font-weight: 800; color: var(--text-primary, #ffffff); display: flex; align-items: center; gap: .4rem; }
-    .rider-details .team-name { font-size: .85rem; color: var(--text-muted, #6b7080); }
-    .flag { font-size: 1rem; line-height: 1; }
-
-    .position-badge {
-      display: inline-grid; place-items: center; min-width: 2rem; min-height: 2rem; padding: .35rem .55rem;
-      border-radius: 999px; font-weight: 900; color: #fff; background: #9e9e9e;
-    }
-    .position-badge.gold   { background: #FFD700; color: #7a5f00; }
-    .position-badge.silver { background: #C0C0C0; color: #484848; }
-    .position-badge.bronze { background: #CD7F32; color: #5a2d00; }
-
-    .lap-info, .gap-info, .time-info, .points-info, .speed-info { display: flex; flex-direction: column; gap: .25rem; }
-    .lap-time, .time-info { font-weight: 800; color: var(--primary-color); font-family: 'Courier New', monospace; font-size: 1rem; }
-    .lap-time.fastest { color: #6a1b9a; }
-    .fl-pill { display: inline-flex; align-items: center; justify-content: center; margin-left: .4rem; font-size: .7rem; font-weight: 900; background: #f3e5f5; color: #6a1b9a; border: 1px solid #e1bee7; padding: .05rem .35rem; border-radius: 6px; }
-    .lap-number { font-size: .8rem; color: var(--text-muted, #6b7080); }
-    .gap-first { font-weight: 600; color: var(--text-dark); font-size: 1rem; }
-    .gap-prev { font-size: .8rem; color: var(--text-muted, #6b7080); }
-    .points-info { font-weight: 600; color: var(--primary-color); font-size: 1.1rem; }
-    .speed-info { font-weight: 600; color: var(--text-dark); font-size: 1rem; }
-
-    .status-completed { background: #2e7d32 !important; color: #fff !important; }
-    .status-dnf { background: #c62828 !important; color: #fff !important; }
-    .status-dns { background: #ef6c00 !important; color: #fff !important; }
-
-    /* ======= MOBILE CARD UPGRADE ======= */
-    .mobile-results-list { display: flex; flex-direction: column; gap: 12px; }
-
-    .mobile-result-card {
-      --accent: #e0e0e0;
-      position: relative;
-      background: var(--surface-card, #1e2128);
-      border: 1px solid #eceff1;
-      border-radius: 14px;
-      padding: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,.06);
-      overflow: hidden;
-      transition: transform .2s ease, box-shadow .2s ease;
-    }
-    .mobile-result-card::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 5px;
-      background: var(--accent);
-    }
-    .mobile-result-card:active { transform: scale(.98); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
-
-    /* Accent by position */
-    .mobile-result-card.pos-1 { --accent: linear-gradient(180deg,#ffd700,#ffb300); }
-    .mobile-result-card.pos-2 { --accent: linear-gradient(180deg,#c0c0c0,#9e9e9e); }
-    .mobile-result-card.pos-3 { --accent: linear-gradient(180deg,#cd7f32,#b76e2a); }
-    .mobile-result-card.pos-rest { --accent: linear-gradient(180deg,#d32f2f,#b71c1c); }
-
-    .mobile-card-header {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #eceff1;
-    }
-    .pos-medal {
-      width: 36px; height: 36px; border-radius: 50%;
-      display: grid; place-items: center; font-weight: 900; color: #fff; background: #9e9e9e; flex-shrink: 0;
-    }
-    .pos-medal.gold   { background: #ffd700; color: #7a5f00; }
-    .pos-medal.silver { background: #c0c0c0; color: #484848; }
-    .pos-medal.bronze { background: #cd7f32; color: #5a2d00; }
-
-    .rider-basic { display: flex; align-items: center; gap: 8px; min-width: 0; }
-    .rider-basic .num {
-      display: inline-block; min-width: 30px; text-align: center;
-      padding: 2px 8px; border-radius: 999px;
-      background: var(--primary-color); color: #fff; font-weight: 800; font-size: .9rem;
-    }
-    .rider-basic .name-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; }
-    .rider-basic .name { font-weight: 800; color: var(--text-primary, #ffffff); white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-    .rider-basic .flag { font-size: 1rem; }
-
-    .team-row { display: flex; align-items: center; gap: 8px; color: var(--text-muted, #6b7080); font-weight: 600; font-size: .9rem; margin-bottom: 10px; }
-    .team-row i { color: #d32f2f; }
-
-    .stats-grid {
-      display: grid; grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 8px;
-    }
-    .stat-chip {
-      border: 1px solid #e9ecef; background: var(--surface-elevated, #22262e); border-radius: 10px;
-      padding: 8px; display: grid; grid-template-columns: 20px 1fr; grid-template-rows: auto auto; column-gap: 8px;
-      align-items: center;
-    }
-    .stat-chip i { grid-row: 1 / span 2; font-size: 16px; color: #d32f2f; }
-    .stat-chip .val { font-weight: 800; color: var(--text-primary, #ffffff); }
-    .stat-chip .sub { font-size: .75rem; color: #667; }
-
-    .stat-chip.status-chip { grid-template-columns: 20px auto; }
-    .status-chip mat-chip { height: 24px; line-height: 24px; font-size: .8rem; }
-
-    .no-results { text-align: center; padding: 4rem 2rem; }
-    .no-results-card { background: var(--surface-card, #1e2128); border-radius: 18px; padding: 3rem; color: var(--text-dark); text-align: center; }
-    .no-results-icon { font-size: 4rem; color: #ccc; margin-bottom: 1rem; }
-
-    .mat-mdc-card { transition: all .3s cubic-bezier(.4,0,.2,1); }
-    .mat-mdc-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .results-container { gap: 1rem; }
-      .session-results { padding: 1rem; }
-      .card-header { padding: 1rem; font-size: 1rem; }
-      .no-results-icon { font-size: 3.2rem; }
-    }
-
-    @media (max-width: 480px) {
-      .session-results { padding: .75rem; }
-      .mobile-result-card { padding: 10px; }
-      .stats-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
-      .stat-chip { padding: 6px; }
-    }
-
-    /* Dashboard-aligned theme override */
-    .page-container{
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.14), transparent 42%),
-        radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.05), transparent 34%),
-        var(--background-dark, #0e1015);
-      color: var(--text-primary, #ffffff);
-    }
-    /* Header overrides removed: canonical styles live in styles/_layout.scss */
-    .main-content{
-      padding: calc(var(--app-header-height) + 12px) clamp(10px, 2.5vw, 22px) 18px;
-      max-width: var(--content-max-width);
-      gap: 12px;
-    }
-
-    .event-info-card, .admin-actions-card, .results-card{
-      border-left: 0;
-      border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-      box-shadow: 0 8px 18px rgba(0,0,0,.08);
-      border-radius: 14px;
-    }
-    .card-header{
-      background: #111214;
-      color: #fff;
-      border-radius: 14px 14px 0 0;
-    }
-    .card-header i{ color: #ff6e84; }
-
-    .event-meta-chips .meta-chip{
-      border-color: rgba(17,18,20,.16);
-      background: var(--surface-card, #1e2128);
-      color: #121316;
-    }
-    .event-meta-chips .meta-chip.year{ border-left-color: var(--text-primary, #ffffff); }
-    .event-meta-chips .meta-chip.code{ border-left-color: #c8102e; }
-
-    .admin-actions-card .admin-buttons button[color='primary']{
-      background: #111214 !important;
-      color: #fff !important;
-    }
-    .admin-actions-card .admin-buttons button[color='accent']{
-      background: #c8102e !important;
-      color: #fff !important;
-    }
-
-    .results-tabs .mat-mdc-tab-labels{
-      background: var(--surface-card, #1e2128);
-      border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-    }
-    .results-tabs .mat-mdc-tab-label{ color: var(--text-primary, #ffffff); }
-    .results-tabs .mdc-tab--active .mdc-tab__text-label{ color: #c8102e !important; }
-    .results-tabs .mat-mdc-ink-bar{ background: #c8102e; }
-
-    .result-table .mat-mdc-header-row{
-      background: #111214;
-    }
-    .result-table .mat-mdc-header-cell{
-      color: #fff;
-      text-transform: uppercase;
-      font-size: .76rem;
-      letter-spacing: .35px;
-    }
-    .result-table .mat-mdc-row:hover{ background: rgba(200,16,46,.06); }
-
-    .rider-number{ background: #111214; }
-    .lap-time, .time-info{ color: #c8102e; }
-    .lap-time.fastest{ color: var(--text-primary, #ffffff); }
-    .fl-pill{
-      background: rgba(200,16,46,.12);
-      border-color: rgba(200,16,46,.3);
-      color: #c8102e;
-    }
-
-    .mobile-result-card{
-      border: 1px solid rgba(17,18,20,.12);
-      box-shadow: 0 6px 14px rgba(0,0,0,.06);
-      border-radius: 12px;
-    }
-
-    @media (max-width: 768px) {
-      .main-content{
-        padding: calc(var(--app-header-height) + 10px) 8px 12px;
-      }
-      .card-header{
-        border-radius: 12px 12px 0 0;
-      }
-    }
-
-    /* Full-page compact layout (no card look) */
-    .main-content{
-      max-width: none;
-      padding: calc(var(--app-header-height) + 10px) 10px 12px;
-      gap: 8px;
-    }
-    .results-container{
       gap: 8px;
     }
 
-    .mat-mdc-card.event-info-card,
-    .mat-mdc-card.admin-actions-card,
-    .mat-mdc-card.results-card{
-      background: transparent !important;
-      border: 0 !important;
-      border-radius: 0 !important;
-      box-shadow: none !important;
-      overflow: visible !important;
-      margin: 0 !important;
+    .results-container { gap: 8px; }
+
+    .results-hero {
+      padding: 0.95rem;
+      border-radius: var(--radius-lg);
+      flex-direction: column;
     }
 
-    .event-info-card .card-header,
-    .admin-actions-card .card-header{
-      border-radius: 10px;
-      padding: .75rem .9rem;
-      min-height: 42px;
-    }
-    .event-meta-chips{
-      gap: .4rem;
-      padding: .55rem 0 .15rem;
-    }
-    .event-meta-chips .meta-chip{
-      min-height: 34px;
-      border-radius: 10px;
-      padding: .28rem .55rem;
-    }
+    .session-switch { padding: 5px; gap: 5px; }
 
-    .admin-actions-card mat-card-content{
-      padding: .6rem 0 .1rem;
-    }
-    .admin-actions-card .admin-buttons{
-      gap: .55rem;
-    }
-    .admin-actions-card .admin-buttons button{
+    /* Keep tabs stretched across the bar (fill evenly, scroll on tiny widths) */
+    .session-tab {
+      min-width: min-content; /* never shrink below the label, still grows to fill */
       min-height: 38px;
-      padding: .55rem .9rem;
-      border-radius: 10px;
+      padding: 0 11px;
+      font-size: 0.72rem;
     }
 
-    .results-tabs{
-      border: 1px solid rgba(17, 18, 20, 0.10);
-      border-radius: 12px;
-      background: var(--surface-card, #1e2128);
-      overflow: hidden;
-    }
-    .results-tabs .mdc-tab{
-      height: 42px;
-      min-width: 84px;
-      padding: 0 10px;
-    }
+    /* Podium stacks: winner first */
+    .podium { grid-template-columns: 1fr; gap: 8px; }
 
-    .session-results{
-      padding: .55rem .6rem .65rem;
-    }
-    .result-table{
-      border-radius: 10px;
-      border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-    }
-    .result-table .mat-mdc-header-cell,
-    .result-table .mat-mdc-cell{
-      padding: .65rem .55rem;
-    }
+    .podium-card.rank-1 { order: -1; }
 
-    .mobile-results-list{
-      gap: 6px;
-    }
-    .mobile-result-card{
-      border: 1px solid rgba(17, 18, 20, 0.10);
-      border-radius: 10px;
-      padding: 9px;
-    }
-    .mobile-card-header{
-      margin-bottom: 6px;
-      padding-bottom: 6px;
-    }
-    .team-row{
-      margin-bottom: 7px;
-    }
-    .stats-grid{
-      gap: 6px;
-    }
-    .stat-chip{
-      border-radius: 9px;
-      padding: 6px 7px;
-    }
+    .podium-body { flex-wrap: wrap; }
 
-    @media (max-width: 768px) {
-      .main-content{
-        padding: calc(var(--app-header-height) + 8px) 8px 10px;
-      }
-      .results-tabs{
-        border-radius: 10px;
-      }
-    }
-
-    /* Extra compact spacing */
-    .main-content{ gap: 6px !important; }
-    .results-container{ gap: 6px !important; }
-    .card-header{
-      padding: .62rem .78rem !important;
-      min-height: 38px !important;
-      font-size: .95rem !important;
-      gap: .5rem !important;
-    }
-    .event-meta-chips{
-      gap: .32rem !important;
-      padding: .42rem 0 .05rem !important;
-    }
-    .event-meta-chips .meta-chip{
-      min-height: 31px !important;
-      padding: .2rem .48rem !important;
-    }
-    .admin-actions-card mat-card-content{
-      padding: .45rem 0 .05rem !important;
-    }
-    .admin-actions-card .admin-buttons{
-      gap: .45rem !important;
-    }
-    .admin-actions-card .admin-buttons button{
-      min-height: 36px !important;
-      padding: .45rem .75rem !important;
-      border-radius: 9px !important;
-    }
-    .results-tabs .mdc-tab{
-      height: 38px !important;
-      min-width: 76px !important;
-      padding: 0 8px !important;
-    }
-    .session-results{ padding: .42rem .5rem .5rem !important; }
-    .result-table .mat-mdc-header-cell,
-    .result-table .mat-mdc-cell{
-      padding: .52rem .46rem !important;
-    }
-    .mobile-results-list{ gap: 5px !important; }
-    .mobile-result-card{
-      padding: 8px !important;
-      border-radius: 9px !important;
-    }
-    .mobile-card-header{
-      margin-bottom: 5px !important;
-      padding-bottom: 5px !important;
-    }
-    .team-row{ margin-bottom: 5px !important; }
-    .stats-grid{ gap: 5px !important; }
-    .stat-chip{ padding: 5px 6px !important; }
-
-    /* Motogp-results redesign aligned with race-detail */
-    .results-overview{
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 10px;
-      padding: .65rem .75rem .2rem;
-      align-items: start;
-    }
-    .results-overview-main{
-      min-width: 0;
-      display: grid;
-      gap: 6px;
-    }
-    .results-kicker{
-      font-family: 'MotoGP Bold', sans-serif;
-      // Readability floor: >= 11.2px
-      font-size: .7rem;
-      letter-spacing: .35px;
-      text-transform: uppercase;
-      color: #c8102e;
-    }
-    .results-title{
-      margin: 0;
-      font-family: 'MotoGP Bold', sans-serif;
-      color: var(--text-primary, #ffffff);
-      letter-spacing: .2px;
-      line-height: 1.03;
-      text-transform: uppercase;
-      font-size: clamp(1.02rem, 2.6vw, 1.42rem);
-    }
-    .results-meta-inline{
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .meta-pill{
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      min-height: 28px;
-      border-radius: 999px;
-      border: 1px solid rgba(17,18,20,.14);
-      background: var(--surface-card, #1e2128);
-      padding: 0 8px;
-    }
-    .meta-pill i{
-      font-size: .7rem;
-      color: #c8102e;
-    }
-    .meta-pill .meta-label{
-      font-family: 'MotoGP Bold', sans-serif;
-      // Readability floor: >= 11.2px
-      font-size: .7rem;
-      text-transform: uppercase;
-      color: #646b77;
-    }
-    .meta-pill .meta-value{
-      font-size: .72rem;
-      font-weight: 700;
-      color: var(--text-primary, #ffffff);
-    }
-    .results-session-strip{
-      display: flex;
-      flex-wrap: wrap;
-      align-content: flex-start;
-      gap: 6px;
-    }
-    .session-pill{
-      display: inline-flex;
-      align-items: center;
-      min-height: 24px;
-      border-radius: 999px;
-      border: 1px solid rgba(200,16,46,.25);
-      background: rgba(200,16,46,.06);
-      color: #8f1028;
-      // Readability floor: >= 11.2px
-      font-size: .7rem;
-      font-family: 'MotoGP Bold', sans-serif;
-      text-transform: uppercase;
-      letter-spacing: .28px;
-      padding: 0 8px;
-    }
-    .result-table .mat-mdc-header-cell mat-icon{
-      width: 14px;
-      height: 14px;
-      line-height: 14px;
-      font-size: 14px;
-      margin-right: 6px;
-      color: #ff6e84;
-      vertical-align: text-bottom;
-    }
-
-    .mobile-entry-result{
-      border: 1px solid rgba(17,18,20,.12);
-      border-radius: 10px;
-      background: var(--surface-card, #1e2128);
-      padding: 8px 9px;
-      display: grid;
-      gap: 6px;
-      position: relative;
-      overflow: hidden;
-    }
-    .mobile-entry-result::before{
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: rgba(200,16,46,.26);
-    }
-    .mobile-entry-result.pos-1::before{ background: #d4af37; }
-    .mobile-entry-result.pos-2::before{ background: #a5aab3; }
-    .mobile-entry-result.pos-3::before{ background: #b9783d; }
-
-    .entry-head{
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      border-bottom: 1px solid rgba(17,18,20,.08);
-      padding-bottom: 6px;
-    }
-    .entry-body{
-      display: grid;
-      gap: 6px;
-    }
-    .kv-row{
-      display: grid;
-      grid-template-columns: minmax(96px, 1fr) minmax(0, 1.2fr);
+    .podium-stat {
+      justify-items: start;
+      text-align: left;
+      width: 100%;
+      flex-direction: row;
+      align-items: baseline;
       gap: 8px;
-      align-items: center;
-    }
-    .kv-key{
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-family: 'MotoGP Bold', sans-serif;
-      // Readability floor: >= 11.2px, theme-aware colour
-      font-size: .7rem;
-      text-transform: uppercase;
-      letter-spacing: .28px;
-      color: var(--text-secondary, #a0a5b0);
-    }
-    .kv-key mat-icon{
-      width: 12px;
-      height: 12px;
-      line-height: 12px;
-      font-size: 12px;
-      color: #c8102e;
-    }
-    .kv-value{
-      text-align: right;
-      font-size: .82rem;
-      font-weight: 700;
-      color: var(--text-primary, #ffffff);
-      overflow-wrap: anywhere;
-    }
-    .entry-meta{
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-    }
-    .entry-meta .meta-tag{
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      min-height: 22px;
-      padding: 0 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.12));
-      background: var(--surface-card, #1e2128);
-      // Theme-aware: #313844 was unreadable on the dark card
-      color: var(--text-secondary, #a0a5b0);
-      // Readability floor: >= 11.2px
-      font-size: .7rem;
-      line-height: 1;
-      white-space: nowrap;
-    }
-    .entry-meta .meta-tag i{
-      color: var(--primary-color, #c8102e);
-      font-size: .7rem;
-    }
-    .entry-meta .meta-tag strong{
-      font-family: 'MotoGP Bold', sans-serif;
-      // Readability floor: >= 11.2px
-      font-size: .7rem;
-      color: var(--primary-color, #c8102e);
-    }
-    .entry-meta .meta-tag.points{
-      border-color: rgba(200,16,46,.35);
-      background: rgba(200,16,46,.12);
-      color: var(--primary-color, #c8102e);
-    }
-    .entry-meta .meta-tag.result{
-      border-color: rgba(17,18,20,.2);
-      font-weight: 700;
-    }
-    .entry-meta .meta-tag.result.status-completed{
-      background: rgba(31,143,67,.1);
-      border-color: rgba(31,143,67,.28);
-      color: #1f8f43 !important;
-    }
-    .entry-meta .meta-tag.result.status-dnf{
-      background: rgba(200,16,46,.1);
-      border-color: rgba(200,16,46,.28);
-      color: #c8102e !important;
-    }
-    .entry-meta .meta-tag.result.status-dns{
-      background: rgba(239,108,0,.1);
-      border-color: rgba(239,108,0,.28);
-      color: #d06a00 !important;
+      padding-top: 6px;
+      border-top: 1px dashed var(--border-subtle);
     }
 
-    @media (max-width: 900px){
-      .results-overview{
-        grid-template-columns: 1fr;
-        gap: 8px;
-      }
+    .stats-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+
+    .stat-tile { padding: 10px; gap: 9px; }
+
+    /* Rows become cards */
+    .res-head { display: none; }
+
+    .res-row:not(.res-head) {
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: 8px;
+      padding: 10px;
+      border-bottom: 0;
+      border-radius: var(--radius-md);
+      background: var(--surface-elevated);
+      box-shadow: var(--shadow-sm);
     }
-    @media (max-width: 480px){
-      .kv-row{
-        grid-template-columns: 1fr;
-        gap: 2px;
-      }
-      .kv-value{
-        text-align: left;
-        font-size: .78rem;
-      }
-      .entry-meta .meta-tag{
-        // Readability floor: >= 11.2px
-        font-size: .7rem;
-      }
+
+    .res-row:not(.res-head) + .res-row:not(.res-head) { margin-top: 8px; }
+
+    .res-row.is-winner {
+      border-left: 3px solid var(--medal-gold);
+      padding-left: calc(10px - 3px);
     }
+
+    .cell-pos {
+      flex: 0 0 40px;
+      align-items: flex-start;
+    }
+
+    .cell-rider {
+      flex: 1 1 calc(100% - 58px);
+      min-width: 0;
+    }
+
+    .res-row:not(.res-head) > .cell:not(.cell-pos):not(.cell-rider) {
+      flex: 1 1 calc(50% - 4px);
+      min-width: 0;
+      gap: 3px;
+      padding: 7px 8px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      background: var(--surface-card);
+    }
+
+    .res-row:not(.res-head) > .cell:not(.cell-pos):not(.cell-rider)::before {
+      content: attr(data-label);
+      color: var(--text-muted);
+      font-family: 'MotoGP Bold', sans-serif;
+      /* Readability floor: >= 11.2px */
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stats-strip { grid-template-columns: 1fr; }
+
+    .res-row:not(.res-head) > .cell:not(.cell-pos):not(.cell-rider) {
+      flex: 1 1 100%;
+    }
+
+    .podium-name strong { white-space: normal; }
+  }
+}

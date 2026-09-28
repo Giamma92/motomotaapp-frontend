@@ -8,7 +8,7 @@
 .settings-main {
   width: min(100%, 760px);
   margin: 0 auto;
-  padding: calc(var(--app-header-height) + 16px) 16px 24px;
+  padding: var(--content-offset-top) 16px 24px;
 }
 
 .settings-panel {
@@ -167,7 +167,7 @@
 
 @media (max-width: 600px) {
   .settings-main {
-    padding: calc(var(--app-header-height) + 8px) 10px 16px;
+    padding: var(--content-offset-top) 10px 16px;
   }
 
   .settings-panel {

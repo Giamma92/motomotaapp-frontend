@@ -6,7 +6,7 @@
   min-height: 100vh;
   background: var(--background-dark);
   color: var(--text-primary);
-  padding: calc(var(--app-header-height) + 12px) clamp(12px, 2.8vw, 28px) clamp(18px, 4vw, 36px);
+  padding: var(--content-offset-top) clamp(12px, 2.8vw, 28px) clamp(18px, 4vw, 36px);
 }
 
 /* Header: canonical styles live in styles/_layout.scss */
@@ -877,7 +877,7 @@
 /* ═══════════ Mobile (≤820) ═══════════ */
 @media (max-width: 820px) {
   .settings-container {
-    padding: calc(var(--app-header-height) + 8px) 8px 14px;
+    padding: var(--content-offset-top) 8px 14px;
     overflow-x: hidden;
   }
 

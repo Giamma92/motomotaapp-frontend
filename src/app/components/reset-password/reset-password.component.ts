@@ -79,7 +79,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
     .reset-main {
       width: min(100%, 560px);
       margin: 0 auto;
-      padding: calc(var(--app-header-height) + 12px) 10px 12px;
+      padding: var(--content-offset-top) 10px 12px;
     }
 
     .reset-panel {
@@ -123,7 +123,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 
     @media (max-width: 600px) {
       .reset-main {
-        padding: calc(var(--app-header-height) + 8px) 8px 10px;
+        padding: var(--content-offset-top) 8px 10px;
       }
 
       .reset-panel {

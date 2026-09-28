@@ -3,7 +3,7 @@
   min-height: 100vh;
   background: var(--background-dark);
   color: var(--text-primary);
-  padding: calc(var(--app-header-height) + 12px) clamp(12px, 2.8vw, 28px) clamp(18px, 4vw, 36px);
+  padding: var(--content-offset-top) clamp(12px, 2.8vw, 28px) clamp(18px, 4vw, 36px);
 }
 
 /* ─── Header (canonical — shared by every page) ───
@@ -106,7 +106,9 @@
 
 /* ─── Responsive ─── */
 @media (min-width: 769px) {
-  .page-container {
-    padding-top: calc(var(--app-header-height) + 18px);
+  /* Desktop: a touch more air under the fixed header.
+     Every page reads this through --content-offset-top. */
+  :root {
+    --content-offset-top: calc(var(--app-header-height) + 18px);
   }
 }

@@ -1,18 +1,18 @@
-import { Component, OnInit, HostListener, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatTableModule } from '@angular/material/table';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '../../pipes/translate.pipe';
-import { DashboardService, StandingsCalculationResponse } from '../../services/dashboard.service';
+import { DashboardService, StandingsCalculationResponse, CalendarRace } from '../../services/dashboard.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificationServiceService } from '../../services/notification.service';
+import { I18nService } from '../../services/i18n.service';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
+
+type SessionKey = 'Q1' | 'Q2' | 'SPR' | 'RAC';
 
 interface MotoGPResult {
   id: string;
@@ -26,7 +26,7 @@ interface MotoGPResult {
     };
     number: number;
   };
-  constructor: {
+  constructor?: {
     id: string;
     name: string;
   };
@@ -54,13 +54,27 @@ interface MotoGPResultsData {
     year: number;
     eventCode: string;
   };
-  sessions: {
-    Q1?: MotoGPResult[];
-    Q2?: MotoGPResult[];
-    SPR?: MotoGPResult[];
-    RAC?: MotoGPResult[];
-  };
+  sessions: Partial<Record<SessionKey, MotoGPResult[]>>;
   merged: any[];
+}
+
+interface SessionDef {
+  key: SessionKey;
+  labelKey: string;
+  icon: string;
+  count: number;
+}
+
+interface ColDef {
+  type: 'bestlap' | 'gap' | 'speed' | 'avg' | 'time' | 'points' | 'status';
+  label: string;
+}
+
+interface StatTile {
+  icon: string;
+  label: string;
+  value: string;
+  sub?: string;
 }
 
 @Component({
@@ -71,9 +85,6 @@ interface MotoGPResultsData {
     CommonModule,
     MatCardModule,
     MatButtonModule,
-    MatTabsModule,
-    MatTableModule,
-    MatChipsModule,
     MatProgressSpinnerModule,
     MatIconModule,
     TranslatePipe
@@ -81,9 +92,9 @@ interface MotoGPResultsData {
   animations: [
     trigger('cardAnimation', [
       transition(':enter', [
-        query('.event-info-card, .admin-actions-card, .results-card', [
+        query('.results-hero, .admin-actions-card, .session-switch, .podium, .stats-strip, .results-panel', [
           style({ opacity: 0, transform: 'translateY(16px)' }),
-          stagger(100, [
+          stagger(80, [
             animate('300ms cubic-bezier(0.4,0,0.2,1)', style({ opacity: 1, transform: 'translateY(0)' }))
           ])
         ], { optional: true })
@@ -99,7 +110,7 @@ interface MotoGPResultsData {
         <h1>{{ 'motogp.results.title' | t }}</h1>
       </header>
 
-      <main class="main-content" @cardAnimation>
+      <main class="main-content">
         <div *ngIf="loading" class="ux-state loading-container">
           <div class="ux-state-card">
             <mat-spinner diameter="34"></mat-spinner>
@@ -107,41 +118,47 @@ interface MotoGPResultsData {
           </div>
         </div>
 
-        <div *ngIf="!loading && results" class="results-container">
-          <!-- Event Info Card -->
-          <mat-card class="event-info-card">
-            <div class="card-header">
-              <i class="fa-solid fa-calendar-check"></i>
-              <span>{{ 'motogp.results.eventInfo' | t }}</span>
-            </div>
-            <div class="results-overview">
-              <div class="results-overview-main">
-                <span class="results-kicker">MotoGP</span>
-                <h2 class="results-title">{{ results.meta.eventCode }}</h2>
-                <div class="results-meta-inline">
-                  <span class="meta-pill">
-                    <i class="fa-solid fa-calendar"></i>
-                    <span class="meta-label">Year</span>
-                    <span class="meta-value">{{ results.meta.year }}</span>
-                  </span>
-                  <span class="meta-pill">
-                    <i class="fa-solid fa-hashtag"></i>
-                    <span class="meta-label">Calendar</span>
-                    <span class="meta-value">#{{ results.meta.calendarId }}</span>
-                  </span>
-                </div>
-              </div>
+        <!-- Retryable error state -->
+        <div *ngIf="!loading && loadError" class="ux-state">
+          <div class="ux-state-card">
+            <i class="fa-solid fa-triangle-exclamation ux-state-icon"></i>
+            <p>Impossibile caricare i risultati MotoGP.</p>
+            <button mat-raised-button color="accent" class="retry-btn" (click)="loadResults()">
+              <i class="fa-solid fa-arrows-rotate"></i>
+              Riprova
+            </button>
+          </div>
+        </div>
 
-              <div class="results-session-strip">
-                <span class="session-pill" *ngIf="results.sessions.Q1">{{ 'motogp.results.qualifying1' | t }}</span>
-                <span class="session-pill" *ngIf="results.sessions.Q2">{{ 'motogp.results.qualifying2' | t }}</span>
-                <span class="session-pill" *ngIf="results.sessions.SPR">{{ 'motogp.results.sprint' | t }}</span>
-                <span class="session-pill" *ngIf="results.sessions.RAC">{{ 'motogp.results.race' | t }}</span>
+        <div *ngIf="!loading && !loadError && results" class="results-container" @cardAnimation>
+          <!-- ═══════════ HERO ═══════════ -->
+          <section class="results-hero">
+            <div class="hero-main">
+              <span class="hero-kicker">
+                MotoGP {{ results.meta.year }}<ng-container *ngIf="raceInfo"> · Round {{ raceInfo.race_order }}</ng-container>
+              </span>
+              <h2 class="hero-title">{{ heroTitle }}</h2>
+              <div class="hero-sub">
+                <span *ngIf="heroDate">
+                  <i class="fa-solid fa-calendar-day"></i>{{ heroDate }}
+                </span>
+                <span *ngIf="heroLocation">
+                  <i class="fa-solid fa-location-dot"></i>{{ heroLocation }}
+                </span>
+                <span>
+                  <i class="fa-solid fa-flag"></i>{{ results.meta.eventCode }}
+                </span>
               </div>
             </div>
-          </mat-card>
+            <div class="hero-side" *ngIf="sessionList.length">
+              <span class="session-tag" *ngFor="let s of sessionList" [ngClass]="'tag-' + s.key">
+                <i [class]="s.icon"></i>
+                {{ s.labelKey | t }}
+              </span>
+            </div>
+          </section>
 
-          <!-- Admin Actions Card -->
+          <!-- ═══════════ ADMIN ACTIONS ═══════════ -->
           <mat-card *ngIf="isAdmin()" class="admin-actions-card">
             <div class="card-header">
               <i class="fa-solid fa-shield-halved"></i>
@@ -161,354 +178,167 @@ interface MotoGPResultsData {
             </mat-card-content>
           </mat-card>
 
-          <!-- Results Card -->
-          <mat-card class="results-card">
-            <mat-tab-group class="results-tabs">
-              <!-- Q1 Tab -->
-              <mat-tab *ngIf="results.sessions.Q1" label="{{ 'motogp.results.qualifying1' | t }}">
-                <div class="session-results">
-                  <!-- Desktop -->
-                  <ng-container *ngIf="!isMobile">
-                    <table mat-table [dataSource]="results.sessions.Q1" class="result-table">
-                      <ng-container matColumnDef="position">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.position' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <span class="position-badge" [ngClass]="positionClass(r.position)">
-                            <ng-container [ngSwitch]="r.position">
-                              <i *ngSwitchCase="1" class="fa-solid fa-trophy"></i>
-                              <i *ngSwitchCase="2" class="fa-solid fa-medal"></i>
-                              <i *ngSwitchCase="3" class="fa-solid fa-medal"></i>
-                              <span *ngSwitchDefault>{{ r.position || '-' }}</span>
-                            </ng-container>
-                          </span>
-                        </td>
-                      </ng-container>
+          <!-- ═══════════ SESSION SWITCHER (segmented pills) ═══════════ -->
+          <nav class="session-switch" role="tablist" aria-label="Sessioni">
+            <button
+              type="button"
+              role="tab"
+              class="session-tab"
+              *ngFor="let s of sessionList"
+              [class.active]="s.key === activeSession"
+              [attr.aria-selected]="s.key === activeSession"
+              (click)="selectSession(s.key)">
+              <i [class]="s.icon"></i>
+              <span>{{ s.labelKey | t }}</span>
+              <span class="session-count">{{ s.count }}</span>
+            </button>
+          </nav>
 
-                      <ng-container matColumnDef="rider">
-                        <th mat-header-cell *matHeaderCellDef>
-                          <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
-                          {{ 'motogp.results.rider' | t }}
-                        </th>
-                        <td mat-cell *matCellDef="let r">
-                          <div class="rider-info">
-                            <div class="rider-number">#{{ r.rider.number }}</div>
-                            <div class="rider-details">
-                              <div class="rider-name">
-                                <span class="flag" *ngIf="r.rider.country?.iso">{{ countryFlag(r.rider.country.iso) }}</span>
-                                {{ r.rider.full_name }}
-                              </div>
-                              <div class="team-name">{{ r.team_name }}</div>
-                            </div>
-                          </div>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="bestLap">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.bestLap' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <div *ngIf="r.best_lap" class="lap-info">
-                            <div class="lap-time" [class.fastest]="isFastestLap(r, 'Q1')">
-                              {{ r.best_lap.time }}
-                              <span class="fl-pill" *ngIf="isFastestLap(r, 'Q1')">FL</span>
-                            </div>
-                            <div class="lap-number">{{ 'motogp.results.lap' | t }} {{ r.best_lap.number }}</div>
-                          </div>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="gap">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.gap' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <div *ngIf="r.gap" class="gap-info">
-                            <div class="gap-first">+{{ r.gap.first }}</div>
-                            <div class="gap-prev">+{{ r.gap.prev }}</div>
-                          </div>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="topSpeed">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.topSpeed' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <div *ngIf="r.top_speed" class="speed-info">{{ r.top_speed }} km/h</div>
-                        </td>
-                      </ng-container>
-
-                      <tr mat-header-row *matHeaderRowDef="q1DisplayedColumns"></tr>
-                      <tr mat-row *matRowDef="let row; columns: q1DisplayedColumns;"></tr>
-                    </table>
-                  </ng-container>
-
-                  <!-- Mobile -->
-                  <ng-container *ngIf="isMobile">
-                    <div class="mobile-results-list">
-                      <ng-container *ngFor="let r of results.sessions.Q1">
-                      <ng-container
-                        *ngTemplateOutlet="mobileQualiCard; context: { $implicit: r, sessionKey: 'Q1' }">
-                      </ng-container>
-
-                      </ng-container>
+          <!-- ═══════════ PODIUM ═══════════ -->
+          <section class="podium" *ngIf="podiumRows.length === 3" aria-label="Podio">
+            <article
+              class="podium-card"
+              *ngFor="let p of podiumRows"
+              [ngClass]="'rank-' + p.position"
+              [attr.aria-label]="'Posizione ' + p.position">
+              <span class="podium-rank">
+                <i *ngIf="p.position === 1" class="fa-solid fa-trophy"></i>
+                <i *ngIf="p.position === 2 || p.position === 3" class="fa-solid fa-medal"></i>
+              </span>
+              <div class="podium-body">
+                <div class="podium-rider">
+                  <span class="podium-num">#{{ p.rider.number }}</span>
+                  <div class="podium-copy">
+                    <div class="podium-name">
+                      <span class="flag" *ngIf="p.rider.country?.iso">{{ countryFlag(p.rider.country.iso) }}</span>
+                      <strong>{{ p.rider.full_name }}</strong>
                     </div>
-                  </ng-container>
-                </div>
-              </mat-tab>
-
-              <!-- Q2 Tab -->
-              <mat-tab *ngIf="results.sessions.Q2" label="{{ 'motogp.results.qualifying2' | t }}">
-                <div class="session-results">
-                  <ng-container *ngIf="!isMobile">
-                    <table mat-table [dataSource]="results.sessions.Q2" class="result-table">
-                      <ng-container matColumnDef="position">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.position' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <span class="position-badge" [ngClass]="positionClass(r.position)">
-                            <ng-container [ngSwitch]="r.position">
-                              <i *ngSwitchCase="1" class="fa-solid fa-trophy"></i>
-                              <i *ngSwitchCase="2" class="fa-solid fa-medal"></i>
-                              <i *ngSwitchCase="3" class="fa-solid fa-medal"></i>
-                              <span *ngSwitchDefault>{{ r.position || '-' }}</span>
-                            </ng-container>
-                          </span>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="rider">
-                        <th mat-header-cell *matHeaderCellDef>
-                          <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
-                          {{ 'motogp.results.rider' | t }}
-                        </th>
-                        <td mat-cell *matCellDef="let r">
-                          <div class="rider-info">
-                            <div class="rider-number">#{{ r.rider.number }}</div>
-                            <div class="rider-details">
-                              <div class="rider-name">
-                                <span class="flag" *ngIf="r.rider.country?.iso">{{ countryFlag(r.rider.country.iso) }}</span>
-                                {{ r.rider.full_name }}
-                              </div>
-                              <div class="team-name">{{ r.team_name }}</div>
-                            </div>
-                          </div>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="bestLap">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.bestLap' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <div *ngIf="r.best_lap" class="lap-info">
-                            <div class="lap-time" [class.fastest]="isFastestLap(r, 'Q2')">
-                              {{ r.best_lap.time }}
-                              <span class="fl-pill" *ngIf="isFastestLap(r, 'Q2')">FL</span>
-                            </div>
-                            <div class="lap-number">{{ 'motogp.results.lap' | t }} {{ r.best_lap.number }}</div>
-                          </div>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="gap">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.gap' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <div *ngIf="r.gap" class="gap-info">
-                            <div class="gap-first">+{{ r.gap.first }}</div>
-                            <div class="gap-prev">+{{ r.gap.prev }}</div>
-                          </div>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="topSpeed">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.topSpeed' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <div *ngIf="r.top_speed" class="speed-info">{{ r.top_speed }} km/h</div>
-                        </td>
-                      </ng-container>
-
-                      <tr mat-header-row *matHeaderRowDef="q2DisplayedColumns"></tr>
-                      <tr mat-row *matRowDef="let row; columns: q2DisplayedColumns;"></tr>
-                    </table>
-                  </ng-container>
-
-                  <ng-container *ngIf="isMobile">
-                    <div class="mobile-results-list">
-                      <ng-container *ngFor="let r of results.sessions.Q2">
-                        <ng-container *ngTemplateOutlet="mobileQualiCard; context: { $implicit: r, sessionKey: 'Q2' }"></ng-container>
-                      </ng-container>
+                    <div class="podium-team">
+                      {{ p.team_name }}
+                      <span
+                        class="maker-chip"
+                        *ngIf="maker(p)"
+                        [style.--maker]="makerColor(maker(p))">
+                        <i class="fa-solid fa-circle"></i>{{ maker(p) }}
+                      </span>
                     </div>
-                  </ng-container>
+                  </div>
                 </div>
-              </mat-tab>
-
-              <!-- Sprint Tab -->
-              <mat-tab *ngIf="results.sessions.SPR" label="{{ 'motogp.results.sprint' | t }}">
-                <div class="session-results">
-                  <ng-container *ngIf="!isMobile">
-                    <table mat-table [dataSource]="results.sessions.SPR" class="result-table">
-                      <ng-container matColumnDef="position">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.position' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <span class="position-badge" [ngClass]="positionClass(r.position)">
-                            <ng-container [ngSwitch]="r.position">
-                              <i *ngSwitchCase="1" class="fa-solid fa-trophy"></i>
-                              <i *ngSwitchCase="2" class="fa-solid fa-medal"></i>
-                              <i *ngSwitchCase="3" class="fa-solid fa-medal"></i>
-                              <span *ngSwitchDefault>{{ r.position || '-' }}</span>
-                            </ng-container>
-                          </span>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="rider">
-                        <th mat-header-cell *matHeaderCellDef>
-                          <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
-                          {{ 'motogp.results.rider' | t }}
-                        </th>
-                        <td mat-cell *matCellDef="let r">
-                          <div class="rider-info">
-                            <div class="rider-number">#{{ r.rider.number }}</div>
-                            <div class="rider-details">
-                              <div class="rider-name">
-                                <span class="flag" *ngIf="r.rider.country?.iso">{{ countryFlag(r.rider.country.iso) }}</span>
-                                {{ r.rider.full_name }}
-                              </div>
-                              <div class="team-name">{{ r.team_name }}</div>
-                            </div>
-                          </div>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="time">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.time' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <div *ngIf="r.time" class="time-info">{{ r.time }}</div>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="gap">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.gap' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <div *ngIf="r.gap" class="gap-info">
-                            <div class="gap-first">+{{ r.gap.first }}</div>
-                          </div>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="points">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.points' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <div *ngIf="r.points" class="points-info">{{ r.points }}</div>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="status">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.status' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <mat-chip [class]="getStatusClass(r.status)">
-                            {{ getStatusText(r.status) }}
-                          </mat-chip>
-                        </td>
-                      </ng-container>
-
-                      <tr mat-header-row *matHeaderRowDef="sprintDisplayedColumns"></tr>
-                      <tr mat-row *matRowDef="let row; columns: sprintDisplayedColumns;"></tr>
-                    </table>
-                  </ng-container>
-
-                  <ng-container *ngIf="isMobile">
-                    <div class="mobile-results-list">
-                      <ng-container *ngFor="let r of results.sessions.SPR">
-                        <ng-container *ngTemplateOutlet="mobileRaceCard; context: { $implicit: r }"></ng-container>
-                      </ng-container>
-                    </div>
-                  </ng-container>
+                <div class="podium-stat">
+                  <strong>
+                    {{ podiumValue(p) }}
+                    <em class="fl-pill" *ngIf="isFastestLap(p, activeSession!)">FL</em>
+                  </strong>
+                  <span>{{ podiumCaption(p) }}</span>
                 </div>
-              </mat-tab>
+              </div>
+            </article>
+          </section>
 
-              <!-- Race Tab -->
-              <mat-tab *ngIf="results.sessions.RAC" label="{{ 'motogp.results.race' | t }}">
-                <div class="session-results">
-                  <ng-container *ngIf="!isMobile">
-                    <table mat-table [dataSource]="results.sessions.RAC" class="result-table">
-                      <ng-container matColumnDef="position">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.position' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <span class="position-badge" [ngClass]="positionClass(r.position)">
-                            <ng-container [ngSwitch]="r.position">
-                              <i *ngSwitchCase="1" class="fa-solid fa-trophy"></i>
-                              <i *ngSwitchCase="2" class="fa-solid fa-medal"></i>
-                              <i *ngSwitchCase="3" class="fa-solid fa-medal"></i>
-                              <span *ngSwitchDefault>{{ r.position || '-' }}</span>
-                            </ng-container>
-                          </span>
-                        </td>
-                      </ng-container>
+          <!-- ═══════════ SESSION STATS ═══════════ -->
+          <section class="stats-strip" *ngIf="statTiles.length" aria-label="Statistiche sessione">
+            <article class="stat-tile" *ngFor="let t of statTiles">
+              <i [class]="t.icon"></i>
+              <div class="stat-copy">
+                <span class="stat-label">{{ t.label }}</span>
+                <strong class="stat-value" [title]="t.value">{{ t.value }}</strong>
+                <span class="stat-sub" *ngIf="t.sub" [title]="t.sub">{{ t.sub }}</span>
+              </div>
+            </article>
+          </section>
 
-                      <ng-container matColumnDef="rider">
-                        <th mat-header-cell *matHeaderCellDef>
-                          <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
-                          {{ 'motogp.results.rider' | t }}
-                        </th>
-                        <td mat-cell *matCellDef="let r">
-                          <div class="rider-info">
-                            <div class="rider-number">#{{ r.rider.number }}</div>
-                            <div class="rider-details">
-                              <div class="rider-name">
-                                <span class="flag" *ngIf="r.rider.country?.iso">{{ countryFlag(r.rider.country.iso) }}</span>
-                                {{ r.rider.full_name }}
-                              </div>
-                              <div class="team-name">{{ r.team_name }}</div>
-                            </div>
-                          </div>
-                        </td>
-                      </ng-container>
+          <!-- ═══════════ RESULTS LIST ═══════════ -->
+          <section class="results-panel" *ngIf="activeRows.length">
+            <header class="panel-head">
+              <h3><i [class]="activeIcon"></i> {{ activeLabel }}</h3>
+              <span class="panel-meta">{{ panelMeta }}</span>
+            </header>
 
-                      <ng-container matColumnDef="time">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.time' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <div *ngIf="r.time" class="time-info">{{ r.time }}</div>
-                        </td>
-                      </ng-container>
+            <!-- Column headers (desktop) -->
+            <div class="res-row res-head" role="row">
+              <span class="cell cell-pos">{{ 'motogp.results.position' | t }}</span>
+              <span class="cell cell-rider">{{ 'motogp.results.rider' | t }}</span>
+              <span class="cell" *ngFor="let c of activeColumns">{{ c.label }}</span>
+            </div>
 
-                      <ng-container matColumnDef="gap">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.gap' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <div *ngIf="r.gap" class="gap-info">
-                            <div class="gap-first">+{{ r.gap.first }}</div>
-                          </div>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="points">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.points' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <div *ngIf="r.points" class="points-info">{{ r.points }}</div>
-                        </td>
-                      </ng-container>
-
-                      <ng-container matColumnDef="status">
-                        <th mat-header-cell *matHeaderCellDef>{{ 'motogp.results.status' | t }}</th>
-                        <td mat-cell *matCellDef="let r">
-                          <mat-chip [class]="getStatusClass(r.status)">
-                            {{ getStatusText(r.status) }}
-                          </mat-chip>
-                        </td>
-                      </ng-container>
-
-                      <tr mat-header-row *matHeaderRowDef="raceDisplayedColumns"></tr>
-                      <tr mat-row *matRowDef="let row; columns: raceDisplayedColumns;"></tr>
-                    </table>
+            <!-- Rows -->
+            <div
+              class="res-row"
+              *ngFor="let r of activeRows"
+              [ngClass]="{ 'is-winner': r.position === 1, 'is-out': r.status !== 'INSTND' }">
+              <span class="cell cell-pos">
+                <span class="pos-badge" [ngClass]="positionClass(r.position)">
+                  <ng-container [ngSwitch]="r.position">
+                    <i *ngSwitchCase="1" class="fa-solid fa-trophy"></i>
+                    <i *ngSwitchCase="2" class="fa-solid fa-medal"></i>
+                    <i *ngSwitchCase="3" class="fa-solid fa-medal"></i>
+                    <span *ngSwitchDefault>{{ r.position || '–' }}</span>
                   </ng-container>
+                </span>
+              </span>
 
-                  <ng-container *ngIf="isMobile">
-                    <div class="mobile-results-list">
-                      <ng-container *ngFor="let r of results.sessions.RAC">
-                        <ng-container *ngTemplateOutlet="mobileRaceCard; context: { $implicit: r }"></ng-container>
-                      </ng-container>
-                    </div>
-                  </ng-container>
-                </div>
-              </mat-tab>
-            </mat-tab-group>
-          </mat-card>
+              <span class="cell cell-rider">
+                <span class="rider-num">#{{ r.rider.number }}</span>
+                <span class="rider-main">
+                  <span class="rider-name">
+                    <span class="flag" *ngIf="r.rider.country?.iso">{{ countryFlag(r.rider.country.iso) }}</span>
+                    {{ r.rider.full_name }}
+                  </span>
+                  <span class="rider-team">
+                    {{ r.team_name }}
+                    <span
+                      class="maker-chip"
+                      *ngIf="maker(r)"
+                      [style.--maker]="makerColor(maker(r))">
+                      <i class="fa-solid fa-circle"></i>{{ maker(r) }}
+                    </span>
+                  </span>
+                </span>
+              </span>
+
+              <span
+                class="cell"
+                *ngFor="let c of activeColumns"
+                [attr.data-label]="c.label"
+                [ngSwitch]="c.type">
+                <ng-container *ngSwitchCase="'bestlap'">
+                  <span class="lap-time" [class.fastest]="isFastestLap(r, activeSession!)">
+                    <ng-container *ngIf="r.best_lap; else noLap">{{ r.best_lap.time }}</ng-container>
+                    <ng-template #noLap>–</ng-template>
+                    <em class="fl-pill" *ngIf="r.best_lap && isFastestLap(r, activeSession!)">FL</em>
+                  </span>
+                  <span class="cell-sub" *ngIf="r.best_lap">{{ 'motogp.results.lap' | t }} {{ r.best_lap.number }}</span>
+                </ng-container>
+
+                <ng-container *ngSwitchCase="'gap'">
+                  <span class="gap-val">{{ gapLabel(r) }}</span>
+                </ng-container>
+
+                <ng-container *ngSwitchCase="'speed'">
+                  <span class="num-val">{{ r.top_speed ? r.top_speed + ' km/h' : '–' }}</span>
+                </ng-container>
+
+                <ng-container *ngSwitchCase="'avg'">
+                  <span class="num-val">{{ r.average_speed ? r.average_speed + ' km/h' : '–' }}</span>
+                </ng-container>
+
+                <ng-container *ngSwitchCase="'time'">
+                  <span class="num-val">{{ r.time || '–' }}</span>
+                </ng-container>
+
+                <ng-container *ngSwitchCase="'points'">
+                  <span class="points-val">{{ r.points ?? '–' }}</span>
+                </ng-container>
+
+                <ng-container *ngSwitchCase="'status'">
+                  <span class="status-chip" [ngClass]="getStatusClass(r.status)">{{ getStatusText(r.status) }}</span>
+                </ng-container>
+              </span>
+            </div>
+          </section>
         </div>
 
-        <div *ngIf="!loading && !results" class="ux-state no-results">
+        <div *ngIf="!loading && !loadError && !results" class="ux-state no-results">
           <div class="ux-state-card no-results-card">
             <i class="fa-solid fa-trophy no-results-icon ux-state-icon"></i>
             <p>{{ 'motogp.results.noResults' | t }}</p>
@@ -516,138 +346,46 @@ interface MotoGPResultsData {
         </div>
       </main>
     </div>
-
-    <!-- ======= Mobile Card Templates ======= -->
-    <ng-template #mobileQualiCard let-r let-sessionKey="sessionKey">
-      <article class="mobile-entry-result" [ngClass]="cardAccentClass(r.position)">
-        <header class="entry-head">
-          <span class="pos-medal" [ngClass]="positionClass(r.position)">
-            <ng-container [ngSwitch]="r.position">
-              <i *ngSwitchCase="1" class="fa-solid fa-trophy"></i>
-              <i *ngSwitchCase="2" class="fa-solid fa-medal"></i>
-              <i *ngSwitchCase="3" class="fa-solid fa-medal"></i>
-              <span *ngSwitchDefault>{{ r.position || '-' }}</span>
-            </ng-container>
-          </span>
-
-          <div class="rider-basic">
-            <span class="num">#{{ r.rider.number }}</span>
-            <div class="name-wrap">
-              <span class="flag" *ngIf="r.rider.country?.iso">{{ countryFlag(r.rider.country.iso) }}</span>
-              <span class="name">{{ r.rider.full_name }}</span>
-            </div>
-          </div>
-        </header>
-
-        <section class="entry-body">
-          <div class="kv-row">
-            <span class="kv-key">
-              <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
-              {{ 'motogp.results.rider' | t }}
-            </span>
-            <span class="kv-value">{{ r.team_name }}</span>
-          </div>
-
-          <div class="entry-meta">
-            <span class="meta-tag" *ngIf="r.best_lap">
-              <i class="fa-solid fa-stopwatch"></i>
-              {{ r.best_lap.time }}
-              <strong *ngIf="isFastestLap(r, sessionKey)">FL</strong>
-            </span>
-            <span class="meta-tag" *ngIf="r.gap?.first">
-              <i class="fa-solid fa-arrows-left-right-to-line"></i>
-              +{{ r.gap.first }}
-            </span>
-            <span class="meta-tag" *ngIf="r.top_speed">
-              <i class="fa-solid fa-gauge-high"></i>
-              {{ r.top_speed }} km/h
-            </span>
-          </div>
-        </section>
-      </article>
-    </ng-template>
-
-    <ng-template #mobileRaceCard let-r>
-      <article class="mobile-entry-result" [ngClass]="cardAccentClass(r.position)">
-        <header class="entry-head">
-          <span class="pos-medal" [ngClass]="positionClass(r.position)">
-            <ng-container [ngSwitch]="r.position">
-              <i *ngSwitchCase="1" class="fa-solid fa-trophy"></i>
-              <i *ngSwitchCase="2" class="fa-solid fa-medal"></i>
-              <i *ngSwitchCase="3" class="fa-solid fa-medal"></i>
-              <span *ngSwitchDefault>{{ r.position || '-' }}</span>
-            </ng-container>
-          </span>
-
-          <div class="rider-basic">
-            <span class="num">#{{ r.rider.number }}</span>
-            <div class="name-wrap">
-              <span class="flag" *ngIf="r.rider.country?.iso">{{ countryFlag(r.rider.country.iso) }}</span>
-              <span class="name">{{ r.rider.full_name }}</span>
-            </div>
-          </div>
-        </header>
-
-        <section class="entry-body">
-          <div class="kv-row">
-            <span class="kv-key">
-              <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
-              {{ 'motogp.results.rider' | t }}
-            </span>
-            <span class="kv-value">{{ r.team_name }}</span>
-          </div>
-
-          <div class="entry-meta">
-            <span class="meta-tag" *ngIf="r.time">
-              <i class="fa-solid fa-clock"></i>
-              {{ r.time }}
-            </span>
-            <span class="meta-tag" *ngIf="r.gap?.first">
-              <i class="fa-solid fa-arrows-left-right-to-line"></i>
-              +{{ r.gap.first }}
-            </span>
-            <span class="meta-tag points" *ngIf="r.points != null">
-              <i class="fa-solid fa-star"></i>
-              {{ r.points }} pts
-            </span>
-            <span class="meta-tag result" [class]="getStatusClass(r.status)">
-              {{ getStatusText(r.status) }}
-            </span>
-          </div>
-        </section>
-      </article>
-    </ng-template>
   `,
   styleUrl: './motogp-results.component.scss'
 })
 export class MotoGPResultsComponent implements OnInit {
   results: MotoGPResultsData | null = null;
   loading = true;
+  loadError = false;
   championshipId = 0;
   calendarId = 0;
-  isMobile = false;
+  raceInfo: CalendarRace | null = null;
 
-  q1DisplayedColumns = ['position', 'rider', 'bestLap', 'gap', 'topSpeed'];
-  q2DisplayedColumns = ['position', 'rider', 'bestLap', 'gap', 'topSpeed'];
-  sprintDisplayedColumns = ['position', 'rider', 'time', 'gap', 'points', 'status'];
-  raceDisplayedColumns = ['position', 'rider', 'time', 'gap', 'points', 'status'];
+  activeSession: SessionKey | null = null;
 
-  private fastestLapMs: Record<'Q1'|'Q2'|'SPR'|'RAC', number | null> = { Q1: null, Q2: null, SPR: null, RAC: null };
+  // View-model (rebuilt on data load / session switch / language change)
+  sessionList: SessionDef[] = [];
+  activeRows: MotoGPResult[] = [];
+  activeColumns: ColDef[] = [];
+  podiumRows: MotoGPResult[] = [];
+  statTiles: StatTile[] = [];
+  activeLabel = '';
+  activeIcon = '';
+  panelMeta = '';
+
+  private fastestLapMs: Record<SessionKey, number | null> = { Q1: null, Q2: null, SPR: null, RAC: null };
+
+  private readonly sessionOrder: { key: SessionKey; labelKey: string; icon: string }[] = [
+    { key: 'Q1', labelKey: 'motogp.results.qualifying1', icon: 'fa-solid fa-flag' },
+    { key: 'Q2', labelKey: 'motogp.results.qualifying2', icon: 'fa-solid fa-flag' },
+    { key: 'SPR', labelKey: 'motogp.results.sprint', icon: 'fa-solid fa-bolt' },
+    { key: 'RAC', labelKey: 'motogp.results.race', icon: 'fa-solid fa-flag-checkered' },
+  ];
 
   constructor(
     private dashboardService: DashboardService,
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
-    private notificationService: NotificationServiceService
-  ) {
-    this.checkScreenSize();
-  }
-
-  @HostListener('window:resize')
-  onResize() { this.checkScreenSize(); }
-
-  private checkScreenSize() { this.isMobile = window.innerWidth <= 768; }
+    private notificationService: NotificationServiceService,
+    private i18n: I18nService
+  ) {}
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -655,23 +393,34 @@ export class MotoGPResultsComponent implements OnInit {
       this.calendarId = +params['calendarId'];
       this.loadResults();
     });
+    // Keep hardcoded/i18n labels in the view-model in sync with language switches
+    this.i18n.translations$.subscribe(() => this.rebuildView());
   }
 
   loadResults(): void {
     this.loading = true;
+    this.loadError = false;
     this.dashboardService.fetchMotoGPResults(this.championshipId, this.calendarId, false).subscribe({
       next: (data: MotoGPResultsData) => {
         this.results = data;
-        this.computeFastest(this.results.sessions.Q1, 'Q1');
-        this.computeFastest(this.results.sessions.Q2, 'Q2');
-        this.computeFastest(this.results.sessions.SPR, 'SPR');
-        this.computeFastest(this.results.sessions.RAC, 'RAC');
+        (['Q1', 'Q2', 'SPR', 'RAC'] as SessionKey[]).forEach(k => this.computeFastest(data.sessions[k], k));
+        this.pickDefaultSession();
+        this.rebuildView();
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading MotoGP results:', error);
+        this.loadError = true;
         this.loading = false;
       }
+    });
+
+    // Enrich the hero with calendar info (name, round, date, location) — non blocking
+    this.dashboardService.getCalendar(this.championshipId).subscribe({
+      next: (list: CalendarRace[]) => {
+        this.raceInfo = list.find(r => r.id === this.calendarId) ?? null;
+      },
+      error: () => { this.raceInfo = null; }
     });
   }
 
@@ -681,6 +430,172 @@ export class MotoGPResultsComponent implements OnInit {
     else this.router.navigate(['/calendar']);
   }
 
+  // ===== Session switching =====
+  selectSession(key: SessionKey): void {
+    if (this.activeSession === key) return;
+    this.activeSession = key;
+    this.rebuildView();
+  }
+
+  private pickDefaultSession(): void {
+    const avail = this.sessionOrder
+      .map(s => s.key)
+      .filter(k => (this.results?.sessions[k]?.length ?? 0) > 0);
+    if (!avail.length) { this.activeSession = null; return; }
+    // Keep the user's choice if still available, otherwise jump to the latest session
+    if (!this.activeSession || !avail.includes(this.activeSession)) {
+      this.activeSession = avail[avail.length - 1];
+    }
+  }
+
+  /** Rebuild the whole view-model from the active session. */
+  private rebuildView(): void {
+    if (!this.results) return;
+    const sessions = this.results.sessions;
+
+    this.sessionList = this.sessionOrder
+      .map(s => ({ ...s, count: sessions[s.key]?.length ?? 0 }))
+      .filter(s => s.count > 0);
+
+    const k = this.activeSession;
+    if (!k || !(sessions[k]?.length)) {
+      this.activeRows = [];
+      this.activeColumns = [];
+      this.podiumRows = [];
+      this.statTiles = [];
+      this.activeLabel = '';
+      this.activeIcon = '';
+      this.panelMeta = '';
+      return;
+    }
+
+    const def = this.sessionOrder.find(s => s.key === k)!;
+    this.activeLabel = this.tr(def.labelKey);
+    this.activeIcon = def.icon;
+
+    this.activeRows = [...(sessions[k] || [])].sort(
+      (a, b) => (a.position ?? 999) - (b.position ?? 999)
+    );
+
+    const isQuali = k === 'Q1' || k === 'Q2';
+    this.activeColumns = isQuali
+      ? [
+          { type: 'bestlap', label: this.tr('motogp.results.bestLap') },
+          { type: 'gap', label: this.tr('motogp.results.gap') },
+          { type: 'speed', label: this.tr('motogp.results.topSpeed') },
+        ]
+      : [
+          { type: 'time', label: this.tr('motogp.results.time') },
+          { type: 'gap', label: this.tr('motogp.results.gap') },
+          { type: 'avg', label: 'Vel. media' },
+          { type: 'points', label: this.tr('motogp.results.points') },
+          { type: 'status', label: this.tr('motogp.results.status') },
+        ];
+
+    // Podium only when the session has a real 1-2-3 (Q1 starts at P13 after the +10 rule)
+    const top3 = this.activeRows.slice(0, 3);
+    this.podiumRows =
+      top3.length === 3 && top3.every((r, i) => r.position === i + 1) ? top3 : [];
+
+    this.statTiles = this.buildStatTiles(k, isQuali);
+    this.panelMeta = this.buildPanelMeta(isQuali);
+  }
+
+  private buildStatTiles(k: SessionKey, isQuali: boolean): StatTile[] {
+    const rows = this.activeRows;
+    if (!rows.length) return [];
+    const tiles: StatTile[] = [];
+    const leader = rows[0];
+    const leaderName = this.clean(leader.rider?.full_name);
+
+    if (isQuali) {
+      tiles.push({
+        icon: 'fa-solid fa-crown',
+        label: 'Migliore',
+        value: leaderName,
+        sub: `#${leader.rider?.number} · ${this.clean(leader.team_name)}`,
+      });
+
+      const flRow = this.fastestRow(k, rows);
+      if (flRow?.best_lap) {
+        tiles.push({
+          icon: 'fa-solid fa-stopwatch',
+          label: this.tr('motogp.results.bestLap'),
+          value: flRow.best_lap.time,
+          sub: `${this.clean(flRow.rider?.full_name)} · ${this.tr('motogp.results.lap')} ${flRow.best_lap.number}`,
+        });
+      }
+
+      const fastest = this.maxBy(rows, r => r.top_speed);
+      if (fastest?.top_speed) {
+        tiles.push({
+          icon: 'fa-solid fa-gauge-high',
+          label: this.tr('motogp.results.topSpeed'),
+          value: `${fastest.top_speed} km/h`,
+          sub: this.clean(fastest.rider?.full_name),
+        });
+      }
+
+      tiles.push({
+        icon: 'fa-solid fa-users',
+        label: 'Partenti',
+        value: String(rows.length),
+        sub: this.activeLabel,
+      });
+      return tiles;
+    }
+
+    // Sprint / Race
+    tiles.push({
+      icon: 'fa-solid fa-trophy',
+      label: 'Vincitore',
+      value: leaderName,
+      sub: `#${leader.rider?.number} · ${this.clean(leader.team_name)}`,
+    });
+
+    const laps = this.maxBy(rows, r => r.total_laps)?.total_laps;
+    if (leader.time) {
+      tiles.push({
+        icon: 'fa-solid fa-clock',
+        label: this.tr('motogp.results.time'),
+        value: leader.time,
+        sub: laps ? `${laps} giri` : undefined,
+      });
+    }
+
+    const fastestAvg = this.maxBy(rows, r => r.average_speed);
+    if (fastestAvg?.average_speed) {
+      tiles.push({
+        icon: 'fa-solid fa-wind',
+        label: 'Velocità media',
+        value: `${fastestAvg.average_speed} km/h`,
+        sub: this.clean(fastestAvg.rider?.full_name),
+      });
+    }
+
+    const points = rows.reduce((sum, r) => sum + (r.points || 0), 0);
+    tiles.push({
+      icon: 'fa-solid fa-star',
+      label: 'Punti assegnati',
+      value: String(points),
+      sub: `${rows.length} piloti`,
+    });
+    return tiles;
+  }
+
+  private buildPanelMeta(isQuali: boolean): string {
+    const rows = this.activeRows;
+    const parts: string[] = [`${rows.length} piloti`];
+    const retired = rows.filter(r => r.status !== 'INSTND').length;
+    if (retired > 0) parts.push(`${retired} ritirati`);
+    if (!isQuali) {
+      const laps = this.maxBy(rows, r => r.total_laps)?.total_laps;
+      if (laps) parts.push(`${laps} giri`);
+    }
+    return parts.join(' · ');
+  }
+
+  // ===== Status =====
   getStatusClass(status: string): string {
     switch (status) {
       case 'INSTND': return 'status-completed';
@@ -692,10 +607,10 @@ export class MotoGPResultsComponent implements OnInit {
 
   getStatusText(status: string): string {
     switch (status) {
-      case 'INSTND': return 'Finished';
-      case 'OUTSTND': return 'DNF';
-      case 'NOTFINISHFIRST': return 'DNS';
-      default: return status;
+      case 'INSTND': return 'Classificato';
+      case 'OUTSTND': return 'Ritirato';
+      case 'NOTFINISHFIRST': return 'Non partito';
+      default: return status || '–';
     }
   }
 
@@ -743,7 +658,45 @@ export class MotoGPResultsComponent implements OnInit {
     });
   }
 
-  // ===== Helpers =====
+  // ===== Hero helpers =====
+  get heroTitle(): string {
+    const name = this.clean(this.raceInfo?.race_id?.name);
+    return name || this.results?.meta?.eventCode || 'MotoGP';
+  }
+
+  get heroDate(): string {
+    const iso = this.raceInfo?.event_date;
+    if (!iso) return '';
+    const [y, m, d] = String(iso).substring(0, 10).split('-');
+    if (!y || !m || !d) return '';
+    return `${d}/${m}/${y}`;
+  }
+
+  get heroLocation(): string {
+    return this.clean(this.raceInfo?.race_id?.location);
+  }
+
+  // ===== Cell helpers =====
+  gapLabel(r: MotoGPResult): string {
+    if (r.position === 1) return '–';
+    if (r.gap?.first) return `+${r.gap.first}`;
+    return '–';
+  }
+
+  podiumValue(p: MotoGPResult): string {
+    const isQuali = this.activeSession === 'Q1' || this.activeSession === 'Q2';
+    if (isQuali) return p.best_lap?.time || (p.gap?.first ? `+${p.gap.first}` : '–');
+    if (p.position === 1) return p.time || '–';
+    return p.gap?.first ? `+${p.gap.first}` : '–';
+  }
+
+  podiumCaption(p: MotoGPResult): string {
+    const isQuali = this.activeSession === 'Q1' || this.activeSession === 'Q2';
+    if (isQuali) return p.best_lap?.time ? 'Miglior giro' : 'Distacco';
+    return p.position === 1 ? 'Tempo di gara' : 'Distacco';
+  }
+
+  // ===== General helpers =====
   private toMs(lapTime?: string): number | null {
     if (!lapTime) return null;
     const parts = lapTime.split(':');
@@ -758,7 +711,7 @@ export class MotoGPResultsComponent implements OnInit {
     return Number.isFinite(ms) ? ms : null;
   }
 
-  private computeFastest(session: MotoGPResult[] | undefined, key: 'Q1'|'Q2'|'SPR'|'RAC') {
+  private computeFastest(session: MotoGPResult[] | undefined, key: SessionKey) {
     if (!session?.length) { this.fastestLapMs[key] = null; return; }
     let best: number | null = null;
     for (const r of session) {
@@ -769,10 +722,34 @@ export class MotoGPResultsComponent implements OnInit {
     this.fastestLapMs[key] = best;
   }
 
-  isFastestLap(r: MotoGPResult, key: 'Q1'|'Q2'|'SPR'|'RAC'): boolean {
+  isFastestLap(r: MotoGPResult, key: SessionKey): boolean {
     const ref = this.fastestLapMs[key];
     const t = this.toMs(r.best_lap?.time);
     return ref != null && t != null && t === ref;
+  }
+
+  private fastestRow(key: SessionKey, rows: MotoGPResult[]): MotoGPResult | null {
+    const ref = this.fastestLapMs[key];
+    if (ref == null) return null;
+    return rows.find(r => this.toMs(r.best_lap?.time) === ref) ?? null;
+  }
+
+  private maxBy<T>(rows: T[], pick: (r: T) => number | undefined | null): T | null {
+    let best: T | null = null;
+    let bestVal = -Infinity;
+    for (const r of rows) {
+      const v = pick(r);
+      if (v != null && Number.isFinite(v) && v > bestVal) { bestVal = v; best = r; }
+    }
+    return best;
+  }
+
+  private tr(key: string): string {
+    return this.i18n.translate(key);
+  }
+
+  private clean(s?: string | null): string {
+    return String(s ?? '').replace(/\s+/g, ' ').trim();
   }
 
   countryFlag(iso?: string): string {
@@ -789,10 +766,21 @@ export class MotoGPResultsComponent implements OnInit {
     return '';
   }
 
-  cardAccentClass(pos?: number): 'pos-1'|'pos-2'|'pos-3'|'pos-rest' {
-    if (pos === 1) return 'pos-1';
-    if (pos === 2) return 'pos-2';
-    if (pos === 3) return 'pos-3';
-    return 'pos-rest';
+  makerColor(name?: string): string {
+    const m = (name || '').toLowerCase();
+    if (m.includes('ducati')) return '#d50f2a';
+    if (m.includes('aprilia')) return '#f4c300';
+    if (m.includes('ktm')) return '#ff8f00';
+    if (m.includes('honda')) return '#ff5252';
+    if (m.includes('yamaha')) return '#2979ff';
+    if (m.includes('suzuki')) return '#e53935';
+    return '#78909c';
+  }
+
+  /** Constructor/manufacturer name — guards against the Object.prototype clash on `.constructor`. */
+  maker(r: MotoGPResult): string {
+    const c = (r as any)?.constructor;
+    if (c && typeof c === 'object' && typeof c.name === 'string') return c.name.trim();
+    return '';
   }
 }

@@ -188,7 +188,7 @@ interface TranslationValue {
       background:
         radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.16), transparent 42%),
         var(--background-dark, #0e1015);
-      padding: 80px 20px 20px 20px;
+      padding: var(--content-offset-top) 20px 20px;
     }
 
     /* Header: canonical styles live in styles/_layout.scss */
@@ -293,7 +293,7 @@ interface TranslationValue {
 
     @media (max-width: 768px) {
       .translation-container {
-        padding: 60px 15px 15px 15px;
+        padding: var(--content-offset-top) 15px 15px;
       }
 
       .content {

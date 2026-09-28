@@ -47,6 +47,10 @@
   --app-header-height: 60px;
   --content-max-width: 100%;
   --bottom-nav-height: 64px;
+  /* Single source of truth for the gap between the fixed header and the
+     first piece of page content (one owning rule per page, never stacked).
+     Desktop bumps it to header + 18px via media query in _layout.scss. */
+  --content-offset-top: calc(var(--app-header-height) + 12px);
 
   /* ─── Spacing ─── */
   --space-2xs: 0.25rem;

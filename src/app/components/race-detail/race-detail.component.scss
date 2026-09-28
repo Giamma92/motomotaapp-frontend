@@ -29,7 +29,7 @@ app-race-detail {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: calc(var(--app-header-height) + 12px) clamp(10px, 2.5vw, 22px) 18px;
+    padding: var(--content-offset-top) clamp(10px, 2.5vw, 22px) 18px;
   }
 
   .results-container {
@@ -1006,7 +1006,7 @@ app-race-detail {
 
   @media (max-width: 820px) {
     .main-content {
-      padding: calc(var(--app-header-height) + 10px) 8px 12px;
+      padding: var(--content-offset-top) 8px 12px;
       gap: 8px;
     }
 

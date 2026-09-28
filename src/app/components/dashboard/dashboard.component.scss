@@ -57,7 +57,7 @@
   width: 100%;
   max-width: var(--content-max-width);
   margin-inline: auto;
-  padding: calc(var(--app-header-height) + 12px) 12px 12px;
+  padding: var(--content-offset-top) 12px 12px;
 }
 
 /* ─── Cards layout ───
@@ -81,7 +81,7 @@
 
 @media (min-width: 768px) and (max-width: 1023px) {
   .grid-content {
-    padding: calc(var(--app-header-height) + 20px) 32px 20px;
+    padding: var(--content-offset-top) 32px 20px;
   }
 
   .cards-wrapper {
@@ -99,7 +99,7 @@
 
 @media (min-width: 1024px) {
   .grid-content {
-    padding: calc(var(--app-header-height) + 24px) 40px 24px;
+    padding: var(--content-offset-top) 40px 24px;
   }
 
   .cards-wrapper {
@@ -131,7 +131,7 @@
 
 @media (min-width: 1600px) {
   .grid-content {
-    padding: calc(var(--app-header-height) + 32px) 56px 32px;
+    padding: var(--content-offset-top) 56px 32px;
   }
 
   .cards-wrapper,

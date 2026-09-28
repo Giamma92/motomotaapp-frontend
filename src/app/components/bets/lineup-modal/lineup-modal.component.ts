@@ -12,9 +12,16 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
   standalone: true,
   imports: [CommonModule, MatDialogModule, MatTableModule, MatButtonModule, TranslatePipe],
   template: `
-    <h2 mat-dialog-title>{{ 'lineupModal.title' | t }}</h2>
+    <h2 mat-dialog-title>{{ data.title || ('lineupModal.title' | t) }}</h2>
     <mat-dialog-content>
       <table mat-table [dataSource]="data.lineups" class="app-material-table">
+        <ng-container matColumnDef="race">
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.race' | t }}</th>
+          <td mat-cell *matCellDef="let lineup">
+            {{ lineup.calendar_id?.race_id?.name || ('common.na' | t) }}
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="race_rider">
           <th mat-header-cell *matHeaderCellDef>{{ 'lineupModal.raceRider' | t }}</th>
           <td mat-cell *matCellDef="let lineup">
@@ -59,13 +66,27 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
   `
 })
 export class LineupModalComponent {
-  displayedColumns: string[] = ['race_rider', 'qualifying_rider'];
+  displayedColumns: string[];
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: {lineups: LineupsResult[], riders: ChampionshipRider[]}) {}
+  constructor(@Inject(MAT_DIALOG_DATA) public data: {lineups: LineupsResult[], riders: ChampionshipRider[], title?: string}) {
+    // Colonna "Gara" solo quando i lineup coprono più GPC (la view scommesse passa una riga sola)
+    const calendars = new Set(
+      (this.data.lineups ?? [])
+        .map((l) => (l.calendar_id && typeof l.calendar_id === 'object' ? l.calendar_id.id : l.calendar_id))
+        .filter((id) => id != null)
+    );
+    this.displayedColumns =
+      calendars.size > 1 ? ['race', 'race_rider', 'qualifying_rider'] : ['race_rider', 'qualifying_rider'];
+  }
 
   getRiderName(riderId: any): string {
     const id = riderId && typeof riderId === 'object' ? riderId.id : riderId;
-    const rider = this.data.riders.find(r => r.rider_id.id === Number(id))?.rider_id;
-    return rider ? `${rider.first_name} ${rider.last_name}` : '';
+    const rider = this.data.riders?.find(r => r.rider_id.id === Number(id))?.rider_id;
+    if (rider) return `${rider.first_name} ${rider.last_name}`;
+    // Fallback: il lineup espone già l'oggetto pilota completo
+    if (riderId && typeof riderId === 'object' && riderId.first_name) {
+      return `${riderId.first_name} ${riderId.last_name}`;
+    }
+    return '';
   }
 }

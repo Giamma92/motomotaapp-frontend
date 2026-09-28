@@ -3,7 +3,7 @@ app-lineups {
     min-height: 100vh;
     background: var(--background-dark, #0e1015);
     color: var(--text-primary, #ffffff);
-    padding: calc(var(--app-header-height) + 12px) clamp(12px, 2.8vw, 28px) clamp(18px, 4vw, 36px);
+    padding: var(--content-offset-top) clamp(12px, 2.8vw, 28px) clamp(18px, 4vw, 36px);
   }
 
   /* Header: canonical styles live in styles/_layout.scss */
@@ -600,7 +600,7 @@ app-lineups {
   /* ═══════════ Mobile (≤820) ═══════════ */
   @media (max-width: 820px) {
     .settings-container {
-      padding: calc(var(--app-header-height) + 8px) 8px 14px;
+      padding: var(--content-offset-top) 8px 14px;
     }
 
     .lineup-hero {
