@@ -230,11 +230,12 @@ span.mdc-button__label {
 /* Table compaction driven by the CARD size, not the viewport —
    the standings card is narrow on phones (single column) AND in the
    tablet 2×2 grid, while desktop columns are wide enough.
-   Below 520px the Gap column body ("+23 PTS"/LEADER) doesn't fit its
-   share of the fixed layout and gets clipped by .table-container
-   (overflow-x: hidden); below 440px the full header labels
-   ("Posizione"…) overflow their columns — the .th-short variants
-   exist exactly for that but were never switched on. */
+   Below 520px the Gap column body ("+23 PTS"/LEADER) used to overflow
+   its share of the fixed layout and got clipped by .table-container
+   (overflow-x: hidden), so Gap was hidden there. Now both numeric
+   columns (Pts + Gap) stay visible: widths are rebalanced, the LEADER
+   badge is compacted and the short header labels ("#", "Pts", "Δ")
+   take over — the full ones don't fit a ~310px card. */
 .standings-card {
   container-type: inline-size;
 }
@@ -252,18 +253,31 @@ span.mdc-button__label {
 }
 
 @container (max-width: 520px) {
-  .standings-card .standings-table th.gap-col,
-  .standings-card .standings-table td.gap-col {
-    display: none;
+  /* Phone-size cards: keep BOTH numeric columns (Pts + Gap).
+     Media rules above give user 40% / score 15%; rebalance rank and
+     gap here (container rules come later in the file and win) so the
+     gap cell — including the LEADER badge — fits without clipping. */
+  .standings-card .standings-table .rank-col {
+    width: 15%;
   }
-}
 
-@container (max-width: 440px) {
+  .standings-card .standings-table .gap-col {
+    width: 22%;
+  }
+
   .standings-card .standings-table .th-full {
     display: none;
   }
 
   .standings-card .standings-table .th-short {
     display: inline;
+  }
+
+  /* Compact LEADER badge so it stays inside the gap column
+     (0.7rem = 11.2px, the app-wide readability floor) */
+  .standings-card .standings-table .gap-col .gap-leader {
+    font-size: 0.7rem;
+    letter-spacing: 0.2px;
+    padding: 0.2rem 0.36rem;
   }
 }
