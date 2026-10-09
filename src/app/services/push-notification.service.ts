@@ -55,11 +55,48 @@ export class PushNotificationService {
 
       const sub = await reg.pushManager.getSubscription();
       if (sub) {
-        this.currentSub = sub;
-        this.updateStatus({ subscribed: true });
+        // A subscription created with an old VAPID key is silently rejected by
+        // the push services (FCM 403 / Apple VapidPkHashMismatch), so replace it.
+        const keyMatches = await this.subscriptionMatchesCurrentKey(sub);
+        if (!keyMatches) {
+          await sub.unsubscribe();
+          if ((Notification.permission as NotificationPermission) === 'granted') {
+            await this.requestSubscription();
+          }
+        } else {
+          this.currentSub = sub;
+          this.updateStatus({ subscribed: true });
+        }
       }
     } catch {
       // SW not ready yet
+    }
+  }
+
+  /**
+   * True when the subscription was created with the backend's current VAPID
+   * public key (or when the comparison cannot be made safely).
+   */
+  private async subscriptionMatchesCurrentKey(sub: PushSubscription): Promise<boolean> {
+    try {
+      let key = this.cachedPublicKey;
+      if (!key) {
+        const resp = await this.httpService.genericGet<{ publicKey: string }>('push/vapid-public-key').toPromise();
+        key = resp?.publicKey;
+        if (key) this.cachedPublicKey = key;
+      }
+      if (!key) return true;
+
+      const subKey = sub.options.applicationServerKey;
+      if (!subKey) return true;
+
+      const subBytes = new Uint8Array(subKey as ArrayBuffer);
+      const keyBytes = this.urlBase64ToUint8Array(key);
+      if (subBytes.length !== keyBytes.length) return false;
+      return subBytes.every((value, index) => value === keyBytes[index]);
+    } catch {
+      // Backend unreachable: never destroy an existing subscription over this.
+      return true;
     }
   }
 
