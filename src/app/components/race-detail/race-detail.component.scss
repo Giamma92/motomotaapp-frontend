@@ -29,7 +29,7 @@ app-race-detail {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: var(--content-offset-top) clamp(10px, 2.5vw, 22px) 18px;
+    padding: var(--content-offset-top) clamp(10px, 2.5vw, 22px) calc(var(--app-bottom-nav-height, 64px) + 28px);
   }
 
   .results-container {

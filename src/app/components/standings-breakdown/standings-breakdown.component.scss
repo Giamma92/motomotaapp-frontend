@@ -26,7 +26,7 @@
 .content {
   max-width: 1240px;
   margin: 0 auto;
-  padding: var(--content-offset-top) 1rem 1rem;
+  padding: var(--content-offset-top) 1rem calc(var(--app-bottom-nav-height, 64px) + 28px);
   display: grid;
   /* minmax(0, 1fr): implicit `auto` tracks would inflate to the cards'
      min-content (the chart SVG is a replaced element with intrinsic width)
