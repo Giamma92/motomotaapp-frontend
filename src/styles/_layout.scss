@@ -112,3 +112,10 @@
     --content-offset-top: calc(var(--app-header-height) + 18px);
   }
 }
+
+@media (max-width: 768px) {
+  .page-container,
+  .dashboard-container {
+    padding-bottom: 84px !important;
+  }
+}

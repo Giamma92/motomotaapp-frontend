@@ -182,6 +182,45 @@
       </div>
     </mat-card>
 
+    <!-- ── Weekend transparent score summary strip ── -->
+    <section class="weekend-score-strip" *ngIf="!loading && currentSelectedRaceBreakdown.hasData">
+      <div class="score-source-card">
+        <span class="source-icon icon-quali"><mat-icon>sports_motorsports</mat-icon></span>
+        <div class="source-info">
+          <span class="source-label">Pilota Qualifica</span>
+          <strong class="source-val" [class.is-neg]="currentSelectedRaceBreakdown.qualifyingTotal < 0">{{ currentSelectedRaceBreakdown.qualifyingTotal | number: '1.0-0' }}</strong>
+        </div>
+      </div>
+      <div class="score-source-card">
+        <span class="source-icon icon-race"><mat-icon>flag</mat-icon></span>
+        <div class="source-info">
+          <span class="source-label">Pilota Gara</span>
+          <strong class="source-val" [class.is-neg]="currentSelectedRaceBreakdown.raceTotal < 0">{{ currentSelectedRaceBreakdown.raceTotal | number: '1.0-0' }}</strong>
+        </div>
+      </div>
+      <div class="score-source-card">
+        <span class="source-icon icon-sprint"><mat-icon>bolt</mat-icon></span>
+        <div class="source-info">
+          <span class="source-label">Sprint Bet</span>
+          <strong class="source-val" [class.is-neg]="currentSelectedRaceBreakdown.sprintBetTotal < 0">{{ currentSelectedRaceBreakdown.sprintBetTotal | number: '1.0-0' }}</strong>
+        </div>
+      </div>
+      <div class="score-source-card">
+        <span class="source-icon icon-racebet"><mat-icon>two_wheeler</mat-icon></span>
+        <div class="source-info">
+          <span class="source-label">Race Bet</span>
+          <strong class="source-val" [class.is-neg]="currentSelectedRaceBreakdown.raceBetTotal < 0">{{ currentSelectedRaceBreakdown.raceBetTotal | number: '1.0-0' }}</strong>
+        </div>
+      </div>
+      <div class="score-source-card score-source-card--total">
+        <span class="source-icon icon-total"><mat-icon>emoji_events</mat-icon></span>
+        <div class="source-info">
+          <span class="source-label">{{ currentSelectedRaceBreakdown.targetName }}</span>
+          <strong class="source-val">{{ currentSelectedRaceBreakdown.grandTotal | number: '1.0-0' }} pts</strong>
+        </div>
+      </div>
+    </section>
+
     <!-- ── Race-by-race breakdown ── -->
     <mat-card class="breakdown-card skeleton-card">
       <div class="card-head">
@@ -205,6 +244,7 @@
             <tr>
               <th class="col-text">Gara</th>
               <th class="col-text">Partecipante</th>
+              <th class="col-num">Trend</th>
               <th class="col-num">Qualifica</th>
               <th class="col-num">Gara</th>
               <th class="col-num">Sprint bet</th>
@@ -224,6 +264,12 @@
                 </div>
               </td>
               <td class="name-col">{{ fullName(row) }}</td>
+              <td class="col-num">
+                <span class="rank-trend-pill" [ngClass]="getRankTrend(row).class">
+                  <mat-icon>{{ getRankTrend(row).icon }}</mat-icon>
+                  <span>{{ getRankTrend(row).text }}</span>
+                </span>
+              </td>
               <td class="col-num" [class.is-neg]="row.qualifying_score < 0">{{ row.qualifying_score | number: '1.0-0' }}</td>
               <td class="col-num" [class.is-neg]="row.race_score < 0">{{ row.race_score | number: '1.0-0' }}</td>
               <td class="col-num" [class.is-neg]="sprintBetValue(row) < 0">{{ sprintBetValue(row) | number: '1.0-0' }}</td>
@@ -244,7 +290,13 @@
                 <span>{{ fullName(row) }}</span>
               </div>
             </div>
-            <span class="total-pill" [class.is-neg]="row.score < 0">{{ row.score | number: '1.0-0' }} pts</span>
+            <div class="mobile-head-right">
+              <span class="rank-trend-pill" [ngClass]="getRankTrend(row).class">
+                <mat-icon>{{ getRankTrend(row).icon }}</mat-icon>
+                <span>{{ getRankTrend(row).text }}</span>
+              </span>
+              <span class="total-pill" [class.is-neg]="row.score < 0">{{ row.score | number: '1.0-0' }} pts</span>
+            </div>
           </header>
           <div class="mobile-grid">
             <span>Qualifica <strong [class.is-neg]="row.qualifying_score < 0">{{ row.qualifying_score | number: '1.0-0' }}</strong></span>

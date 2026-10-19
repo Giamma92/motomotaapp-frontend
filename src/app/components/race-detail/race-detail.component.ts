@@ -22,6 +22,7 @@ import { AuthService } from '../../services/auth.service';
 import { NotificationServiceService } from '../../services/notification.service';
 import { DateUtils } from '../../utils/date-utils';
 import { I18nService } from '../../services/i18n.service';
+import { NavigationService } from '../../services/navigation.service';
 
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 
@@ -99,6 +100,28 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
                   <i class="fa-solid fa-motorcycle"></i>
                   {{ 'raceDetail.info.raceTime' | t }} {{ calendarRace.event_time ? (calendarRace.event_time | timeFormat) : '—' }}
                 </span>
+              </div>
+
+              <!-- Action Hub: Cosa puoi fare adesso -->
+              <div class="race-action-hub" [ngClass]="'action-hub--' + actionHubState.statusType" *ngIf="actionHubState as hub">
+                <div class="action-hub-body">
+                  <div class="action-hub-topline">
+                    <span class="action-hub-kicker">Cosa puoi fare adesso</span>
+                    <span class="action-hub-badge">
+                      <mat-icon>{{ hub.statusType === 'urgent' ? 'alarm' : (hub.statusType === 'done' ? 'check_circle' : 'info') }}</mat-icon>
+                      {{ hub.statusBadge }}
+                    </span>
+                  </div>
+                  <h3 class="action-hub-title">{{ hub.title }}</h3>
+                  <p class="action-hub-subtitle">{{ hub.subtitle }}</p>
+                </div>
+                <div class="action-hub-cta-wrap" *ngIf="hub.buttonLabel && hub.actionKind">
+                  <button mat-flat-button class="action-hub-btn" (click)="goToContextAction(hub.actionKind)">
+                    <mat-icon *ngIf="hub.buttonIcon">{{ hub.buttonIcon }}</mat-icon>
+                    <span>{{ hub.buttonLabel }}</span>
+                    <mat-icon class="btn-arrow">arrow_forward</mat-icon>
+                  </button>
+                </div>
               </div>
             </div>
           </section>
@@ -747,6 +770,7 @@ export class RaceDetailComponent implements OnInit {
     private authService: AuthService,
     private notificationService: NotificationServiceService,
     private i18nService: I18nService,
+    private navService: NavigationService,
     private cdr: ChangeDetectorRef
   ) { this.checkScreen(); }
 
@@ -891,6 +915,140 @@ export class RaceDetailComponent implements OnInit {
     if (kind === 'race') this.router.navigate(['/race-bet', this.raceId]);
   }
 
+  get actionHubState(): {
+    title: string;
+    subtitle: string;
+    statusBadge: string;
+    statusType: 'urgent' | 'active' | 'done' | 'closed';
+    buttonLabel?: string;
+    buttonIcon?: string;
+    actionKind?: 'lineups' | 'sprint' | 'race';
+  } {
+    if (this.calendarRace?.cancelled) {
+      return {
+        title: 'Gara Cancellata',
+        subtitle: 'Questo Gran Premio è stato annullato dal calendario ufficiale.',
+        statusBadge: 'Cancellata',
+        statusType: 'closed'
+      };
+    }
+
+    const canLineup = this.canEditLineup();
+    const canSprint = this.canEditSprintBet();
+    const canRace = this.canEditRaceBet();
+
+    // 1. Lineup window is open
+    if (canLineup) {
+      if (!this.myLineup) {
+        return {
+          title: 'Schieramento Piloti Aperto',
+          subtitle: 'Scegli il pilota per la qualifica e per la gara prima della chiusura.',
+          statusBadge: 'Azione richiesta',
+          statusType: 'urgent',
+          buttonLabel: 'Schiera i tuoi piloti',
+          buttonIcon: 'sports_motorsports',
+          actionKind: 'lineups'
+        };
+      }
+      if (canSprint && !this.mySprintBet) {
+        return {
+          title: 'Piazza la Scommessa Sprint',
+          subtitle: 'Piloti salvati! Ora fai il tuo pronostico per la Sprint.',
+          statusBadge: 'Aperto ora',
+          statusType: 'urgent',
+          buttonLabel: 'Gioca la Sprint Bet',
+          buttonIcon: 'flag',
+          actionKind: 'sprint'
+        };
+      }
+      if (canRace && !this.myRaceBet) {
+        return {
+          title: 'Piazza la Scommessa Gara',
+          subtitle: 'Pronostica pilota e posizione per il Gran Premio domenicale!',
+          statusBadge: 'Aperto ora',
+          statusType: 'urgent',
+          buttonLabel: 'Gioca la Race Bet',
+          buttonIcon: 'sports_motorsports',
+          actionKind: 'race'
+        };
+      }
+      return {
+        title: 'Schieramento Inviato ✓',
+        subtitle: 'I tuoi piloti sono registrati. Puoi modificarli finché la finestra rimane aperta.',
+        statusBadge: 'Modificabile',
+        statusType: 'active',
+        buttonLabel: 'Modifica Schieramento',
+        buttonIcon: 'edit',
+        actionKind: 'lineups'
+      };
+    }
+
+    // 2. Sprint window open (lineup closed)
+    if (canSprint) {
+      if (!this.mySprintBet) {
+        return {
+          title: 'Scommessa Sprint Aperta',
+          subtitle: 'Finestra attiva: indovina chi farà punti nella Sprint di oggi!',
+          statusBadge: 'Azione richiesta',
+          statusType: 'urgent',
+          buttonLabel: 'Gioca la Sprint Bet',
+          buttonIcon: 'flag',
+          actionKind: 'sprint'
+        };
+      }
+      return {
+        title: 'Sprint Bet Inviata ✓',
+        subtitle: 'Pronostico registrato con successo. Puoi modificarlo fino a inizio sessione.',
+        statusBadge: 'Sprint Ok',
+        statusType: 'active',
+        buttonLabel: 'Modifica Scommessa Sprint',
+        buttonIcon: 'edit',
+        actionKind: 'sprint'
+      };
+    }
+
+    // 3. Race bet open
+    if (canRace) {
+      if (!this.myRaceBet) {
+        return {
+          title: 'Scommessa Gara Aperta',
+          subtitle: 'Ultima giocata del weekend: scegli pilota e piazzamento per il GP!',
+          statusBadge: 'Azione richiesta',
+          statusType: 'urgent',
+          buttonLabel: 'Gioca la Race Bet',
+          buttonIcon: 'sports_motorsports',
+          actionKind: 'race'
+        };
+      }
+      return {
+        title: 'Scommessa Gara Inviata ✓',
+        subtitle: 'Pronostico GP registrato. Buona visione del Gran Premio!',
+        statusBadge: 'Gara Ok',
+        statusType: 'active',
+        buttonLabel: 'Modifica Scommessa Gara',
+        buttonIcon: 'edit',
+        actionKind: 'race'
+      };
+    }
+
+    // 4. Completed everything
+    if (this.personalCompletionPercent === 100) {
+      return {
+        title: 'Weekend completato al 100%!',
+        subtitle: 'Hai inserito tutte le giocate previste per questo Gran Premio.',
+        statusBadge: 'Tutto Inviato',
+        statusType: 'done'
+      };
+    }
+
+    return {
+      title: 'Finestre di gioco chiuse',
+      subtitle: 'Tutte le scommesse per questo weekend sono chiuse. Consulta i risultati.',
+      statusBadge: 'Chiuso',
+      statusType: 'closed'
+    };
+  }
+
   onFillMissingLineups(): void {
     if (!this.calendarRace) return;
     this.busy = true;
@@ -989,9 +1147,7 @@ export class RaceDetailComponent implements OnInit {
 
   // ===== Helpers =====
   goBack(): void {
-    const prevNavUrl = this.router.lastSuccessfulNavigation?.previousNavigation?.initialUrl;
-    if (prevNavUrl) this.router.navigateByUrl(prevNavUrl);
-    else this.router.navigate(['/calendar']);
+    this.navService.back('/calendar');
   }
 
   displayUser(user: any): string {

@@ -58,7 +58,8 @@
         </mat-menu>
 
       </header>
-      <main class="grid-content"(pointerdown)="onSwipeStart($event)" (pointerup)="onSwipeEnd($event)">
+
+      <main class="grid-content" (pointerdown)="onSwipeStart($event)" (pointerup)="onSwipeEnd($event)">
         <div class="cards-wrapper">
           <div class="dash-col dash-col-a">
           <!-- Standings: loading skeleton -->
@@ -350,8 +351,18 @@
                         <div class="rider-header-main">
                           <span class="rider-role">{{ 'dashboard.team.firstTierPilot' | t }}</span>
                           <div class="rider-name-row">
+                            <span class="rider-racing-badge">#{{ fantasyTeam.official_rider_1.number }}</span>
                             <span class="rider-name">{{ fantasyTeam.official_rider_1.first_name }} {{ fantasyTeam.official_rider_1.last_name }}</span>
-                            <span class="rider-header-number">#{{ fantasyTeam.official_rider_1.number }}</span>
+                          </div>
+                          <div class="rider-quota-strip">
+                            <div class="quota-track">
+                              <span class="quota-fill" [style.width.%]="getRiderQuotaPct(fantasyTeam.official_rider_1.id)"></span>
+                            </div>
+                            <span class="quota-text">
+                              <strong>{{ getRiderLineupsCount(fantasyTeam.official_rider_1.id) }}</strong>/{{ maxLineups }}
+                              <span class="quota-remaining" *ngIf="getRemainingUses(fantasyTeam.official_rider_1.id) > 0">({{ getRemainingUses(fantasyTeam.official_rider_1.id) }} liberi)</span>
+                              <span class="quota-remaining quota-remaining--full" *ngIf="getRemainingUses(fantasyTeam.official_rider_1.id) === 0">Esaurito</span>
+                            </span>
                           </div>
                         </div>
                       </mat-expansion-panel-header>
@@ -378,8 +389,18 @@
                         <div class="rider-header-main">
                           <span class="rider-role">{{ 'dashboard.team.secondTierPilot' | t }}</span>
                           <div class="rider-name-row">
+                            <span class="rider-racing-badge">#{{ fantasyTeam.official_rider_2.number }}</span>
                             <span class="rider-name">{{ fantasyTeam.official_rider_2.first_name }} {{ fantasyTeam.official_rider_2.last_name }}</span>
-                            <span class="rider-header-number">#{{ fantasyTeam.official_rider_2.number }}</span>
+                          </div>
+                          <div class="rider-quota-strip">
+                            <div class="quota-track">
+                              <span class="quota-fill" [style.width.%]="getRiderQuotaPct(fantasyTeam.official_rider_2.id)"></span>
+                            </div>
+                            <span class="quota-text">
+                              <strong>{{ getRiderLineupsCount(fantasyTeam.official_rider_2.id) }}</strong>/{{ maxLineups }}
+                              <span class="quota-remaining" *ngIf="getRemainingUses(fantasyTeam.official_rider_2.id) > 0">({{ getRemainingUses(fantasyTeam.official_rider_2.id) }} liberi)</span>
+                              <span class="quota-remaining quota-remaining--full" *ngIf="getRemainingUses(fantasyTeam.official_rider_2.id) === 0">Esaurito</span>
+                            </span>
                           </div>
                         </div>
                       </mat-expansion-panel-header>
@@ -406,8 +427,18 @@
                         <div class="rider-header-main">
                           <span class="rider-role">{{ 'dashboard.team.thirdTierPilot' | t }}</span>
                           <div class="rider-name-row">
+                            <span class="rider-racing-badge">#{{ fantasyTeam.reserve_rider.number }}</span>
                             <span class="rider-name">{{ fantasyTeam.reserve_rider.first_name }} {{ fantasyTeam.reserve_rider.last_name }}</span>
-                            <span class="rider-header-number">#{{ fantasyTeam.reserve_rider.number }}</span>
+                          </div>
+                          <div class="rider-quota-strip">
+                            <div class="quota-track">
+                              <span class="quota-fill" [style.width.%]="getRiderQuotaPct(fantasyTeam.reserve_rider.id)"></span>
+                            </div>
+                            <span class="quota-text">
+                              <strong>{{ getRiderLineupsCount(fantasyTeam.reserve_rider.id) }}</strong>/{{ maxLineups }}
+                              <span class="quota-remaining" *ngIf="getRemainingUses(fantasyTeam.reserve_rider.id) > 0">({{ getRemainingUses(fantasyTeam.reserve_rider.id) }} liberi)</span>
+                              <span class="quota-remaining quota-remaining--full" *ngIf="getRemainingUses(fantasyTeam.reserve_rider.id) === 0">Esaurito</span>
+                            </span>
                           </div>
                         </div>
                       </mat-expansion-panel-header>
@@ -876,22 +907,3 @@
         </div>
       </main>
     </div>
-    <nav class="bottom-nav" [attr.aria-label]="'common.nav.primary' | t">
-      <button class="item" [class.active]="isActive('standings')" (click)="setTab('standings')" [attr.aria-label]="'dashboard.standings.title' | t">
-        <i class="fa-solid fa-trophy" aria-hidden="true"></i>
-        <span class="label">{{ 'dashboard.standings.title' | t }}</span>
-      </button>
-      <button class="item" [class.active]="isActive('next')" (click)="setTab('next')" [attr.aria-label]="(isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t))">
-        <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>
-        <span class="label">{{ isCurrentRace ? ('dashboard.nextRace.current' | t) : ('dashboard.nextRace.next' | t) }}</span>
-      </button>
-      <button class="item" [class.active]="isActive('team')" (click)="setTab('team')" [attr.aria-label]="'dashboard.team.teamRiders' | t">
-        <i class="fa-solid fa-users" aria-hidden="true"></i>
-        <span class="label">{{ 'dashboard.team.teamRiders' | t }}</span>
-      </button>
-      <button class="item" [class.active]="isActive('config')" (click)="setTab('config')" [attr.aria-label]="'dashboard.championship.configuration' | t">
-        <i class="fa-solid fa-gear" aria-hidden="true"></i>
-        <span class="label">{{ 'dashboard.championship.configuration' | t }}</span>
-      </button>
-
-    </nav>

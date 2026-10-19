@@ -13,6 +13,7 @@ import { I18nService } from '../../services/i18n.service';
 import { DateUtils } from '../../utils/date-utils';
 import { RaceDetails } from '../../services/race-detail.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
+import { NavigationService } from '../../services/navigation.service';
 
 @Component({
   selector: 'app-calendar',
@@ -34,6 +35,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
   /** true → the template prefixes the value with "Partenza tra". */
   countdownPrefix = false;
 
+  calendarFilter: 'all' | 'open' | 'past' = 'all';
+
   private raceStatusCache = new Map<number, { lineup: boolean; sprint: boolean; race: boolean }>();
   private countdownTimer?: number;
 
@@ -45,6 +48,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
     private i18nService: I18nService,
     private notificationService: NotificationServiceService,
     private raceSchedule: RaceScheduleService,
+    private navService: NavigationService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -205,7 +209,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/']);  // Navigates back to the dashboard
+    this.navService.back('/');
   }
 
   goToRaceDetail(race: CalendarRace): void {
@@ -270,6 +274,38 @@ export class CalendarComponent implements OnInit, OnDestroy {
     if (completed === 3) return 'Completa';
     if (completed === 0) return 'Da completare';
     return `${completed}/3 ok`;
+  }
+
+  get filteredCalendar(): CalendarRace[] {
+    if (this.calendarFilter === 'open') {
+      return this.calendar.filter((race, i) => !race.cancelled && !this.isRaceInPast(race));
+    }
+    if (this.calendarFilter === 'past') {
+      return this.calendar.filter((race, i) => this.isRaceInPast(race));
+    }
+    return this.calendar;
+  }
+
+  get openRacesCount(): number {
+    return this.calendar.filter(r => !r.cancelled && !this.isRaceInPast(r)).length;
+  }
+
+  get pastRacesCount(): number {
+    return this.calendar.filter(r => this.isRaceInPast(r)).length;
+  }
+
+  getRaceCompletionBadge(race: CalendarRace): { label: string; class: string; icon: string } {
+    if (race.cancelled) return { label: 'Cancellata', class: 'completion-cancelled', icon: 'cancel' };
+    const completed = [
+      this.hasCompletedLineup(race),
+      this.hasCompletedSprintBet(race),
+      this.hasCompletedRaceBet(race)
+    ].filter(Boolean).length;
+
+    if (completed === 3) return { label: 'Giocata Completa', class: 'completion-complete', icon: 'check_circle' };
+    if (completed > 0) return { label: `${completed}/3 Giocate`, class: 'completion-partial', icon: 'timelapse' };
+    if (this.isRaceInPast(race)) return { label: 'Non Giocata', class: 'completion-missed', icon: 'history' };
+    return { label: 'Da Giocare', class: 'completion-empty', icon: 'notification_important' };
   }
 
   getMobileRaceStateLabel(race: CalendarRace, index?: number): string {

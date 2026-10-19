@@ -1,7 +1,7 @@
 // src/app/lineups/lineups.component.ts
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,6 +15,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
 import { I18nService } from '../../services/i18n.service';
 import { DateUtils } from '../../utils/date-utils';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { NavigationService } from '../../services/navigation.service';
 
 @Component({
   selector: 'app-lineups',
@@ -23,6 +24,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   styleUrl: './lineups.component.scss',
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     MatCardModule,
     MatButtonModule,
@@ -51,6 +53,10 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
             <span class="hero-pill hero-pill-primary" *ngIf="windowDeadline as deadline">
               <i class="fa-regular fa-clock"></i>
               Chiude {{ formatDeadline(deadline) }}
+            </span>
+            <span class="hero-pill hero-pill-countdown" [class.hero-pill-expired]="isDeadlinePassed" *ngIf="countdownText">
+              <i class="fa-solid fa-stopwatch"></i>
+              {{ countdownText }}
             </span>
             <span class="hero-pill">
               <i class="fa-solid fa-layer-group"></i>
@@ -168,12 +174,36 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               </div>
             </div>
 
-            <p class="empty-note" *ngIf="riders.length === 0">Caricamento piloti...</p>
+            <!-- Search box for lineup riders -->
+            <div class="rider-search-box" *ngIf="riders.length > 2">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input
+                type="text"
+                [(ngModel)]="riderSearchQuery"
+                [ngModelOptions]="{standalone: true}"
+                placeholder="Cerca tra i tuoi piloti per nome o #numero..."
+                aria-label="Cerca pilota"
+              />
+              <button
+                *ngIf="riderSearchQuery"
+                type="button"
+                class="search-clear-btn"
+                (click)="riderSearchQuery = ''"
+                aria-label="Cancella ricerca"
+              >
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
 
-            <div class="rider-list">
+            <p class="empty-note" *ngIf="riders.length === 0">Caricamento piloti...</p>
+            <p class="empty-note" *ngIf="riders.length > 0 && filteredRiders.length === 0">
+              Nessun pilota trovato per "{{ riderSearchQuery }}".
+            </p>
+
+            <div class="rider-list" *ngIf="filteredRiders.length > 0">
               <div
                 class="rider-card"
-                *ngFor="let rider of riders"
+                *ngFor="let rider of filteredRiders"
                 [class.selected]="isInSlot(rider.id)"
                 [class.blocked]="isRiderBlocked(rider.id)"
               >
@@ -249,10 +279,14 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
     </div>
   `
 })
-export class LineupsComponent implements OnInit {
+export class LineupsComponent implements OnInit, OnDestroy {
   lineupsForm: FormGroup;
   loading = false;
   riders: Rider[] = [];
+  riderSearchQuery = '';
+  countdownText = '';
+  isDeadlinePassed = false;
+  private countdownTimer: ReturnType<typeof setInterval> | null = null;
   existingLineupsAllCalendar: LineupsResult[] = [];
   existingLineupForRace: LineupsResult | null = null;
   maxLineupsPerPilot = 9999;
@@ -272,12 +306,23 @@ export class LineupsComponent implements OnInit {
     private httpService: HttpService,
     private notificationService: NotificationServiceService,
     private raceScheduleService: RaceScheduleService,
-    private i18nService: I18nService
+    private i18nService: I18nService,
+    private navService: NavigationService
   ) {
     this.lineupsForm = this.fb.group({
       race_rider_id: ['', Validators.required],
       qualifying_rider_id: ['', Validators.required]
     }, { validators: [this.riderSelectionValidator.bind(this)] });
+  }
+
+  get filteredRiders(): Rider[] {
+    const q = this.riderSearchQuery.trim().toLowerCase();
+    if (!q) return this.riders;
+    return this.riders.filter(r => {
+      const fullName = `${r.first_name} ${r.last_name}`.toLowerCase();
+      const num = String(r.number);
+      return fullName.includes(q) || num.includes(q);
+    });
   }
 
   ngOnInit(): void {
@@ -294,11 +339,58 @@ export class LineupsComponent implements OnInit {
     });
   }
 
+  startCountdown(): void {
+    this.updateCountdown();
+    if (!this.countdownTimer) {
+      this.countdownTimer = setInterval(() => this.updateCountdown(), 1000);
+    }
+  }
+
+  updateCountdown(): void {
+    const deadline = this.windowDeadline;
+    if (!deadline) {
+      this.countdownText = '';
+      this.isDeadlinePassed = false;
+      return;
+    }
+    const diff = deadline.getTime() - Date.now();
+    if (diff <= 0) {
+      this.countdownText = 'Finestra chiusa';
+      this.isDeadlinePassed = true;
+      return;
+    }
+    this.isDeadlinePassed = false;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+
+    if (days > 0) {
+      this.countdownText = `${days}g ${hours}h ${minutes}m rimanenti`;
+    } else if (hours > 0) {
+      const padM = String(minutes).padStart(2, '0');
+      const padS = String(seconds).padStart(2, '0');
+      this.countdownText = `${hours}h ${padM}m ${padS}s rimanenti`;
+    } else {
+      const padM = String(minutes).padStart(2, '0');
+      const padS = String(seconds).padStart(2, '0');
+      this.countdownText = `${padM}m ${padS}s rimanenti`;
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+      this.countdownTimer = null;
+    }
+  }
+
   loadChampionshipConfig(championshipId: number): void {
     this.championshipService.getChampionshipConfig(championshipId).subscribe({
       next: (config) => {
         this.championshipConfig = config;
         this.maxLineupsPerPilot = config.formation_limit_driver;
+        this.startCountdown();
       },
       error: (err) => console.error('Failed to load championship config', err)
     });
@@ -309,6 +401,7 @@ export class LineupsComponent implements OnInit {
       next: (race) => {
         this.calendarRace = race;
         this.raceTitle = race.race_id.name;
+        this.startCountdown();
       },
       error: (err) => console.error('Failed to load race details', err)
     });
@@ -391,7 +484,7 @@ export class LineupsComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/']);
+    this.navService.back(this.raceId ? `/race-detail/${this.raceId}` : '/calendar');
   }
 
   // ─── Slots ───

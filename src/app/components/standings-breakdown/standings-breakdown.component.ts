@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
 import { ChampionshipService } from '../../services/championship.service';
 import { DashboardService, StandingsBreakdownRow } from '../../services/dashboard.service';
+import { NavigationService } from '../../services/navigation.service';
 
 type MetricId = 'total' | 'qualifying' | 'race' | 'sprintBet' | 'raceBet';
 
@@ -81,6 +82,7 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
     private authService: AuthService,
     private championshipService: ChampionshipService,
     private dashboardService: DashboardService,
+    private navService: NavigationService,
     private ngZone: NgZone
   ) {}
 
@@ -99,6 +101,7 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
         next: (rows) => {
           this.rows = rows ?? [];
           this.rounds = this.buildRounds(this.rows);
+          this.computeRankHistory();
           this.raceOptions = this.rounds.map(r => ({ id: r.id, label: r.label }));
           this.participantOptions = this.buildParticipantOptions(this.rows);
           this.selectedRaceId = this.rounds.length ? String(this.rounds[this.rounds.length - 1].id) : '';
@@ -169,9 +172,7 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
   }
 
   goBack(): void {
-    const prevNavUrl = this.router.lastSuccessfulNavigation?.previousNavigation?.initialUrl;
-    if (prevNavUrl) this.router.navigateByUrl(prevNavUrl);
-    else this.router.navigate(['/']);
+    this.navService.back('/');
   }
 
   fullName(row: StandingsBreakdownRow): string {
@@ -186,6 +187,97 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
 
   raceBetValue(row: StandingsBreakdownRow): number {
     return Number(row.race_bet_delta || 0);
+  }
+
+  /* ── Rank Trend & Transparent Score Breakdown ── */
+
+  private rankHistory = new Map<string, number[]>();
+
+  private computeRankHistory(): void {
+    this.rankHistory.clear();
+    if (!this.rounds.length || !this.rows.length) return;
+
+    const users = Array.from(new Set(this.rows.map(r => String(r.user_id?.id || '')).filter(Boolean)));
+    const userCumulativeScores = new Map<string, number>();
+    users.forEach(u => userCumulativeScores.set(u, 0));
+
+    for (let rIdx = 0; rIdx < this.rounds.length; rIdx++) {
+      const roundId = this.rounds[rIdx].id;
+      for (const u of users) {
+        const row = this.rows.find(r => r.calendar_id?.id === roundId && String(r.user_id?.id) === u);
+        if (row) {
+          userCumulativeScores.set(u, (userCumulativeScores.get(u) || 0) + Number(row.score || 0));
+        }
+      }
+
+      const sorted = [...users].sort((a, b) => (userCumulativeScores.get(b) || 0) - (userCumulativeScores.get(a) || 0));
+      sorted.forEach((u, rankIdx) => {
+        const rank = rankIdx + 1;
+        let history = this.rankHistory.get(u);
+        if (!history) {
+          history = [];
+          this.rankHistory.set(u, history);
+        }
+        history[rIdx] = rank;
+      });
+    }
+  }
+
+  getRankTrend(row: StandingsBreakdownRow): { currentRank: number; delta: number; icon: string; text: string; class: string } {
+    const userId = String(row.user_id?.id || '');
+    const rIdx = this.rounds.findIndex(r => r.id === row.calendar_id?.id);
+    const history = this.rankHistory.get(userId);
+
+    if (!history || rIdx < 0 || history[rIdx] === undefined) {
+      return { currentRank: 0, delta: 0, icon: 'remove', text: '-', class: 'trend-neutral' };
+    }
+
+    const currentRank = history[rIdx];
+    if (rIdx === 0) {
+      return { currentRank, delta: 0, icon: 'remove', text: `${currentRank}°`, class: 'trend-neutral' };
+    }
+
+    const prevRank = history[rIdx - 1];
+    const delta = prevRank - currentRank; // > 0 means moved UP (e.g. from 5th to 3rd = +2)
+
+    if (delta > 0) {
+      return { currentRank, delta, icon: 'arrow_upward', text: `${currentRank}° (+${delta})`, class: 'trend-up' };
+    } else if (delta < 0) {
+      return { currentRank, delta, icon: 'arrow_downward', text: `${currentRank}° (${delta})`, class: 'trend-down' };
+    }
+    return { currentRank, delta: 0, icon: 'remove', text: `${currentRank}° (=)`, class: 'trend-neutral' };
+  }
+
+  get currentSelectedRaceBreakdown(): {
+    hasData: boolean;
+    raceName: string;
+    targetName: string;
+    qualifyingTotal: number;
+    raceTotal: number;
+    sprintBetTotal: number;
+    raceBetTotal: number;
+    grandTotal: number;
+  } {
+    const rows = this.filteredRows;
+    if (!rows.length) {
+      return { hasData: false, raceName: '', targetName: '', qualifyingTotal: 0, raceTotal: 0, sprintBetTotal: 0, raceBetTotal: 0, grandTotal: 0 };
+    }
+
+    const raceName = rows[0].calendar_id?.race_id?.name || 'Weekend';
+    const targetRow = this.selectedParticipantId
+      ? rows[0]
+      : (rows.find(r => r.user_id?.id === this.loggedUserId) || rows[0]);
+
+    return {
+      hasData: true,
+      raceName,
+      targetName: this.fullName(targetRow),
+      qualifyingTotal: Number(targetRow.qualifying_score || 0),
+      raceTotal: Number(targetRow.race_score || 0),
+      sprintBetTotal: Number(this.sprintBetValue(targetRow)),
+      raceBetTotal: Number(this.raceBetValue(targetRow)),
+      grandTotal: Number(targetRow.score || 0)
+    };
   }
 
   /* ── Chart: state ── */

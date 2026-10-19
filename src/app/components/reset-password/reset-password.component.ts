@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import * as CryptoJS from 'crypto-js';
 import { AuthService } from '../../services/auth.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { NavigationService } from '../../services/navigation.service';
 
 
 @Component({
@@ -138,7 +139,12 @@ export class ResetPasswordComponent {
   errorMessage: string | null = null;
   showPassword: boolean = false;
 
-  constructor(private formBuilder: FormBuilder, private authService: AuthService, private router: Router) {
+  constructor(
+    private formBuilder: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private navService: NavigationService
+  ) {
     this.resetForm = this.formBuilder.group({
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]]
@@ -150,7 +156,7 @@ export class ResetPasswordComponent {
   }
 
   goBack(): void {
-    this.router.navigate(['/']);
+    this.navService.back('/');
   }
 
   onSave(): void {

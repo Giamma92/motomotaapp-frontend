@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
+import { NavigationService } from '../../services/navigation.service';
 
 @Component({
   selector: 'app-user-info',
@@ -223,7 +224,11 @@ export class UserInfoComponent implements OnInit {
   userInfo: UserInfo | null = null;
   @ViewChild('notLoggedIn', { static: true }) notLoggedIn!: TemplateRef<any>;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private navService: NavigationService
+  ) {}
 
   ngOnInit(): void {
     this.authService.getUserInfo().subscribe({
@@ -245,6 +250,6 @@ export class UserInfoComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/']);
+    this.navService.back('/');
   }
 }

@@ -447,6 +447,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return count ?? 0;
   }
 
+  maxLineups = 5;
+
+  getRiderQuotaPct(riderId: number): number {
+    const used = this.getRiderLineupsCount(riderId);
+    return Math.min(100, Math.round((used / this.maxLineups) * 100));
+  }
+
+  getRemainingUses(riderId: number): number {
+    const used = this.getRiderLineupsCount(riderId);
+    return Math.max(0, this.maxLineups - used);
+  }
+
   getRiderRaceCount(riderId: number): number {
     const count = this.ridersRaceCount.has(riderId) ? this.ridersRaceCount.get(riderId) : 0;
     return count ?? 0;
@@ -591,6 +603,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
           race_scoring: this.getRaceScoringPoints(),
           sprint_scoring: this.getSprintScoringPoints()
         };
+        if (config?.formation_limit_driver) {
+          this.maxLineups = config.formation_limit_driver;
+        }
         this.loadingConfig = false;
         this.computeButtonVisibility();
         this.cdr.markForCheck();

@@ -113,6 +113,163 @@ app-race-detail {
     border-color: rgba(255, 110, 132, 0.26);
   }
 
+  /* ═══════════════ Race Action Hub ("Cosa puoi fare adesso") ═══════════════ */
+
+  .race-action-hub {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 0.85rem;
+    padding: 1rem 1.15rem;
+    border-radius: var(--radius-lg, 14px);
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    transition: all 0.25s ease;
+
+    &.action-hub--urgent {
+      background: linear-gradient(135deg, rgba(200, 16, 46, 0.28) 0%, rgba(20, 20, 25, 0.8) 100%);
+      border-color: rgba(200, 16, 46, 0.45);
+      box-shadow: 0 4px 20px rgba(200, 16, 46, 0.2);
+
+      .action-hub-badge {
+        background: var(--primary-color, #c8102e);
+        color: #fff;
+      }
+
+      .action-hub-btn {
+        background: linear-gradient(135deg, #c8102e 0%, #e52d27 100%);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(200, 16, 46, 0.4);
+      }
+    }
+
+    &.action-hub--active {
+      background: linear-gradient(135deg, rgba(46, 204, 113, 0.12) 0%, rgba(20, 20, 25, 0.8) 100%);
+      border-color: rgba(46, 204, 113, 0.35);
+
+      .action-hub-badge {
+        background: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+        border: 1px solid rgba(46, 204, 113, 0.4);
+      }
+
+      .action-hub-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #fff;
+      }
+    }
+
+    &.action-hub--done {
+      background: rgba(46, 204, 113, 0.08);
+      border-color: rgba(46, 204, 113, 0.25);
+
+      .action-hub-badge {
+        background: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+      }
+    }
+
+    &.action-hub--closed {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.08);
+
+      .action-hub-badge {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.7);
+      }
+    }
+  }
+
+  .action-hub-body {
+    flex: 1 1 260px;
+    min-width: 0;
+  }
+
+  .action-hub-topline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .action-hub-kicker {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .action-hub-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+
+    mat-icon {
+      font-size: 12px;
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  .action-hub-title {
+    margin: 0 0 2px 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+
+  .action-hub-subtitle {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .action-hub-cta-wrap {
+    flex: 0 0 auto;
+  }
+
+  .action-hub-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 999px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    .btn-arrow {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      margin-left: 2px;
+    }
+  }
+
   .race-kicker,
   .action-eyebrow,
   .kv-key {

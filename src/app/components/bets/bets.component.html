@@ -20,6 +20,10 @@
           <i class="fa-regular fa-clock"></i>
           Chiude {{ formatDeadline(deadline) }}
         </span>
+        <span class="hero-pill hero-pill-countdown" [class.hero-pill-expired]="isDeadlinePassed" *ngIf="countdownText">
+          <i class="fa-solid fa-stopwatch"></i>
+          {{ countdownText }}
+        </span>
         <span class="hero-pill" *ngIf="sprintTimeLabel as sprint">
           <i class="fa-solid fa-gauge-high"></i>
           {{ sprint }}
@@ -78,12 +82,12 @@
             [disabled]="existingBetsCurrentRace.length === 0"
             matTooltip="{{ 'bets.viewExistingBetsTooltip' | t }}"
           >
-            Gestisci
+            Gestisci ({{ existingBetsCurrentRace.length }})
           </button>
         </div>
 
         <p class="empty-note" *ngIf="existingBetsCurrentRace.length === 0">
-          Nessuna scommessa ancora per questa gara: parti dal passo 1 qui sotto.
+          Nessuna scommessa ancora per questa gara: seleziona pilota, posizione e posta qui sotto.
         </p>
 
         <ul class="placed-list" *ngIf="existingBetsCurrentRace.length > 0">
@@ -99,259 +103,290 @@
         </ul>
       </section>
 
-      <form [formGroup]="betForm" (ngSubmit)="onSubmit()">
-        <!-- ── Step 1: rider ── -->
-        <section class="bet-step" [class.step-filled]="!!selectedRiderId">
-          <header class="step-head">
-            <span class="step-index">1</span>
-            <span class="step-copy">
-              <span class="summary-label">Scegli il pilota</span>
-              <strong>{{ selectedRider ? (selectedRider.rider_id.first_name + ' ' + selectedRider.rider_id.last_name) : 'Nessuna selezione' }}</strong>
-            </span>
-            <span class="step-state ok-tag" *ngIf="selectedRiderId">
-              <i class="fa-solid fa-check"></i> Fatto
-            </span>
-          </header>
-
-          <p class="step-hint" *ngIf="availableRiders.length === 0">Caricamento piloti...</p>
-
-          <div class="rider-grid" role="list" aria-label="Lista piloti selezionabili" *ngIf="availableRiders.length > 0">
-            <button
-              type="button"
-              class="rider-card"
-              *ngFor="let rider of availableRiders"
-              role="listitem"
-              [class.selected]="selectedRiderId === rider.rider_id.id"
-              [class.unavailable]="isRiderUnavailable(rider)"
-              [disabled]="isRiderUnavailable(rider) || isFormLocked"
-              (click)="selectRiderCard(rider.rider_id.id)"
-            >
-              <span class="rider-check" *ngIf="selectedRiderId === rider.rider_id.id">
-                <i class="fa-solid fa-circle-check"></i>
+      <form [formGroup]="betForm" (ngSubmit)="onSubmit()" class="bet-form-layout">
+        <!-- ── Left Column (Desktop) / Step 1 (Mobile) ── -->
+        <div class="bet-col-left">
+          <!-- ── Step 1: rider ── -->
+          <section class="bet-step bet-step-rider" [class.step-filled]="!!selectedRiderId">
+            <header class="step-head">
+              <span class="step-index">1</span>
+              <span class="step-copy">
+                <span class="summary-label">Scegli il pilota</span>
+                <strong>{{ selectedRider ? (selectedRider.rider_id.first_name + ' ' + selectedRider.rider_id.last_name) : 'Nessuna selezione' }}</strong>
               </span>
-              <span class="rider-number">#{{ rider.rider_id.number }}</span>
-              <div class="rider-copy">
-                <strong>{{ rider.rider_id.first_name }} {{ rider.rider_id.last_name }}</strong>
-                <span class="rider-team" *ngIf="rider.constructor_id?.name">{{ rider.constructor_id.name }}</span>
-                <span class="rider-usage" *ngIf="!pilotUsesUnlimited">
-                  {{ getRiderUsageCount(rider.rider_id.id) }} / {{ maxBetsPerPilot }} utilizzi ·
-                  {{ getRiderRemainingUses(rider.rider_id.id) }} liberi
-                </span>
-                <span class="rider-usage" *ngIf="pilotUsesUnlimited">
-                  {{ getRiderUsageCount(rider.rider_id.id) }} utilizzi · nessun limite
-                </span>
-                <span class="rider-reason" *ngIf="getRiderDisabledReason(rider) as reason">
-                  <i class="fa-solid fa-lock"></i> {{ reason }}
-                </span>
-              </div>
-            </button>
-          </div>
-        </section>
+              <span class="step-state ok-tag" *ngIf="selectedRiderId">
+                <i class="fa-solid fa-check"></i> Fatto
+              </span>
+            </header>
 
-        <!-- ── Step 2: position ── -->
-        <section class="bet-step" [class.step-filled]="!!positionValue">
-          <header class="step-head">
-            <span class="step-index">2</span>
-            <span class="step-copy">
-              <span class="summary-label">Scegli la posizione</span>
-              <strong>{{ positionValue ? 'P' + positionValue + ' / P' + (positionValue + 1) : 'Posizione finale del pilota' }}</strong>
-            </span>
-            <span class="step-state ok-tag" *ngIf="positionValue">
-              <i class="fa-solid fa-check"></i> Fatto
-            </span>
-          </header>
-
-          <div class="position-grid" role="group" aria-label="Posizioni selezionabili" *ngIf="positionOptions.length > 0">
-            <button
-              type="button"
-              class="pos-chip"
-              *ngFor="let p of positionOptions"
-              [class.selected]="positionValue === p"
-              [disabled]="isFormLocked"
-              [attr.aria-pressed]="positionValue === p"
-              (click)="setPosition(p)"
-            >
-              P{{ p }}
-            </button>
-          </div>
-
-          <div class="win-rule" *ngIf="positionValue">
-            <i class="fa-solid fa-trophy"></i>
-            <span>
-              Vincente se il pilota chiude <strong>{{ positionValue }}°</strong>
-              oppure <strong>{{ positionValue + 1 }}°</strong>
-            </span>
-          </div>
-
-          <p class="step-hint" *ngIf="!positionValue">
-            Seleziona la posizione finale: la scommessa vale per quella posizione e per la successiva.
-          </p>
-        </section>
-
-        <!-- ── Step 3: points ── -->
-        <section class="bet-step" [class.step-filled]="!!pointsValue">
-          <header class="step-head">
-            <span class="step-index">3</span>
-            <span class="step-copy">
-              <span class="summary-label">Scegli la posta</span>
-              <strong>{{ pointsValue ? pointsValue + ' punti' : 'Quanti punti rischi' }}</strong>
-            </span>
-            <span class="step-state ok-tag" *ngIf="pointsValue">
-              <i class="fa-solid fa-check"></i> Fatto
-            </span>
-          </header>
-
-          <div class="points-row">
-            <button
-              type="button"
-              class="step-btn"
-              [disabled]="isFormLocked || pointsValue <= 1"
-              (click)="stepPoints(-5)"
-              aria-label="Riduci posta"
-            >
-              <i class="fa-solid fa-minus"></i>
-            </button>
-            <label class="points-field">
+            <!-- Search box for riders -->
+            <div class="rider-search-box" *ngIf="availableRiders.length > 0">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
               <input
-                type="number"
-                formControlName="points"
-                min="1"
-                [max]="remainingPoints"
-                inputmode="numeric"
-                aria-label="Punti da puntare"
+                type="text"
+                [(ngModel)]="riderSearchQuery"
+                [ngModelOptions]="{standalone: true}"
+                placeholder="Cerca pilota per nome, numero (#) o team..."
+                aria-label="Cerca pilota"
               />
-              <span class="points-unit">pt</span>
-            </label>
-            <button
-              type="button"
-              class="step-btn"
-              [disabled]="isFormLocked || pointsValue >= remainingPoints"
-              (click)="stepPoints(5)"
-              aria-label="Aumenta posta"
-            >
-              <i class="fa-solid fa-plus"></i>
-            </button>
+              <button
+                *ngIf="riderSearchQuery"
+                type="button"
+                class="search-clear-btn"
+                (click)="riderSearchQuery = ''"
+                aria-label="Cancella ricerca"
+              >
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <p class="step-hint" *ngIf="availableRiders.length === 0">Caricamento piloti...</p>
+            <p class="step-hint" *ngIf="availableRiders.length > 0 && filteredRiders.length === 0">
+              Nessun pilota trovato per "{{ riderSearchQuery }}".
+            </p>
+
+            <div class="rider-grid" role="list" aria-label="Lista piloti selezionabili" *ngIf="filteredRiders.length > 0">
+              <button
+                type="button"
+                class="rider-card"
+                *ngFor="let rider of filteredRiders"
+                role="listitem"
+                [class.selected]="selectedRiderId === rider.rider_id.id"
+                [class.unavailable]="isRiderUnavailable(rider)"
+                [disabled]="isRiderUnavailable(rider) || isFormLocked"
+                (click)="selectRiderCard(rider.rider_id.id)"
+              >
+                <span class="rider-check" *ngIf="selectedRiderId === rider.rider_id.id">
+                  <i class="fa-solid fa-circle-check"></i>
+                </span>
+                <span class="rider-number">#{{ rider.rider_id.number }}</span>
+                <div class="rider-copy">
+                  <strong>{{ rider.rider_id.first_name }} {{ rider.rider_id.last_name }}</strong>
+                  <span class="rider-team" *ngIf="rider.constructor_id?.name">{{ rider.constructor_id.name }}</span>
+                  <span class="rider-usage" *ngIf="!pilotUsesUnlimited">
+                    {{ getRiderUsageCount(rider.rider_id.id) }} / {{ maxBetsPerPilot }} utilizzi ·
+                    {{ getRiderRemainingUses(rider.rider_id.id) }} liberi
+                  </span>
+                  <span class="rider-usage" *ngIf="pilotUsesUnlimited">
+                    {{ getRiderUsageCount(rider.rider_id.id) }} utilizzi · nessun limite
+                  </span>
+                  <span class="rider-reason" *ngIf="getRiderDisabledReason(rider) as reason">
+                    <i class="fa-solid fa-lock"></i> {{ reason }}
+                  </span>
+                </div>
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <!-- ── Right Column (Desktop) / Steps 2, 3, Receipt, Actions (Mobile) ── -->
+        <div class="bet-col-right">
+          <!-- ── Step 2: position ── -->
+          <section class="bet-step bet-step-pos" [class.step-filled]="!!positionValue">
+            <header class="step-head">
+              <span class="step-index">2</span>
+              <span class="step-copy">
+                <span class="summary-label">Scegli la posizione</span>
+                <strong>{{ positionValue ? 'P' + positionValue + ' / P' + (positionValue + 1) : 'Posizione finale del pilota' }}</strong>
+              </span>
+              <span class="step-state ok-tag" *ngIf="positionValue">
+                <i class="fa-solid fa-check"></i> Fatto
+              </span>
+            </header>
+
+            <div class="position-grid" role="group" aria-label="Posizioni selezionabili" *ngIf="positionOptions.length > 0">
+              <button
+                type="button"
+                class="pos-chip"
+                *ngFor="let p of positionOptions"
+                [class.selected]="positionValue === p"
+                [disabled]="isFormLocked"
+                [attr.aria-pressed]="positionValue === p"
+                (click)="setPosition(p)"
+              >
+                P{{ p }}
+              </button>
+            </div>
+
+            <div class="win-rule" *ngIf="positionValue">
+              <i class="fa-solid fa-trophy"></i>
+              <span>
+                Vincente se il pilota chiude <strong>{{ positionValue }}°</strong>
+                oppure <strong>{{ positionValue + 1 }}°</strong>
+              </span>
+            </div>
+
+            <p class="step-hint" *ngIf="!positionValue">
+              Seleziona la posizione finale: la scommessa vale per quella posizione e per la successiva.
+            </p>
+          </section>
+
+          <!-- ── Step 3: points ── -->
+          <section class="bet-step bet-step-pts" [class.step-filled]="!!pointsValue">
+            <header class="step-head">
+              <span class="step-index">3</span>
+              <span class="step-copy">
+                <span class="summary-label">Scegli la posta</span>
+                <strong>{{ pointsValue ? pointsValue + ' punti' : 'Quanti punti rischi' }}</strong>
+              </span>
+              <span class="step-state ok-tag" *ngIf="pointsValue">
+                <i class="fa-solid fa-check"></i> Fatto
+              </span>
+            </header>
+
+            <div class="points-row">
+              <button
+                type="button"
+                class="step-btn"
+                [disabled]="isFormLocked || pointsValue <= 1"
+                (click)="stepPoints(-5)"
+                aria-label="Riduci posta"
+              >
+                <i class="fa-solid fa-minus"></i>
+              </button>
+              <label class="points-field">
+                <input
+                  type="number"
+                  formControlName="points"
+                  min="1"
+                  [max]="remainingPoints"
+                  inputmode="numeric"
+                  aria-label="Punti da puntare"
+                />
+                <span class="points-unit">pt</span>
+              </label>
+              <button
+                type="button"
+                class="step-btn"
+                [disabled]="isFormLocked || pointsValue >= remainingPoints"
+                (click)="stepPoints(5)"
+                aria-label="Aumenta posta"
+              >
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+
+            <div class="points-presets" *ngIf="remainingPoints > 0">
+              <button
+                type="button"
+                *ngFor="let q of pointsPresets"
+                class="preset-chip"
+                [class.selected]="pointsValue === q"
+                [disabled]="isFormLocked"
+                (click)="setPoints(q)"
+              >
+                {{ q }}
+              </button>
+              <button
+                type="button"
+                class="preset-chip preset-all"
+                [class.selected]="pointsValue > 0 && pointsValue === remainingPoints"
+                [disabled]="isFormLocked"
+                (click)="setPoints(remainingPoints)"
+              >
+                Tutto
+              </button>
+            </div>
+
+            <p class="step-hint" *ngIf="pointsValue">
+              Dopo questa giocata ti restano <strong>{{ pointsAfterBet }}</strong> punti su {{ maxPointsPerBet }}.
+            </p>
+            <p class="step-hint" *ngIf="!pointsValue">
+              Minimo 1 punto. Residui disponibili: <strong>{{ remainingPoints }}</strong>.
+            </p>
+
+            <p class="field-error" *ngIf="pointsMaxError">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              {{ 'bets.remainingPoints' | t:{remaining: remainingPoints} }}
+            </p>
+            <p class="field-error" *ngIf="pointsMinError">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              {{ 'bets.pointsRequired' | t }}
+            </p>
+          </section>
+
+          <!-- Form-level state -->
+          <div class="form-level-error" *ngIf="betForm.hasError('maxBetsReached')">
+            <mat-icon>error</mat-icon>
+            {{ 'bets.maxBetsReached' | t:{max: maxBetsPerRace} }}
           </div>
 
-          <div class="points-presets" *ngIf="remainingPoints > 0">
+          <!-- Receipt -->
+          <section class="bet-receipt" *ngIf="selectedRiderId || positionValue || pointsValue">
+            <div class="receipt-head">
+              <h3>Riepilogo giocata</h3>
+              <span class="meta-tag ok-tag" *ngIf="lastSavedBetSummary">
+                <i class="fa-solid fa-circle-check"></i> Salvata
+              </span>
+            </div>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span class="summary-label">Pilota</span>
+                <strong>{{ selectedRider ? getSelectedRiderLabel() : 'Da scegliere' }}</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Posizione</span>
+                <strong>{{ positionValue ? 'P' + positionValue + ' / P' + (positionValue + 1) : 'Da scegliere' }}</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Posta</span>
+                <strong>{{ pointsValue || 0 }} pt</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Residui</span>
+                <strong>{{ pointsAfterBet }} pt</strong>
+              </div>
+            </div>
+          </section>
+
+          <!-- Actions -->
+          <div class="bet-actions-panel">
             <button
-              type="button"
-              *ngFor="let q of pointsPresets"
-              class="preset-chip"
-              [class.selected]="pointsValue === q"
-              [disabled]="isFormLocked"
-              (click)="setPoints(q)"
+              mat-raised-button
+              color="primary"
+              class="save-button"
+              [disabled]="betForm.invalid || loading"
+              (click)="onSubmit()"
             >
-              {{ q }}
+              <mat-icon>{{ loading ? 'hourglass_top' : 'save' }}</mat-icon>
+              {{ loading ? ('bets.submitting' | t) : (('bets.save.' + betType) | t) }}
             </button>
-            <button
-              type="button"
-              class="preset-chip preset-all"
-              [class.selected]="pointsValue > 0 && pointsValue === remainingPoints"
-              [disabled]="isFormLocked"
-              (click)="setPoints(remainingPoints)"
-            >
-              Tutto
-            </button>
+            <div class="secondary-actions">
+              <button
+                mat-stroked-button
+                type="button"
+                class="secondary-button"
+                (click)="openLineupModal()"
+                [disabled]="!existingLineup"
+                matTooltip="{{ 'bets.viewLineupTooltip' | t }}"
+              >
+                <mat-icon>groups</mat-icon>
+                Formazione
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                class="secondary-button"
+                (click)="openExistingBetsModal()"
+                [disabled]="existingBetsCurrentRace.length === 0"
+                matTooltip="{{ 'bets.viewExistingBetsTooltip' | t }}"
+              >
+                <mat-icon>receipt_long</mat-icon>
+                Scommesse ({{ existingBetsCurrentRace.length }})
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                class="secondary-button"
+                (click)="router.navigate(['/race-detail', raceId])"
+              >
+                <mat-icon>flag</mat-icon>
+                Dettaglio gara
+              </button>
+            </div>
           </div>
-
-          <p class="step-hint" *ngIf="pointsValue">
-            Dopo questa giocata ti restano <strong>{{ pointsAfterBet }}</strong> punti su {{ maxPointsPerBet }}.
-          </p>
-          <p class="step-hint" *ngIf="!pointsValue">
-            Minimo 1 punto. Residui disponibili: <strong>{{ remainingPoints }}</strong>.
-          </p>
-
-          <p class="field-error" *ngIf="pointsMaxError">
-            <i class="fa-solid fa-circle-exclamation"></i>
-            {{ 'bets.remainingPoints' | t:{remaining: remainingPoints} }}
-          </p>
-          <p class="field-error" *ngIf="pointsMinError">
-            <i class="fa-solid fa-circle-exclamation"></i>
-            {{ 'bets.pointsRequired' | t }}
-          </p>
-        </section>
-
-        <!-- Form-level state -->
-        <div class="form-level-error" *ngIf="betForm.hasError('maxBetsReached')">
-          <mat-icon>error</mat-icon>
-          {{ 'bets.maxBetsReached' | t:{max: maxBetsPerRace} }}
         </div>
       </form>
-
-      <!-- Receipt -->
-      <section class="bet-receipt" *ngIf="selectedRiderId || positionValue || pointsValue">
-        <div class="receipt-head">
-          <h3>Riepilogo giocata</h3>
-          <span class="meta-tag ok-tag" *ngIf="lastSavedBetSummary">
-            <i class="fa-solid fa-circle-check"></i> Salvata
-          </span>
-        </div>
-        <div class="summary-grid">
-          <div class="summary-item">
-            <span class="summary-label">Pilota</span>
-            <strong>{{ selectedRider ? getSelectedRiderLabel() : 'Da scegliere' }}</strong>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Posizione</span>
-            <strong>{{ positionValue ? 'P' + positionValue + ' / P' + (positionValue + 1) : 'Da scegliere' }}</strong>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Posta</span>
-            <strong>{{ pointsValue || 0 }} pt</strong>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Residui</span>
-            <strong>{{ pointsAfterBet }} pt</strong>
-          </div>
-        </div>
-      </section>
     </mat-card-content>
-
-    <mat-card-actions class="bet-actions">
-      <button
-        mat-raised-button
-        color="primary"
-        class="save-button"
-        [disabled]="betForm.invalid || loading"
-        (click)="onSubmit()"
-      >
-        <mat-icon>{{ loading ? 'hourglass_top' : 'save' }}</mat-icon>
-        {{ loading ? ('bets.submitting' | t) : (('bets.save.' + betType) | t) }}
-      </button>
-      <div class="secondary-actions">
-        <button
-          mat-stroked-button
-          type="button"
-          class="secondary-button"
-          (click)="openLineupModal()"
-          [disabled]="!existingLineup"
-          matTooltip="{{ 'bets.viewLineupTooltip' | t }}"
-        >
-          <mat-icon>groups</mat-icon>
-          Formazione
-        </button>
-        <button
-          mat-stroked-button
-          type="button"
-          class="secondary-button"
-          (click)="openExistingBetsModal()"
-          [disabled]="existingBetsCurrentRace.length === 0"
-          matTooltip="{{ 'bets.viewExistingBetsTooltip' | t }}"
-        >
-          <mat-icon>receipt_long</mat-icon>
-          Scommesse
-        </button>
-        <button
-          mat-stroked-button
-          type="button"
-          class="secondary-button"
-          (click)="router.navigate(['/race-detail', raceId])"
-        >
-          <mat-icon>flag</mat-icon>
-          Dettaglio gara
-        </button>
-      </div>
-    </mat-card-actions>
   </mat-card>
 </div>

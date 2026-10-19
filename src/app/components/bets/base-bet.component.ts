@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, OnDestroy, inject } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
 import { Router, ActivatedRoute } from "@angular/router";
@@ -12,11 +12,13 @@ import { DateUtils } from "../../utils/date-utils";
 import { ExistingBetsModalComponent } from "./existing-bets-modal/existing-bets-modal.component";
 import { LineupModalComponent } from "./lineup-modal/lineup-modal.component";
 import { NotificationServiceService } from "../../services/notification.service";
+import { NavigationService } from "../../services/navigation.service";
 
 @Component({
   template: ''
 })
-export abstract class BaseBetComponent implements OnInit {
+export abstract class BaseBetComponent implements OnInit, OnDestroy {
+  protected navService = inject(NavigationService);
   abstract betForm: FormGroup;
   abstract betType: 'sprint' | 'race';
   abstract get betEndpoint(): string;
@@ -30,6 +32,10 @@ export abstract class BaseBetComponent implements OnInit {
   raceTitle = '';
   loading = false;
   riders: ChampionshipRider[] = [];
+  riderSearchQuery = '';
+  countdownText = '';
+  isDeadlinePassed = false;
+  private countdownTimer: ReturnType<typeof setInterval> | null = null;
   protected champId = 0;
   protected raceId: string | null = '';
   protected championshipConfig: ChampionshipConfig | null = null;
@@ -160,6 +166,17 @@ export abstract class BaseBetComponent implements OnInit {
 
   get availableRiders(): ChampionshipRider[] {
     return this.riders;
+  }
+
+  get filteredRiders(): ChampionshipRider[] {
+    const q = this.riderSearchQuery.trim().toLowerCase();
+    if (!q) return this.riders;
+    return this.riders.filter(r => {
+      const fullName = `${r.rider_id.first_name} ${r.rider_id.last_name}`.toLowerCase();
+      const num = String(r.rider_id.number);
+      const team = (r.constructor_id?.name || '').toLowerCase();
+      return fullName.includes(q) || num.includes(q) || team.includes(q);
+    });
   }
 
   getRiderUsageCount(riderId: number): number {
@@ -411,13 +428,60 @@ export abstract class BaseBetComponent implements OnInit {
       next: (race) => {
         this.calendarRace = race;
         this.raceTitle = race.race_id.name;
+        this.startCountdown();
       },
       error: (err) => console.error('Failed to load race details', err)
     });
   }
 
   goBack() {
-    this.router.navigate(['/']);
+    this.navService.back(this.raceId ? `/race-detail/${this.raceId}` : '/calendar');
+  }
+
+  startCountdown(): void {
+    this.updateCountdown();
+    if (!this.countdownTimer) {
+      this.countdownTimer = setInterval(() => this.updateCountdown(), 1000);
+    }
+  }
+
+  updateCountdown(): void {
+    const deadline = this.windowDeadline;
+    if (!deadline) {
+      this.countdownText = '';
+      this.isDeadlinePassed = false;
+      return;
+    }
+    const diff = deadline.getTime() - Date.now();
+    if (diff <= 0) {
+      this.countdownText = 'Finestra chiusa';
+      this.isDeadlinePassed = true;
+      return;
+    }
+    this.isDeadlinePassed = false;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+
+    if (days > 0) {
+      this.countdownText = `${days}g ${hours}h ${minutes}m rimanenti`;
+    } else if (hours > 0) {
+      const padM = String(minutes).padStart(2, '0');
+      const padS = String(seconds).padStart(2, '0');
+      this.countdownText = `${hours}h ${padM}m ${padS}s rimanenti`;
+    } else {
+      const padM = String(minutes).padStart(2, '0');
+      const padS = String(seconds).padStart(2, '0');
+      this.countdownText = `${padM}m ${padS}s rimanenti`;
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+      this.countdownTimer = null;
+    }
   }
 
   private loadChampionshipConfiguration(champId: number): void {
@@ -426,6 +490,7 @@ export abstract class BaseBetComponent implements OnInit {
         this.championshipConfig = config;
         this.updatePointsValidation();
         this.updateMaxBetsValidation();
+        this.startCountdown();
       },
       error: (err) => console.error('Failed to load championship configuration', err)
     });

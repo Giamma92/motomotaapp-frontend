@@ -10,6 +10,7 @@ import { DashboardService, StandingsCalculationResponse, CalendarRace } from '..
 import { AuthService } from '../../services/auth.service';
 import { NotificationServiceService } from '../../services/notification.service';
 import { I18nService } from '../../services/i18n.service';
+import { NavigationService } from '../../services/navigation.service';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 
 type SessionKey = 'Q1' | 'Q2' | 'SPR' | 'RAC';
@@ -384,7 +385,8 @@ export class MotoGPResultsComponent implements OnInit {
     private router: Router,
     private authService: AuthService,
     private notificationService: NotificationServiceService,
-    private i18n: I18nService
+    private i18n: I18nService,
+    private navService: NavigationService
   ) {}
 
   ngOnInit(): void {
@@ -425,9 +427,7 @@ export class MotoGPResultsComponent implements OnInit {
   }
 
   goBack(): void {
-    const prevNavUrl = this.router.lastSuccessfulNavigation?.previousNavigation?.initialUrl;
-    if (prevNavUrl) this.router.navigateByUrl(prevNavUrl);
-    else this.router.navigate(['/calendar']);
+    this.navService.back(this.calendarId ? `/race-detail/${this.calendarId}` : '/calendar');
   }
 
   // ===== Session switching =====

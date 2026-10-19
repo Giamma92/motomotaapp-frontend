@@ -965,6 +965,101 @@
   border-color: rgba(200, 16, 46, 0.28);
 }
 
+/* ═══════════════ Calendar filter bar & completion badges ═══════════════ */
+
+.calendar-filter-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  background: var(--surface-card, rgba(255, 255, 255, 0.04));
+  color: var(--text-secondary, #b0b4bd);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary, #fff);
+  }
+
+  &--active {
+    background: var(--primary-color, #c8102e);
+    color: #fff;
+    border-color: var(--primary-color, #c8102e);
+    box-shadow: 0 4px 12px rgba(200, 16, 46, 0.35);
+  }
+}
+
+.badge-completion {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+
+  mat-icon {
+    font-size: 13px;
+    width: 13px;
+    height: 13px;
+  }
+
+  &.completion-complete {
+    background: rgba(46, 204, 113, 0.14);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+  }
+
+  &.completion-partial {
+    background: rgba(241, 196, 15, 0.14);
+    color: #f1c40f;
+    border: 1px solid rgba(241, 196, 15, 0.3);
+  }
+
+  &.completion-empty {
+    background: rgba(230, 126, 34, 0.14);
+    color: #e67e22;
+    border: 1px solid rgba(230, 126, 34, 0.3);
+  }
+
+  &.completion-missed {
+    background: rgba(149, 165, 166, 0.14);
+    color: #95a5a6;
+    border: 1px solid rgba(149, 165, 166, 0.25);
+  }
+
+  &.completion-cancelled {
+    background: rgba(231, 76, 60, 0.12);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.25);
+  }
+}
+
+.col-status {
+  width: 140px;
+}
+
 /* ═══════════════ Focus & a11y ═══════════════ */
 
 .race-panel-toggle:focus-visible,

@@ -67,12 +67,19 @@
         box-shadow: 0 4px 12px rgba(255, 255, 255, 0.04);
       }
 
-      .mat-expansion-panel-header {
-        min-height: 68px;
-        height: auto;
-        padding: 8px 10px;
+      .mat-expansion-panel-header,
+      .mat-expansion-panel-header.mat-expanded {
+        min-height: 88px !important;
+        height: auto !important;
+        padding: 12px 14px !important;
         background: transparent;
         border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+
+        .mat-content {
+          overflow: visible !important;
+          height: auto !important;
+          margin-right: 8px;
+        }
       }
 
       .mat-expansion-panel-body {
@@ -139,9 +146,28 @@
 
           .rider-name-row {
             display: flex;
-            align-items: baseline;
+            align-items: center;
             gap: 8px;
             min-width: 0;
+          }
+
+          .rider-racing-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: 22px;
+            padding: 0 6px;
+            border-radius: 4px;
+            background: var(--primary-color, #c8102e);
+            font-family: 'MotoGP Bold', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            transform: skew(-6deg);
+            flex: 0 0 auto;
           }
 
           .rider-name {
@@ -154,18 +180,52 @@
             overflow: hidden;
             text-overflow: ellipsis;
           }
-        }
 
-        .rider-header-number {
-          color: var(--primary-color, #c8102e);
-          border-left: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
-          padding-left: 8px;
-          font-size: 0.76rem;
-          letter-spacing: 0.15px;
-          font-weight: 600;
-          font-family: 'MotoGP Bold', sans-serif;
-          white-space: nowrap;
-          flex: 0 0 auto;
+          .rider-quota-strip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+            width: 100%;
+          }
+
+          .quota-track {
+            flex: 1 1 80px;
+            max-width: 130px;
+            height: 5px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            overflow: hidden;
+          }
+
+          .quota-fill {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            background: var(--primary-color, #c8102e);
+            transition: width 0.3s ease;
+          }
+
+          .quota-text {
+            font-size: 0.72rem;
+            color: var(--text-secondary, #b0b4bd);
+            font-weight: 600;
+            white-space: nowrap;
+
+            strong {
+              color: var(--text-primary, #fff);
+            }
+          }
+
+          .quota-remaining {
+            margin-left: 3px;
+            color: var(--text-muted, #6b7080);
+
+            &--full {
+              color: #e74c3c;
+              font-weight: 700;
+            }
+          }
         }
       }
     }

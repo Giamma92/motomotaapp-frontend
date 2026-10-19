@@ -19,6 +19,7 @@ import { UserSettingAdminComponent } from './user-setting-admin/user-setting-adm
 import { UserRoleAdminComponent } from './user-role-admin/user-role-admin.component';*/
 import { style, animate, transition, trigger } from '@angular/animations';
 import { Route, Router } from '@angular/router';
+import { NavigationService } from '../../services/navigation.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -115,11 +116,11 @@ import { Route, Router } from '@angular/router';
 })
 export class AdminDashboardComponent {
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private navService: NavigationService) {
   }
 
   goBack(): void {
-    this.router.navigate(['/']);
+    this.navService.back('/');
   }
 
 }

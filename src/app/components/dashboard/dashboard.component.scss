@@ -79,6 +79,14 @@
   display: contents;
 }
 
+@media (max-width: 767px) {
+  .grid-content {
+    padding-top: calc(var(--app-header-height, 58px) + 6px);
+    padding-inline: 8px;
+    padding-bottom: 84px;
+  }
+}
+
 @media (min-width: 768px) and (max-width: 1023px) {
   .grid-content {
     padding: var(--content-offset-top) 32px 20px;

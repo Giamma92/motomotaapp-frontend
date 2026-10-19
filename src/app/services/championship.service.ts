@@ -1,6 +1,6 @@
 // src/app/services/championship.service.ts
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, shareReplay } from 'rxjs';
 import { HttpService } from './http.service';
 
 export interface Championship {
@@ -56,13 +56,21 @@ export class ChampionshipService {
     this.subjChampObs = this.subjChampId.asObservable();
   }
 
+  private defaultChamp$?: Observable<Championship>;
+  private configCache = new Map<number, Observable<ChampionshipConfig>>();
+
   getChampIdObs(): Observable<number> {
     return this.subjChampObs;
   }
 
-  // Fetch default championship (current year)
-  getDefaultChampionship(): Observable<Championship> {
-    return this.httpService.genericGet<Championship>(`championship/default`);
+  // Fetch default championship (current year) with caching
+  getDefaultChampionship(forceRefresh = false): Observable<Championship> {
+    if (forceRefresh || !this.defaultChamp$) {
+      this.defaultChamp$ = this.httpService.genericGet<Championship>(`championship/default`).pipe(
+        shareReplay(1)
+      );
+    }
+    return this.defaultChamp$;
   }
 
   // Fetch all championships
@@ -70,8 +78,16 @@ export class ChampionshipService {
     return this.httpService.genericGet<Championship[]>(`championships`);
   }
 
-  getChampionshipConfig(championshipId: number): Observable<ChampionshipConfig> {
-    return this.httpService.genericGet<ChampionshipConfig>(`championship/${championshipId}/config`);
+  getChampionshipConfig(championshipId: number, forceRefresh = false): Observable<ChampionshipConfig> {
+    if (forceRefresh || !this.configCache.has(championshipId)) {
+      this.configCache.set(
+        championshipId,
+        this.httpService.genericGet<ChampionshipConfig>(`championship/${championshipId}/config`).pipe(
+          shareReplay(1)
+        )
+      );
+    }
+    return this.configCache.get(championshipId)!;
   }
 
   /** Create a new championship */

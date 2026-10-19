@@ -12,6 +12,7 @@ import { ChampionshipService } from '../../services/championship.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { RaceDetailService, RaceDetails, LineupsResult } from '../../services/race-detail.service';
 import { LineupModalComponent } from '../bets/lineup-modal/lineup-modal.component';
+import { NavigationService } from '../../services/navigation.service';
 
 interface StatTile {
   icon: string;
@@ -144,13 +145,12 @@ interface TeamView {
                   *ngFor="let r of v.riders"
                   class="rider-panel app-expansion-panel"
                   [ngClass]="r.tier"
+                  [style.--maker-accent]="makerColor(makerFor(r.rider))"
                 >
                   <mat-expansion-panel-header class="rider-header">
                     <div class="rider-header-main">
-                      <span class="rider-role">{{ r.roleKey | t }}</span>
-                      <div class="rider-name-row">
-                        <span class="rider-name">{{ r.rider.first_name }} {{ r.rider.last_name }}</span>
-                        <span class="rider-header-number">#{{ r.rider.number }}</span>
+                      <div class="rider-meta-topline">
+                        <span class="rider-role">{{ r.roleKey | t }}</span>
                         <span
                           class="maker-chip"
                           *ngIf="makerFor(r.rider)"
@@ -160,14 +160,21 @@ interface TeamView {
                           <i class="fa-solid fa-circle"></i><span class="maker-name">{{ makerFor(r.rider) }}</span>
                         </span>
                       </div>
+                      <div class="rider-name-row">
+                        <span class="rider-racing-badge" [style.background]="makerColor(makerFor(r.rider))">#{{ r.rider.number }}</span>
+                        <span class="rider-name">{{ r.rider.first_name }} {{ r.rider.last_name }}</span>
+                      </div>
+                      <div class="rider-quota-strip">
+                        <div class="quota-track">
+                          <span class="quota-fill" [style.width.%]="getRiderQuotaPct(r.lineups)" [style.background]="makerColor(makerFor(r.rider))"></span>
+                        </div>
+                        <span class="quota-text">
+                          <strong>{{ r.lineups }}</strong>/{{ maxLineups }}
+                          <span class="quota-remaining" *ngIf="getRemainingUses(r.lineups) > 0">({{ getRemainingUses(r.lineups) }} liberi)</span>
+                          <span class="quota-remaining quota-remaining--full" *ngIf="getRemainingUses(r.lineups) === 0">Esaurito</span>
+                        </span>
+                      </div>
                     </div>
-                    <span
-                      class="usage-pill"
-                      [attr.title]="'dashboard.team.lineupsUsed' | t"
-                      [attr.aria-label]="('dashboard.team.lineupsUsed' | t) + ': ' + r.lineups"
-                    >
-                      <i class="fa-solid fa-clipboard-list"></i>{{ r.lineups }}
-                    </span>
                   </mat-expansion-panel-header>
                   <div class="rider-info">
                     <div class="rider-stats">
@@ -218,6 +225,7 @@ export class AllTeamsComponent implements OnInit {
   tiles: StatTile[] = [];
   loading = true;
   loadError = false;
+  maxLineups = 5;
 
   private champId = 0;
   private racesDetails?: RaceDetails;
@@ -233,7 +241,8 @@ export class AllTeamsComponent implements OnInit {
     private championshipService: ChampionshipService,
     private raceDetailService: RaceDetailService,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private navService: NavigationService
   ) {}
 
   ngOnInit(): void {
@@ -320,6 +329,25 @@ export class AllTeamsComponent implements OnInit {
         finish();
       }
     });
+
+    // 5) Configurazione campionato (per limite formazioni)
+    this.championshipService.getChampionshipConfig(champId).subscribe({
+      next: (config) => {
+        if (config?.formation_limit_driver) {
+          this.maxLineups = config.formation_limit_driver;
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  getRiderQuotaPct(lineups: number): number {
+    if (!this.maxLineups) return 0;
+    return Math.min(100, Math.round((lineups / this.maxLineups) * 100));
+  }
+
+  getRemainingUses(lineups: number): number {
+    return Math.max(0, this.maxLineups - lineups);
   }
 
   /* ═══════════════ View-model ═══════════════ */
@@ -578,6 +606,6 @@ export class AllTeamsComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/']);
+    this.navService.back('/');
   }
 }

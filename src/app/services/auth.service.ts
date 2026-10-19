@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of, tap, shareReplay } from 'rxjs';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { environment } from '../../environments/environment';
 
@@ -24,6 +24,8 @@ export interface UserInfo {
 })
 export class AuthService {
   private apiUrl = environment.apiUrl;
+  private cachedUserInfo: UserInfo | null = null;
+  private userInfo$?: Observable<UserInfo>;
 
   constructor(private http: HttpClient) {}
 
@@ -34,6 +36,8 @@ export class AuthService {
   // Optionally add methods to store/retrieve the token and check authentication state.
   setToken(token: string): void {
     localStorage.setItem('token', token);
+    this.cachedUserInfo = null;
+    this.userInfo$ = undefined;
   }
 
   getToken(): string | null {
@@ -42,10 +46,24 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem('token');
+    this.cachedUserInfo = null;
+    this.userInfo$ = undefined;
   }
 
-  getUserInfo(): Observable<UserInfo> {
-    return this.http.get<UserInfo>(`${this.apiUrl}/user-info`, { headers: this.getAuthHeader() });
+  getUserInfo(forceRefresh = false): Observable<UserInfo> {
+    if (!forceRefresh && this.cachedUserInfo) {
+      return of(this.cachedUserInfo);
+    }
+    if (!forceRefresh && this.userInfo$) {
+      return this.userInfo$;
+    }
+    this.userInfo$ = this.http.get<UserInfo>(`${this.apiUrl}/user-info`, { headers: this.getAuthHeader() }).pipe(
+      tap(user => {
+        this.cachedUserInfo = user;
+      }),
+      shareReplay(1)
+    );
+    return this.userInfo$;
   }
 
   getAuthHeader() {

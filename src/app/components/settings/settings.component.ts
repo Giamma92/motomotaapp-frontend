@@ -13,6 +13,7 @@ import { I18nService } from '../../services/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationServiceService } from '../../services/notification.service';
 import { InAppNotificationService, NotificationSettings } from '../../services/in-app-notification.service';
+import { NavigationService } from '../../services/navigation.service';
 
 @Component({
   selector: 'app-settings',
@@ -141,7 +142,8 @@ export class SettingsComponent implements OnInit {
     private router: Router,
     private i18n: I18nService,
     private notificationService: NotificationServiceService,
-    private inAppNotificationService: InAppNotificationService
+    private inAppNotificationService: InAppNotificationService,
+    private navService: NavigationService
   ) {
     this.settingsForm = this.fb.group({
       championship_id: ['', Validators.required],
@@ -262,6 +264,6 @@ export class SettingsComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/']);
+    this.navService.back('/');
   }
 }

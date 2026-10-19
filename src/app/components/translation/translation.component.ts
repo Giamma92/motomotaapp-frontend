@@ -14,6 +14,7 @@ import { I18nService, Translation } from '../../services/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { HttpService } from '../../services/http.service';
 import { NotificationServiceService } from '../../services/notification.service';
+import { NavigationService } from '../../services/navigation.service';
 
 interface TranslationKey {
   key: string;
@@ -328,7 +329,8 @@ export class TranslationComponent implements OnInit {
     private authService: AuthService,
     private i18n: I18nService,
     private httpService: HttpService,
-    private notificationService: NotificationServiceService
+    private notificationService: NotificationServiceService,
+    private navService: NavigationService
   ) {
     this.translationForm = this.fb.group({
       key: ['', [Validators.required]],
@@ -433,6 +435,6 @@ export class TranslationComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/']);
+    this.navService.back('/admin');
   }
 }

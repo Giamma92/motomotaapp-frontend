@@ -83,8 +83,40 @@
         </div>
       </section>
 
+      <!-- ── Filter bar (desktop & mobile) ── -->
+      <section class="calendar-filter-bar" aria-label="Filtri calendario">
+        <button
+          type="button"
+          class="filter-chip"
+          [class.filter-chip--active]="calendarFilter === 'all'"
+          (click)="calendarFilter = 'all'">
+          Tutte ({{ calendar.length }})
+        </button>
+        <button
+          type="button"
+          class="filter-chip"
+          [class.filter-chip--active]="calendarFilter === 'open'"
+          (click)="calendarFilter = 'open'">
+          Prossime / In corso ({{ openRacesCount }})
+        </button>
+        <button
+          type="button"
+          class="filter-chip"
+          [class.filter-chip--active]="calendarFilter === 'past'"
+          (click)="calendarFilter = 'past'">
+          Concluse ({{ pastRacesCount }})
+        </button>
+      </section>
+
+      <!-- ── Empty filtered state ── -->
+      <section class="app-panel card-state" *ngIf="filteredCalendar.length === 0">
+        <mat-icon class="state-icon">filter_alt_off</mat-icon>
+        <p class="state-title">Nessuna gara trovata per il filtro selezionato.</p>
+        <button mat-stroked-button (click)="calendarFilter = 'all'" style="margin-top: 8px;">Mostra tutte</button>
+      </section>
+
       <!-- ── Desktop: season progress + table ── -->
-      <section class="table-card desktop-only">
+      <section class="table-card desktop-only" *ngIf="filteredCalendar.length > 0">
         <div class="season-progress">
           <div class="season-progress-copy">
             <span class="card-kicker">Stagione</span>
@@ -102,6 +134,7 @@
               <tr>
                 <th class="col-round">{{ 'calendar.table.round' | t }}</th>
                 <th class="col-event">{{ 'calendar.table.event' | t }}</th>
+                <th class="col-status">Tua Giocata</th>
                 <th class="col-date">{{ 'calendar.table.date' | t }}</th>
                 <th class="col-session">{{ 'calendar.table.qualifying' | t }}</th>
                 <th class="col-session">{{ 'calendar.table.sprint' | t }}</th>
@@ -111,9 +144,8 @@
             </thead>
             <tbody>
               <tr
-                *ngFor="let race of calendar; let i = index"
-                [class.row-next]="i === currentRaceIndex && !race.cancelled"
-                [class.row-past]="i < currentRaceIndex && !race.cancelled"
+                *ngFor="let race of filteredCalendar; let i = index"
+                [class.row-next]="race.id === featuredRace?.id && !race.cancelled"
                 [class.row-cancelled]="race.cancelled">
                 <td class="col-round">
                   <span class="round-badge">{{ race.race_order }}</span>
@@ -124,16 +156,21 @@
                     <span class="cancelled-pill" *ngIf="race.cancelled">Cancellata</span>
                     <span
                       class="state-pill"
-                      *ngIf="!race.cancelled && i <= currentRaceIndex"
-                      [class.state-pill--next]="i === currentRaceIndex"
-                      [class.state-pill--past]="i < currentRaceIndex">
-                      {{ getMobileRaceStateLabel(race, i) }}
+                      *ngIf="!race.cancelled && race.id === featuredRace?.id"
+                      class="state-pill--next">
+                      {{ getMobileRaceStateLabel(race) }}
                     </span>
                   </div>
                   <div class="event-location">
                     <mat-icon>location_on</mat-icon>
                     {{ race.race_id.location }}
                   </div>
+                </td>
+                <td class="col-status">
+                  <span class="badge-completion" [ngClass]="getRaceCompletionBadge(race).class">
+                    <mat-icon>{{ getRaceCompletionBadge(race).icon }}</mat-icon>
+                    <span>{{ getRaceCompletionBadge(race).label }}</span>
+                  </span>
                 </td>
                 <td class="col-date">
                   <span class="detail-text">{{ formatEventRange(race.event_date) }}</span>
@@ -177,22 +214,21 @@
       </section>
 
       <!-- ── Mobile: timeline list ── -->
-      <section class="mobile-timeline mobile-only">
+      <section class="mobile-timeline mobile-only" *ngIf="filteredCalendar.length > 0">
         <details
           class="calendar-race-panel"
-          *ngFor="let race of calendar; let i = index"
-          [attr.open]="isRacePanelInitiallyOpen(i) ? true : null"
-          [class.calendar-race-panel--featured]="i === currentRaceIndex && !race.cancelled"
-          [class.calendar-race-panel--past]="i < currentRaceIndex && !race.cancelled"
-          [class.calendar-race-panel--future]="i > currentRaceIndex && !race.cancelled"
+          *ngFor="let race of filteredCalendar; let i = index"
+          [attr.open]="isRacePanelInitiallyOpen(calendar.indexOf(race)) ? true : null"
+          [class.calendar-race-panel--featured]="race.id === featuredRace?.id && !race.cancelled"
           [class.calendar-race-panel--cancelled]="race.cancelled">
           <summary class="card-header race-panel-toggle">
             <div class="header-content">
               <div class="header-topline">
                 <div class="round-badge">{{ 'calendar.raceNum' | t:{num: race.race_order} }}</div>
                 <div class="header-topline-right">
-                  <span class="race-state-pill" [class.race-state-pill--current]="i === currentRaceIndex" [class.race-state-pill--past]="i < currentRaceIndex" [class.race-state-pill--future]="i > currentRaceIndex">
-                    {{ getMobileRaceStateLabel(race, i) }}
+                  <span class="badge-completion" [ngClass]="getRaceCompletionBadge(race).class">
+                    <mat-icon>{{ getRaceCompletionBadge(race).icon }}</mat-icon>
+                    <span>{{ getRaceCompletionBadge(race).label }}</span>
                   </span>
                   <span class="cancelled-pill" *ngIf="race.cancelled">Cancellata</span>
                   <span class="panel-chevron" aria-hidden="true">
@@ -214,9 +250,9 @@
                 </div>
               </div>
               <div class="race-personal-status">
-                <span class="status-pill" [class.status-pill-complete]="hasCompletedLineup(race)" [class.status-pill-missing]="!hasCompletedLineup(race)">Schieramento {{ hasCompletedLineup(race) ? 'ok' : 'manca' }}</span>
-                <span class="status-pill" [class.status-pill-complete]="hasCompletedSprintBet(race)" [class.status-pill-missing]="!hasCompletedSprintBet(race)">Sprint {{ hasCompletedSprintBet(race) ? 'ok' : 'manca' }}</span>
-                <span class="status-pill" [class.status-pill-complete]="hasCompletedRaceBet(race)" [class.status-pill-missing]="!hasCompletedRaceBet(race)">Race {{ hasCompletedRaceBet(race) ? 'ok' : 'manca' }}</span>
+                <span class="status-pill" [class.status-pill-complete]="hasCompletedLineup(race)" [class.status-pill-missing]="!hasCompletedLineup(race)">Schieramento {{ hasCompletedLineup(race) ? '✓' : '✗' }}</span>
+                <span class="status-pill" [class.status-pill-complete]="hasCompletedSprintBet(race)" [class.status-pill-missing]="!hasCompletedSprintBet(race)">Sprint {{ hasCompletedSprintBet(race) ? '✓' : '✗' }}</span>
+                <span class="status-pill" [class.status-pill-complete]="hasCompletedRaceBet(race)" [class.status-pill-missing]="!hasCompletedRaceBet(race)">Race {{ hasCompletedRaceBet(race) ? '✓' : '✗' }}</span>
               </div>
             </div>
           </summary>

@@ -12,6 +12,7 @@ app-all-teams {
   .main-content {
     width: 100%;
     max-width: none;
+    padding-bottom: calc(var(--app-bottom-nav-height, 64px) + 28px);
   }
 
   .loading-container { padding: 4rem 1rem; }
@@ -288,18 +289,32 @@ app-all-teams {
   .rider-panel {
     border-radius: 14px;
     border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    border-left: 4px solid var(--maker-accent, var(--primary-color, #c8102e));
     background: var(--surface-elevated, #22262e);
     box-shadow: none;
     overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    }
   }
 
-  .rider-panel .mat-expansion-panel-header {
-    min-height: 68px;
-    padding: 10px 12px;
+  .rider-panel .mat-expansion-panel-header,
+  .rider-panel .mat-expansion-panel-header.mat-expanded {
+    height: auto !important;
+    min-height: 88px !important;
+    padding: 12px 14px !important;
+
+    .mat-content {
+      overflow: visible !important;
+      height: auto !important;
+      margin-right: 8px;
+    }
   }
 
   .rider-panel .mat-expansion-panel-body {
-    padding: 0 12px 12px;
+    padding: 0 14px 14px;
   }
 
   .rider-header {
@@ -308,10 +323,19 @@ app-all-teams {
   }
 
   .rider-header-main {
-    display: grid;
-    gap: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
     flex: 1;
     min-width: 0;
+    padding: 2px 0;
+  }
+
+  .rider-meta-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
 
   .rider-role {
@@ -327,17 +351,75 @@ app-all-teams {
 
   .rider-name-row {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 8px;
     min-width: 0;
   }
 
-  .rider-name-row .rider-name {
-    flex: 1 1 auto;
+  .rider-racing-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 4px;
+    font-family: 'MotoGP Bold', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transform: skew(-6deg);
+    flex: 0 0 auto;
   }
 
-  .rider-name-row .rider-header-number {
-    flex-shrink: 0;
+  .rider-quota-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+    padding-bottom: 2px;
+  }
+
+  .quota-track {
+    flex: 0 1 110px;
+    min-width: 60px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+    overflow: hidden;
+  }
+
+  .quota-fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+
+  .quota-text {
+    font-size: 0.76rem;
+    color: var(--text-secondary, #b0b4bd);
+    font-weight: 600;
+    white-space: nowrap;
+    line-height: 1.2;
+
+    strong {
+      color: var(--text-primary, #ffffff);
+      font-weight: 700;
+    }
+  }
+
+  .quota-remaining {
+    margin-left: 4px;
+    color: var(--text-muted, #808695);
+    font-weight: 500;
+
+    &--full {
+      color: #e74c3c;
+      font-weight: 700;
+    }
   }
 
   .rider-name {
@@ -350,16 +432,6 @@ app-all-teams {
     font-size: 0.98rem;
     line-height: 1.14;
     font-weight: 700;
-  }
-
-  .rider-header-number {
-    flex: 0 0 auto;
-    padding-left: 8px;
-    border-left: 1px solid var(--border-medium, rgba(255, 255, 255, 0.12));
-    color: var(--primary-color, #c8102e);
-    font-family: 'MotoGP Bold', sans-serif;
-    font-size: 0.78rem;
-    font-weight: 600;
   }
 
   /* Chip team/costruttore (condiviso con la pagina risultati) */
