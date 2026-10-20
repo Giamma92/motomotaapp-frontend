@@ -12,7 +12,7 @@ app-all-teams {
   .main-content {
     width: 100%;
     max-width: none;
-    padding-bottom: calc(var(--app-bottom-nav-height, 64px) + 28px);
+    padding-bottom: calc(var(--app-bottom-nav-height, 64px) + env(safe-area-inset-bottom, 24px) + 36px) !important;
   }
 
   .loading-container { padding: 4rem 1rem; }
@@ -320,6 +320,31 @@ app-all-teams {
   .rider-header {
     display: flex;
     align-items: center;
+  }
+
+  .rider-thumb-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    overflow: hidden;
+    flex-shrink: 0;
+    margin-right: 12px;
+    background: var(--surface-muted, #18181b);
+    border: 1.5px solid var(--border-medium, rgba(255, 255, 255, 0.12));
+    box-shadow: var(--shadow-sm, 0 4px 12px rgba(0, 0, 0, 0.3));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .rider-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 12%;
+    transform-origin: 50% 18%;
+    transform: scale(1.45);
+    display: block;
   }
 
   .rider-header-main {
@@ -668,5 +693,45 @@ app-all-teams {
     /* Mantenuto: il nome pilota si contrae con l'ellipsis, chip e numero restano visibili */
     .rider-name { font-size: 0.9rem; }
     .maker-chip { padding: 1px 5px; }
+  }
+
+  /* ═══════════════ Light Theme Overrides ═══════════════ */
+  :host-context([data-theme='light']) &,
+  [data-theme='light'] & {
+    .team-card {
+      background: #ffffff;
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+
+      &:hover {
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    .team-top {
+      background: #fafafa;
+      border-bottom-color: rgba(0, 0, 0, 0.06);
+    }
+
+    .rank-badge {
+      background: #ffffff;
+      border-color: rgba(0, 0, 0, 0.1);
+      color: #52525b;
+    }
+
+    .rider-panel {
+      background: #f8f9fa;
+      border-color: rgba(0, 0, 0, 0.06);
+    }
+
+    .rider-thumb-wrap {
+      background: #f0f1f4;
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .quota-track {
+      background: rgba(0, 0, 0, 0.08);
+    }
   }
 }

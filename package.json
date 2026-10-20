@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --host 0.0.0.0",
     "start-prod": "ng serve --configuration production",
     "build-dev": "ng build --configuration development",
     "build": "ng build",
@@ -36,6 +36,7 @@
     "@angular/build": "^20.3.18",
     "@angular/cli": "^20.3.18",
     "@angular/compiler-cli": "^20.3.17",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/crypto-js": "^4.2.2",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.5.0",
@@ -44,6 +45,8 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "postcss": "^8.5.31",
+    "tailwindcss": "^4.3.3",
     "typescript": "~5.9.3"
   }
 }

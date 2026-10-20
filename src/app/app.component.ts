@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { InstallPromptComponent } from "./components/intall-prompt/install-prompt.component";
 import { UpdateNotificationComponent } from './components/update-notification/update-notification.component';
 import { AppBottomNavComponent } from './components/app-nav/app-bottom-nav.component';
+import { SessionTimerComponent } from './components/session-timer/session-timer.component';
 import { UpdateService } from './services/update.service';
 import { I18nService } from './services/i18n.service';
 import { timer } from 'rxjs';
@@ -11,9 +12,10 @@ import { switchMap } from 'rxjs/operators';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, InstallPromptComponent, UpdateNotificationComponent, AppBottomNavComponent],
+  imports: [RouterOutlet, InstallPromptComponent, UpdateNotificationComponent, AppBottomNavComponent, SessionTimerComponent],
   template: `
     <app-update-notification></app-update-notification>
+    <app-session-timer></app-session-timer>
     <app-install-prompt></app-install-prompt>
     <router-outlet></router-outlet>
     <app-bottom-nav></app-bottom-nav>

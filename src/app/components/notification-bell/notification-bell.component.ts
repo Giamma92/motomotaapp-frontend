@@ -88,15 +88,16 @@ import { Subscription } from 'rxjs';
       right: 0;
       width: 360px;
       max-height: 480px;
-      background: #1e1e2f;
-      border: 1px solid #333;
+      background: var(--surface-card, #1e1e2f);
+      border: 1px solid var(--border-medium, #333);
       border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      box-shadow: var(--shadow-lg, 0 8px 32px rgba(0,0,0,0.4));
       z-index: 1000;
       display: flex;
       flex-direction: column;
       margin-top: 8px;
       overflow: hidden;
+      color: var(--text-primary, #eee);
     }
     .dropdown-header {
       display: flex;
@@ -105,12 +106,13 @@ import { Subscription } from 'rxjs';
       flex-wrap: wrap;
       gap: 8px;
       padding: 12px 16px;
-      border-bottom: 1px solid #333;
+      background: var(--surface-elevated, #22262e);
+      border-bottom: 1px solid var(--border-subtle, #333);
     }
     .dropdown-title {
-      font-weight: 600;
+      font-weight: 700;
       font-size: 14px;
-      color: #eee;
+      color: var(--text-primary, #eee);
     }
     .dropdown-actions {
       display: flex;
@@ -121,25 +123,28 @@ import { Subscription } from 'rxjs';
       background: none;
       border: none;
       font-size: 12px;
+      font-weight: 600;
       cursor: pointer;
       padding: 4px 8px;
       border-radius: 6px;
+      transition: background 0.15s ease;
     }
     .mark-all-read-btn {
-      color: #90caf9;
+      color: var(--primary-color, #c8102e);
     }
     .mark-all-read-btn:hover {
-      background: rgba(144,202,249,0.1);
+      background: rgba(200, 16, 46, 0.08);
     }
     .clear-read-btn {
-      color: #ef9a9a;
+      color: #ef5350;
     }
     .clear-read-btn:hover {
-      background: rgba(239,154,154,0.1);
+      background: rgba(239,83,80,0.1);
     }
     .dropdown-body {
       overflow-y: auto;
       flex: 1;
+      background: var(--surface-card, #1e1e2f);
     }
     .notification-empty {
       display: flex;
@@ -147,12 +152,12 @@ import { Subscription } from 'rxjs';
       align-items: center;
       justify-content: center;
       padding: 32px 16px;
-      // #666 on the dark dropdown failed contrast
-      color: #8b909c;
+      color: var(--text-muted, #8b909c);
       gap: 8px;
     }
     .notification-empty i {
       font-size: 24px;
+      color: var(--text-muted, #8b909c);
     }
     .notification-empty span {
       font-size: 13px;
@@ -165,7 +170,7 @@ import { Subscription } from 'rxjs';
       background: rgba(239,83,80,0.1);
       color: #ef5350;
       font-size: 12px;
-      border-top: 1px solid #333;
+      border-top: 1px solid var(--border-subtle, #333);
     }
     .push-error i {
       font-size: 14px;
@@ -177,24 +182,24 @@ import { Subscription } from 'rxjs';
       padding: 12px 16px;
       cursor: pointer;
       transition: background 0.15s;
-      border-bottom: 1px solid #2a2a3d;
+      border-bottom: 1px solid var(--border-subtle, #2a2a3d);
     }
     .notification-item:hover {
       background: rgba(255,255,255,0.04);
     }
     .notification-item.unread {
-      background: rgba(144,202,249,0.06);
+      background: rgba(200, 16, 46, 0.06);
     }
     .notif-icon {
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      background: #333;
+      background: var(--surface-muted, #333);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      color: #90caf9;
+      color: var(--primary-color, #c8102e);
       font-size: 14px;
     }
     .notif-content {
@@ -203,29 +208,91 @@ import { Subscription } from 'rxjs';
     }
     .notif-title {
       font-size: 13px;
-      font-weight: 600;
-      color: #eee;
+      font-weight: 700;
+      color: var(--text-primary, #eee);
       margin-bottom: 2px;
     }
     .notif-body {
       font-size: 12px;
-      color: #999;
+      color: var(--text-secondary, #999);
       margin-bottom: 4px;
-      line-height: 1.3;
+      line-height: 1.35;
     }
     .notif-time {
-      // Readability floor: >= 11.2px, contrast-safe on the dark dropdown
       font-size: 11.5px;
-      color: #8b909c;
+      color: var(--text-muted, #8b909c);
     }
     .notif-unread-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #42a5f5;
+      background: var(--primary-color, #c8102e);
       flex-shrink: 0;
       margin-top: 4px;
     }
+
+    /* Light Mode Overrides */
+    :host-context([data-theme='light']) .notification-dropdown,
+    :host-context(html[data-theme='light']) .notification-dropdown,
+    [data-theme='light'] .notification-dropdown {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
+      color: #111214;
+    }
+    :host-context([data-theme='light']) .dropdown-header,
+    :host-context(html[data-theme='light']) .dropdown-header,
+    [data-theme='light'] .dropdown-header {
+      background: #fbfbfb;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    :host-context([data-theme='light']) .dropdown-title,
+    :host-context(html[data-theme='light']) .dropdown-title,
+    [data-theme='light'] .dropdown-title {
+      color: #18181b;
+    }
+    :host-context([data-theme='light']) .dropdown-body,
+    :host-context(html[data-theme='light']) .dropdown-body,
+    [data-theme='light'] .dropdown-body {
+      background: #ffffff;
+    }
+    :host-context([data-theme='light']) .notification-item,
+    :host-context(html[data-theme='light']) .notification-item,
+    [data-theme='light'] .notification-item {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    :host-context([data-theme='light']) .notification-item:hover,
+    :host-context(html[data-theme='light']) .notification-item:hover,
+    [data-theme='light'] .notification-item:hover {
+      background: rgba(0, 0, 0, 0.03);
+    }
+    :host-context([data-theme='light']) .notification-item.unread,
+    :host-context(html[data-theme='light']) .notification-item.unread,
+    [data-theme='light'] .notification-item.unread {
+      background: rgba(200, 16, 46, 0.04);
+    }
+    :host-context([data-theme='light']) .notif-icon,
+    :host-context(html[data-theme='light']) .notif-icon,
+    [data-theme='light'] .notif-icon {
+      background: #f4f4f5;
+      color: #c8102e;
+    }
+    :host-context([data-theme='light']) .notif-title,
+    :host-context(html[data-theme='light']) .notif-title,
+    [data-theme='light'] .notif-title {
+      color: #18181b;
+    }
+    :host-context([data-theme='light']) .notif-body,
+    :host-context(html[data-theme='light']) .notif-body,
+    [data-theme='light'] .notif-body {
+      color: #52525b;
+    }
+    :host-context([data-theme='light']) .notif-time,
+    :host-context(html[data-theme='light']) .notif-time,
+    [data-theme='light'] .notif-time {
+      color: #71717a;
+    }
+
     @media (max-width: 480px) {
       .notification-dropdown {
         position: fixed;

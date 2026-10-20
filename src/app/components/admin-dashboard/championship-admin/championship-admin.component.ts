@@ -1,36 +1,9 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatTooltipModule } from '@angular/material/tooltip';
-
-import { ViewChild } from '@angular/core';
-import { MatPaginator } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
-   // Use MatSnackBar for notifications; you can replace this with your NotificationService if preferred
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { TranslatePipe } from '../../../pipes/translate.pipe';
-import { LocalizedDatePipe } from '../../../pipes/localized-date.pipe';
-import { ChampionshipService } from '../../../services/championship.service';
-import { DateUtils } from '../../../utils/date-utils';
-
-// Basic interface matching your table schema
-interface Championship {
-  id?: number;
-  description: string;
-  start_date: string;
-  year: number;
-}
+import { AdminService, AdminChampionship } from '../../../services/admin.service';
+import { ThemeService } from '../../../services/theme.service';
 
 @Component({
   selector: 'app-championship-admin',
@@ -38,170 +11,224 @@ interface Championship {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatTableModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatSnackBarModule,
-    MatCardModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatDividerModule,
-    MatTooltipModule,
-    TranslatePipe,
-    LocalizedDatePipe
+    MatSnackBarModule
   ],
   template: `
-    <mat-card class="champ-admin-card" @fadeIn>
-      <mat-card-header>
-        <mat-card-title>{{ 'admin.championships.manage' | t }}</mat-card-title>
-        <mat-card-subtitle>{{ 'admin.championships.subtitle' | t }}</mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content>
-        <!-- Filter bar -->
-        <div class="filter-bar">
-          <mat-form-field appearance="outline">
-            <mat-label>{{ 'admin.search' | t }}</mat-label>
-            <input matInput (keyup)="applyFilter($event)" placeholder="{{ 'admin.searchPlaceholder' | t }}" />
-            <i class="fa-solid fa-search" matSuffix></i>
-          </mat-form-field>
-        </div>
-
-        <mat-divider></mat-divider>
-
-        <!-- Form to add/update championships -->
-        <form [formGroup]="form" (ngSubmit)="save()" class="champ-form">
-          <div class="form-grid">
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'admin.championships.description' | t }}</mat-label>
-              <input matInput formControlName="description" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'admin.championships.startDate' | t }}</mat-label>
-              <input matInput [matDatepicker]="picker" formControlName="start_date" />
-              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-              <mat-datepicker #picker></mat-datepicker>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'admin.championships.year' | t }}</mat-label>
-              <input matInput type="number" formControlName="year" />
-            </mat-form-field>
+    <div class="space-y-6">
+      <!-- Header Sezione -->
+      <div class="rounded-2xl p-4 sm:p-5 border"
+           [ngClass]="theme.mode() === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#141720] border-white/10 shadow-md'">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-black tracking-tight m-0 flex items-center gap-2"
+                [ngClass]="theme.mode() === 'light' ? 'text-zinc-900' : 'text-white'">
+              <span class="w-7 h-7 rounded-lg bg-red-600/15 text-red-500 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-trophy"></i>
+              </span>
+              Gestione Campionati
+            </h3>
+            <p class="text-xs mt-1" [ngClass]="theme.mode() === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
+              Crea nuove stagioni o aggiorna le impostazioni e le date dei campionati Fanta MotoGP.
+            </p>
           </div>
 
-          <mat-card-actions align="start">
-            <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
-              {{ editingId ? ('admin.championships.saveBtn' | t) : ('admin.championships.addBtn' | t) }}
+          <button
+            type="button"
+            (click)="resetForm()"
+            *ngIf="editingId"
+            class="px-3 py-1.5 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+            [ngClass]="theme.mode() === 'light'
+              ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-200'
+              : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
+            <i class="fa-solid fa-xmark"></i>
+            <span>Annulla Modifica</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Form Creazione/Modifica Campionato -->
+      <div class="rounded-2xl p-4 sm:p-5 border"
+           [ngClass]="theme.mode() === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#141720] border-white/10 shadow-md'">
+        <h4 class="text-sm font-black mb-4 pb-2 border-b"
+            [ngClass]="theme.mode() === 'light' ? 'text-zinc-900 border-zinc-200' : 'text-white border-white/10'">
+          {{ editingId ? 'Modifica Campionato' : 'Crea Nuovo Campionato' }}
+        </h4>
+
+        <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider mb-1.5"
+                     [ngClass]="theme.mode() === 'light' ? 'text-zinc-700' : 'text-zinc-300'">
+                Descrizione / Titolo *
+              </label>
+              <input
+                type="text"
+                formControlName="description"
+                placeholder="Es. MotoGP 2026"
+                class="w-full text-xs font-semibold rounded-xl px-3 py-2.5 border outline-none transition"
+                [ngClass]="theme.mode() === 'light'
+                  ? 'bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-red-500'
+                  : 'bg-zinc-900 border-white/15 text-white focus:border-red-500'" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider mb-1.5"
+                     [ngClass]="theme.mode() === 'light' ? 'text-zinc-700' : 'text-zinc-300'">
+                Anno Solare *
+              </label>
+              <input
+                type="number"
+                formControlName="year"
+                placeholder="2026"
+                class="w-full text-xs font-semibold rounded-xl px-3 py-2.5 border outline-none transition"
+                [ngClass]="theme.mode() === 'light'
+                  ? 'bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-red-500'
+                  : 'bg-zinc-900 border-white/15 text-white focus:border-red-500'" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider mb-1.5"
+                     [ngClass]="theme.mode() === 'light' ? 'text-zinc-700' : 'text-zinc-300'">
+                Data Inizio (YYYY-MM-DD) *
+              </label>
+              <input
+                type="date"
+                formControlName="start_date"
+                class="w-full text-xs font-semibold rounded-xl px-3 py-2.5 border outline-none transition"
+                [ngClass]="theme.mode() === 'light'
+                  ? 'bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-red-500'
+                  : 'bg-zinc-900 border-white/15 text-white focus:border-red-500'" />
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button
+              type="submit"
+              [disabled]="form.invalid || saving"
+              class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition active:scale-95 disabled:opacity-50 cursor-pointer flex items-center gap-2">
+              <i class="fa-solid" [ngClass]="saving ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+              <span>{{ editingId ? 'Salva Modifiche' : 'Aggiungi Campionato' }}</span>
             </button>
-            <button mat-stroked-button type="button" (click)="resetForm()" *ngIf="editingId">
-              {{ 'admin.cancel' | t }}
+
+            <button
+              type="button"
+              *ngIf="editingId"
+              (click)="resetForm()"
+              class="px-4 py-2.5 rounded-xl border text-xs font-bold transition cursor-pointer"
+              [ngClass]="theme.mode() === 'light'
+                ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-200'
+                : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
+              Annulla
             </button>
-          </mat-card-actions>
+          </div>
         </form>
+      </div>
 
-        <mat-divider></mat-divider>
+      <!-- Elenco Campionati -->
+      <div class="rounded-2xl p-4 sm:p-5 border"
+           [ngClass]="theme.mode() === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#141720] border-white/10 shadow-md'">
+        <div class="flex items-center justify-between mb-4">
+          <h4 class="text-sm font-black m-0" [ngClass]="theme.mode() === 'light' ? 'text-zinc-900' : 'text-white'">
+            Campionati Registrati ({{ championships.length }})
+          </h4>
 
-        <!-- Championship list -->
-        <div class="table-wrapper">
-          <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z2">
-            <!-- Description column -->
-            <ng-container matColumnDef="description">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header> {{ 'admin.championships.description' | t }} </th>
-              <td mat-cell *matCellDef="let champ">{{ champ.description }}</td>
-            </ng-container>
-
-            <!-- Start date column -->
-            <ng-container matColumnDef="start_date">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header> {{ 'admin.championships.startDate' | t }} </th>
-              <td mat-cell *matCellDef="let champ">{{ champ.start_date | localizedDate:'date' }}</td>
-            </ng-container>
-
-            <!-- Year column -->
-            <ng-container matColumnDef="year">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header> {{ 'admin.championships.year' | t }} </th>
-              <td mat-cell *matCellDef="let champ">{{ champ.year }}</td>
-            </ng-container>
-
-            <!-- Actions column -->
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef> {{ 'admin.championships.actions' | t }} </th>
-              <td mat-cell *matCellDef="let champ">
-                <button mat-icon-button color="accent" (click)="edit(champ)" matTooltip="{{ 'admin.edit' | t }}">
-                  <i class="fa-solid fa-pencil"></i>
-                </button>
-                <button mat-icon-button color="warn" (click)="delete(champ)" matTooltip="{{ 'admin.delete' | t }}">
-                  <i class="fa-solid fa-trash"></i>
-                </button>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-          </table>
+          <button
+            type="button"
+            (click)="loadChampionships()"
+            [disabled]="loading"
+            class="px-3 py-1.5 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            [ngClass]="theme.mode() === 'light'
+              ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-200'
+              : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
+            <i class="fa-solid fa-rotate" [ngClass]="{'fa-spin': loading}"></i>
+            <span>Aggiorna</span>
+          </button>
         </div>
 
-        <mat-paginator [pageSizeOptions]="[5, 10, 25]" showFirstLastButtons></mat-paginator>
-      </mat-card-content>
-    </mat-card>
+        <div *ngIf="loading" class="py-12 text-center text-zinc-400">
+          <i class="fa-solid fa-spinner fa-spin text-2xl text-red-500"></i>
+          <p class="text-xs mt-2 font-medium">Caricamento campionati...</p>
+        </div>
 
-  `,
-  styles: [`
-    .champ-admin-card {
-      margin: 1rem;
-    }
+        <div *ngIf="!loading && championships.length === 0" class="py-12 text-center text-zinc-400">
+          Nessun campionato registrato.
+        </div>
 
-    .filter-bar {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 1rem;
-    }
-
-    .champ-form {
-      margin-top: 1rem;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 1rem;
-    }
-
-    .table-wrapper {
-      overflow-x: auto;
-      margin-top: 1rem;
-    }
-
-    @media (max-width: 600px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  `]
+        <div *ngIf="!loading && championships.length > 0" class="overflow-x-auto rounded-xl border"
+             [ngClass]="theme.mode() === 'light' ? 'border-zinc-200' : 'border-white/10'">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr [ngClass]="theme.mode() === 'light' ? 'bg-zinc-100 text-zinc-600' : 'bg-zinc-900/90 text-zinc-400'">
+                <th class="p-3 font-bold uppercase tracking-wider text-center w-16">ID</th>
+                <th class="p-3 font-bold uppercase tracking-wider">Titolo / Descrizione</th>
+                <th class="p-3 font-bold uppercase tracking-wider text-center">Anno</th>
+                <th class="p-3 font-bold uppercase tracking-wider">Data Inizio</th>
+                <th class="p-3 font-bold uppercase tracking-wider text-right w-24">Azioni</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y" [ngClass]="theme.mode() === 'light' ? 'divide-zinc-200' : 'divide-white/5'">
+              <tr *ngFor="let c of championships"
+                  class="transition-colors"
+                  [ngClass]="theme.mode() === 'light' ? 'hover:bg-zinc-50' : 'hover:bg-white/[0.02]'">
+                <td class="p-3 text-center font-mono font-bold text-zinc-400">
+                  {{ c.id }}
+                </td>
+                <td class="p-3">
+                  <div class="font-black text-sm" [ngClass]="theme.mode() === 'light' ? 'text-zinc-900' : 'text-white'">
+                    {{ c.description }}
+                  </div>
+                </td>
+                <td class="p-3 text-center font-bold">
+                  {{ c.year }}
+                </td>
+                <td class="p-3 font-mono text-zinc-400">
+                  {{ c.start_date }}
+                </td>
+                <td class="p-3 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button
+                      type="button"
+                      (click)="edit(c)"
+                      class="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition cursor-pointer"
+                      [ngClass]="theme.mode() === 'light' ? 'bg-zinc-200 hover:bg-zinc-300 text-zinc-700' : 'bg-white/10 hover:bg-white/15 text-zinc-300'"
+                      title="Modifica">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="deleteChamp(c)"
+                      class="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition cursor-pointer"
+                      [ngClass]="theme.mode() === 'light' ? 'bg-red-100 hover:bg-red-200 text-red-600' : 'bg-red-500/20 hover:bg-red-500/30 text-red-400'"
+                      title="Elimina">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `
 })
-export class ChampionshipAdminComponent implements OnInit, AfterViewInit  {
-  championships: Championship[] = [];
-  displayedColumns: string[] = ['description', 'start_date', 'year', 'actions'];
+export class ChampionshipAdminComponent implements OnInit {
+  championships: AdminChampionship[] = [];
   form: FormGroup;
   editingId: number | null = null;
-
-  dataSource = new MatTableDataSource<Championship>([]);
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
-
+  loading = false;
+  saving = false;
 
   constructor(
     private fb: FormBuilder,
-    private championshipService: ChampionshipService,
+    private adminService: AdminService,
+    public theme: ThemeService,
     private snackBar: MatSnackBar
   ) {
     this.form = this.fb.group({
       description: ['', Validators.required],
       start_date: ['', Validators.required],
-      year: ['', [Validators.required, Validators.min(1900)]]
+      year: [new Date().getFullYear(), [Validators.required, Validators.min(2000)]]
     });
   }
 
@@ -209,110 +236,98 @@ export class ChampionshipAdminComponent implements OnInit, AfterViewInit  {
     this.loadChampionships();
   }
 
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
-  }
-
-  /** Fetch all championships from Supabase */
-  private loadChampionships() {
-    this.championshipService.getChampionships().subscribe({
-      next: (champs: Championship[]) => {
-        this.dataSource.data = champs;
+  loadChampionships(): void {
+    this.loading = true;
+    this.adminService.getChampionships().subscribe({
+      next: (champs) => {
+        this.championships = champs || [];
+        this.loading = false;
       },
-      error: (err: any) => {
+      error: (err) => {
+        this.loading = false;
         console.error('Error fetching championships', err);
-        this.snackBar.open('Error loading championships', '', { duration: 4000 });
+        this.snackBar.open('Errore caricamento campionati', 'Chiudi', { duration: 4000 });
       }
     });
   }
 
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
-    this.dataSource.filter = filterValue;
-  }
-
-
-  /** Reset form and editing state */
-  resetForm() {
-    this.form.reset();
+  resetForm(): void {
+    this.form.reset({
+      year: new Date().getFullYear(),
+      description: '',
+      start_date: ''
+    });
     this.editingId = null;
   }
 
-  /** Populate form with championship values for editing */
-  edit(champ: Championship) {
-    this.editingId = champ.id ?? null;
+  edit(c: AdminChampionship): void {
+    this.editingId = c.id ?? null;
+    let sDate = c.start_date;
+    if (sDate && sDate.includes('T')) {
+      sDate = sDate.split('T')[0];
+    }
     this.form.patchValue({
-      description: champ.description,
-      start_date: new Date(champ.start_date),
-      year: champ.year
+      description: c.description,
+      start_date: sDate,
+      year: c.year
     });
   }
 
-  /** Add or update a championship */
-  save() {
+  save(): void {
     if (this.form.invalid) return;
+    this.saving = true;
 
-    const formValue = this.form.value;
-    const payload: Championship = {
-      description: formValue.description,
-      start_date: this.toISODate(formValue.start_date),
-      year: formValue.year
+    const val = this.form.value;
+    const payload: AdminChampionship = {
+      description: val.description,
+      start_date: val.start_date,
+      year: val.year
     };
 
     if (this.editingId == null) {
-      // Add new championship
-      this.championshipService.addChampionship(payload).subscribe({
+      this.adminService.createChampionship(payload).subscribe({
         next: () => {
-          this.snackBar.open('Championship added', '', { duration: 3000 });
+          this.saving = false;
+          this.snackBar.open('Campionato creato!', 'OK', { duration: 3000 });
           this.loadChampionships();
           this.resetForm();
         },
-        error: (err: any) => {
-          console.error('Error adding championship', err);
-          this.snackBar.open('Error adding championship', '', { duration: 4000 });
+        error: (err) => {
+          this.saving = false;
+          console.error('Error creating championship', err);
+          this.snackBar.open(err?.error?.message || 'Errore creazione campionato', 'Chiudi', { duration: 4000 });
         }
       });
     } else {
-      // Update existing championship
-      this.championshipService.updateChampionship(this.editingId, payload).subscribe({
+      this.adminService.updateChampionship(this.editingId, payload).subscribe({
         next: () => {
-          this.snackBar.open('Championship updated', '', { duration: 3000 });
+          this.saving = false;
+          this.snackBar.open('Campionato aggiornato!', 'OK', { duration: 3000 });
           this.loadChampionships();
           this.resetForm();
         },
-        error: (err: any) => {
+        error: (err) => {
+          this.saving = false;
           console.error('Error updating championship', err);
-          this.snackBar.open('Error updating championship', '', { duration: 4000 });
+          this.snackBar.open(err?.error?.message || 'Errore aggiornamento campionato', 'Chiudi', { duration: 4000 });
         }
       });
     }
   }
 
-  /** Delete a championship after confirmation */
-  delete(champ: Championship) {
-    // Use a confirmation dialog or simple confirm() as a placeholder
-    const ok = confirm('Are you sure you want to delete this championship?');
+  deleteChamp(c: AdminChampionship): void {
+    const ok = confirm(`Eliminare il campionato "${c.description}"?`);
     if (!ok) return;
 
-    this.championshipService.deleteChampionship(champ.id!).subscribe({
+    this.adminService.deleteChampionship(c.id!).subscribe({
       next: () => {
-        this.snackBar.open('Championship deleted', '', { duration: 3000 });
+        this.snackBar.open('Campionato eliminato!', 'OK', { duration: 3000 });
         this.loadChampionships();
       },
-      error: (err: any) => {
+      error: (err) => {
         console.error('Error deleting championship', err);
-        this.snackBar.open('Error deleting championship', '', { duration: 4000 });
+        this.snackBar.open(err?.error?.message || 'Errore eliminazione (contiene gare o team associati)', 'Chiudi', { duration: 5000 });
       }
     });
-  }
-
-  /** Convert Date object to ISO date string (yyyy-MM-dd) */
-  private toISODate(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const isoDate = `${year}-${month}-${day}`;
-    return DateUtils.parseLocalYyyyMmDd(isoDate) ? isoDate : '';
   }
 }

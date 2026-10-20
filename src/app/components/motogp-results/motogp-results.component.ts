@@ -7,10 +7,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { DashboardService, StandingsCalculationResponse, CalendarRace } from '../../services/dashboard.service';
+import { ChampionshipService } from '../../services/championship.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificationServiceService } from '../../services/notification.service';
 import { I18nService } from '../../services/i18n.service';
 import { NavigationService } from '../../services/navigation.service';
+import { MotoGPAssetService } from '../../services/motogp-asset.service';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 
 type SessionKey = 'Q1' | 'Q2' | 'SPR' | 'RAC';
@@ -132,8 +134,34 @@ interface StatTile {
         </div>
 
         <div *ngIf="!loading && !loadError && results" class="results-container" @cardAnimation>
+          <!-- ═══════════ ROUND PICKER STRIP ═══════════ -->
+          <div class="round-picker-strip" *ngIf="calendarList.length > 1">
+            <span class="round-picker-label"><i class="fa-solid fa-flag-checkered text-red-500"></i> GP:</span>
+            <div class="round-picker-scroll">
+              <button
+                *ngFor="let r of calendarList"
+                type="button"
+                class="round-picker-pill"
+                [class.round-picker-pill--active]="r.id === calendarId"
+                (click)="onSelectRace(r)">
+                <span class="pill-order">R{{ r.race_order }}</span>
+                <span class="pill-name">{{ r.race_id.name }}</span>
+              </button>
+            </div>
+          </div>
+
           <!-- ═══════════ HERO ═══════════ -->
-          <section class="results-hero">
+          <section class="results-hero relative overflow-hidden">
+            <!-- Ambient Circuit Track Layout Watermark -->
+            <div
+              *ngIf="raceInfo && assetService.getCircuitLayoutUrl(raceInfo.race_id?.country, raceInfo.race_id?.name) as trackUrl"
+              class="hero-circuit-wrap">
+              <img
+                [src]="trackUrl"
+                [alt]="heroTitle"
+                class="hero-circuit-img"
+                (error)="assetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')">
+            </div>
             <div class="hero-main">
               <span class="hero-kicker">
                 MotoGP {{ results.meta.year }}<ng-container *ngIf="raceInfo"> · Round {{ raceInfo.race_order }}</ng-container>
@@ -159,25 +187,7 @@ interface StatTile {
             </div>
           </section>
 
-          <!-- ═══════════ ADMIN ACTIONS ═══════════ -->
-          <mat-card *ngIf="isAdmin()" class="admin-actions-card">
-            <div class="card-header">
-              <i class="fa-solid fa-shield-halved"></i>
-              <span>{{ 'motogp.results.adminActions' | t }}</span>
-            </div>
-            <mat-card-content>
-              <div class="admin-buttons">
-                <button mat-raised-button color="primary" (click)="updateMotoGPResults()">
-                  <i class="fa-solid fa-download"></i>
-                  {{ 'motogp.results.updateMotoGPResults' | t }}
-                </button>
-                <button mat-raised-button color="accent" (click)="updateStandings()">
-                  <i class="fa-solid fa-arrows-rotate"></i>
-                  {{ 'motogp.results.updateStandings' | t }}
-                </button>
-              </div>
-            </mat-card-content>
-          </mat-card>
+          <!-- Admin actions available exclusively in /admin -->
 
           <!-- ═══════════ SESSION SWITCHER (segmented pills) ═══════════ -->
           <nav class="session-switch" role="tablist" aria-label="Sessioni">
@@ -198,24 +208,32 @@ interface StatTile {
           <!-- ═══════════ PODIUM ═══════════ -->
           <section class="podium" *ngIf="podiumRows.length === 3" aria-label="Podio">
             <article
-              class="podium-card"
+              class="podium-card cursor-pointer select-none"
               *ngFor="let p of podiumRows"
               [ngClass]="'rank-' + p.position"
+              (click)="toggleRiderExpand(p.rider.number)"
               [attr.aria-label]="'Posizione ' + p.position">
-              <span class="podium-rank">
-                <i *ngIf="p.position === 1" class="fa-solid fa-trophy"></i>
-                <i *ngIf="p.position === 2 || p.position === 3" class="fa-solid fa-medal"></i>
-              </span>
-              <div class="podium-body">
-                <div class="podium-rider">
-                  <span class="podium-num">#{{ p.rider.number }}</span>
-                  <div class="podium-copy">
-                    <div class="podium-name">
+              
+              <div class="podium-content-wrap">
+                <!-- Left cluster: Rank icon + Photo + Rider & Team -->
+                <div class="podium-left-cluster">
+                  <span class="podium-rank">
+                    <i *ngIf="p.position === 1" class="fa-solid fa-trophy"></i>
+                    <i *ngIf="p.position === 2 || p.position === 3" class="fa-solid fa-medal"></i>
+                  </span>
+
+                  <div class="podium-rider-photo">
+                    <img [src]="assetService.getRiderPhotoUrl(p.rider.number, p.rider.full_name)" [alt]="p.rider.full_name" class="podium-rider-img" (error)="assetService.handleImageError($event)">
+                  </div>
+
+                  <div class="podium-details">
+                    <div class="podium-title-row">
+                      <span class="podium-num">#{{ p.rider.number }}</span>
                       <span class="flag" *ngIf="p.rider.country?.iso">{{ countryFlag(p.rider.country.iso) }}</span>
-                      <strong>{{ p.rider.full_name }}</strong>
+                      <strong class="podium-rider-name">{{ p.rider.full_name }}</strong>
                     </div>
-                    <div class="podium-team">
-                      {{ p.team_name }}
+                    <div class="podium-team-row">
+                      <span class="team-label">{{ p.team_name }}</span>
                       <span
                         class="maker-chip"
                         *ngIf="maker(p)"
@@ -225,13 +243,22 @@ interface StatTile {
                     </div>
                   </div>
                 </div>
-                <div class="podium-stat">
-                  <strong>
+
+                <!-- Right cluster: Time / Gap Stat -->
+                <div class="podium-right-stat">
+                  <strong class="stat-value-text">
                     {{ podiumValue(p) }}
                     <em class="fl-pill" *ngIf="isFastestLap(p, activeSession!)">FL</em>
                   </strong>
-                  <span>{{ podiumCaption(p) }}</span>
+                  <span class="stat-caption-text">{{ podiumCaption(p) }}</span>
                 </div>
+              </div>
+
+              <!-- Expanded Quick Details on Click -->
+              <div *ngIf="expandedRiderNumber === p.rider.number"
+                   class="mt-2.5 pt-2.5 border-t border-zinc-700/40 flex items-center justify-between text-xs text-zinc-300">
+                <span class="text-zinc-400">Posizione Ufficiale: <strong class="text-white">P{{ p.position }}</strong></span>
+                <span *ngIf="p.points !== undefined" class="font-bold text-red-400">+{{ p.points }} punti</span>
               </div>
             </article>
           </section>
@@ -279,6 +306,9 @@ interface StatTile {
               </span>
 
               <span class="cell cell-rider">
+                <div class="rider-avatar-thumb">
+                  <img [src]="assetService.getRiderPhotoUrl(r.rider.number, r.rider.full_name)" [alt]="r.rider.full_name" class="rider-avatar-img" (error)="assetService.handleImageError($event)">
+                </div>
                 <span class="rider-num">#{{ r.rider.number }}</span>
                 <span class="rider-main">
                   <span class="rider-name">
@@ -299,6 +329,7 @@ interface StatTile {
 
               <span
                 class="cell"
+                [ngClass]="'cell-col-' + c.type"
                 *ngFor="let c of activeColumns"
                 [attr.data-label]="c.label"
                 [ngSwitch]="c.type">
@@ -351,12 +382,17 @@ interface StatTile {
   styleUrl: './motogp-results.component.scss'
 })
 export class MotoGPResultsComponent implements OnInit {
+  expandedRiderNumber: number | null = null;
+  toggleRiderExpand(num: number): void {
+    this.expandedRiderNumber = (this.expandedRiderNumber === num ? null : num);
+  }
   results: MotoGPResultsData | null = null;
   loading = true;
   loadError = false;
   championshipId = 0;
   calendarId = 0;
   raceInfo: CalendarRace | null = null;
+  calendarList: CalendarRace[] = [];
 
   activeSession: SessionKey | null = null;
 
@@ -381,25 +417,75 @@ export class MotoGPResultsComponent implements OnInit {
 
   constructor(
     private dashboardService: DashboardService,
+    private championshipService: ChampionshipService,
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
     private notificationService: NotificationServiceService,
     private i18n: I18nService,
-    private navService: NavigationService
+    private navService: NavigationService,
+    public assetService: MotoGPAssetService
   ) {}
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      this.championshipId = +params['championshipId'];
-      this.calendarId = +params['calendarId'];
-      this.loadResults();
+      const cParam = +params['championshipId'];
+      const rParam = +params['calendarId'];
+
+      if (cParam && rParam) {
+        this.championshipId = cParam;
+        this.calendarId = rParam;
+        this.loadCalendarList();
+        this.loadResults();
+      } else {
+        // Fallback for standalone /motogp-results
+        this.championshipService.getChampIdObs().subscribe(cId => {
+          if (!cId) return;
+          this.championshipId = cId;
+          this.dashboardService.getCalendar(cId).subscribe({
+            next: (list: CalendarRace[]) => {
+              this.calendarList = list || [];
+              const roundQuery = +this.route.snapshot.queryParamMap.get('round')!;
+              const nowStr = new Date().toISOString().split('T')[0];
+              const pastRaces = list.filter(r => !r.cancelled && r.event_date <= nowStr);
+              const targetRace = roundQuery
+                ? list.find(r => r.id === roundQuery || r.race_order === roundQuery)
+                : (pastRaces[pastRaces.length - 1] || list[0]);
+              this.calendarId = targetRace?.id || list[0]?.id || 0;
+              this.raceInfo = targetRace || list[0] || null;
+              if (this.calendarId) {
+                this.loadResults();
+              }
+            }
+          });
+        });
+      }
     });
+
     // Keep hardcoded/i18n labels in the view-model in sync with language switches
     this.i18n.translations$.subscribe(() => this.rebuildView());
   }
 
+  loadCalendarList(): void {
+    if (!this.championshipId) return;
+    this.dashboardService.getCalendar(this.championshipId).subscribe({
+      next: (list: CalendarRace[]) => {
+        this.calendarList = list || [];
+        this.raceInfo = list.find(r => r.id === this.calendarId) ?? null;
+      },
+      error: () => { this.raceInfo = null; }
+    });
+  }
+
+  onSelectRace(race: CalendarRace): void {
+    if (this.calendarId === race.id) return;
+    this.calendarId = race.id;
+    this.raceInfo = race;
+    this.loadResults();
+  }
+
   loadResults(): void {
+    if (!this.championshipId || !this.calendarId) return;
     this.loading = true;
     this.loadError = false;
     this.dashboardService.fetchMotoGPResults(this.championshipId, this.calendarId, false).subscribe({
@@ -417,13 +503,9 @@ export class MotoGPResultsComponent implements OnInit {
       }
     });
 
-    // Enrich the hero with calendar info (name, round, date, location) — non blocking
-    this.dashboardService.getCalendar(this.championshipId).subscribe({
-      next: (list: CalendarRace[]) => {
-        this.raceInfo = list.find(r => r.id === this.calendarId) ?? null;
-      },
-      error: () => { this.raceInfo = null; }
-    });
+    if (!this.calendarList.length) {
+      this.loadCalendarList();
+    }
   }
 
   goBack(): void {

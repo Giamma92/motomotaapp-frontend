@@ -16,7 +16,8 @@ export interface UserInfo {
   last_access: string,
   first_name: string,
   last_name: string,
-  pwd_reset?: number
+  pwd_reset?: number,
+  alias?: string
 }
 
 @Injectable({
@@ -33,7 +34,7 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { username, password });
   }
 
-  // Optionally add methods to store/retrieve the token and check authentication state.
+  // Store/retrieve the token and check authentication state.
   setToken(token: string): void {
     localStorage.setItem('token', token);
     this.cachedUserInfo = null;
@@ -66,12 +67,19 @@ export class AuthService {
     return this.userInfo$;
   }
 
+  updateUserInfo(body: { first_name?: string; last_name?: string; profile_image?: string; alias?: string }): Observable<UserInfo> {
+    return this.http.put<UserInfo>(`${this.apiUrl}/user-info`, body, { headers: this.getAuthHeader() }).pipe(
+      tap(updated => {
+        this.cachedUserInfo = updated;
+      })
+    );
+  }
+
   getAuthHeader() {
     const token = this.getToken();
     return new HttpHeaders({ 'Authorization': `Bearer ${token}` });
   }
 
-  // This method decodes the JWT and returns the userId from the token payload.
   getUserId(): string | null {
     const token = this.getToken();
     if (!token) {
@@ -108,5 +116,46 @@ export class AuthService {
   resetPassword(newPasswordHash: string): Observable<any> {
     const headers = this.getAuthHeader();
     return this.http.put(`${this.apiUrl}/user/password`, { password: newPasswordHash }, { headers });
+  }
+
+  refreshToken(): Observable<{ token: string }> {
+    return this.http.post<{ token: string }>(`${this.apiUrl}/refresh-token`, {}, { headers: this.getAuthHeader() }).pipe(
+      tap(res => {
+        if (res?.token) {
+          this.setToken(res.token);
+        }
+      })
+    );
+  }
+
+  getTokenExpiration(): number | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const decoded = jwtDecode<any>(token);
+      return decoded?.exp ? decoded.exp * 1000 : null;
+    } catch {
+      return null;
+    }
+  }
+
+  getRemainingSessionSeconds(): number {
+    const exp = this.getTokenExpiration();
+    if (!exp) return 0;
+    return Math.max(0, Math.floor((exp - Date.now()) / 1000));
+  }
+
+  formatRemainingTime(totalSeconds: number): string {
+    if (totalSeconds <= 0) return '0s';
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    }
+    return `${seconds}s`;
   }
 }

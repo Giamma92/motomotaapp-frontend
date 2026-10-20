@@ -1,4 +1,5 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation, inject } from '@angular/core';
+import { ThemeService } from '../../services/theme.service';
 import { FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
@@ -98,8 +99,17 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 
         <div class="login-panel">
           <header class="login-header">
-            <span class="login-kicker">Area piloti</span>
-            <h2 class="app-title">{{ 'login.signIn' | t }}</h2>
+            <div class="login-title-group">
+              <span class="login-kicker">Area piloti</span>
+              <h2 class="app-title">{{ 'login.signIn' | t }}</h2>
+            </div>
+            <button type="button"
+                    class="login-theme-btn"
+                    (click)="theme.toggle()"
+                    [title]="theme.mode() === 'dark' ? 'Passa al tema chiaro' : 'Passa al tema scuro'"
+                    aria-label="Cambia tema">
+              <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+            </button>
           </header>
 
           <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
@@ -144,6 +154,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
+  public theme = inject(ThemeService);
   loginForm: FormGroup;
   errorMessage: string | null = null;
   loading: boolean = false;

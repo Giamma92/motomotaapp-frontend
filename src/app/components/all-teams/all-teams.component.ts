@@ -13,6 +13,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 import { RaceDetailService, RaceDetails, LineupsResult } from '../../services/race-detail.service';
 import { LineupModalComponent } from '../bets/lineup-modal/lineup-modal.component';
 import { NavigationService } from '../../services/navigation.service';
+import { MotoGPAssetService } from '../../services/motogp-asset.service';
 
 interface StatTile {
   icon: string;
@@ -148,6 +149,13 @@ interface TeamView {
                   [style.--maker-accent]="makerColor(makerFor(r.rider))"
                 >
                   <mat-expansion-panel-header class="rider-header">
+                    <div class="rider-thumb-wrap">
+                      <img
+                        [src]="assetService.getRiderPhotoUrl(r.rider.number, r.rider.first_name + ' ' + r.rider.last_name)"
+                        [alt]="r.rider.first_name + ' ' + r.rider.last_name"
+                        class="rider-thumb-img"
+                        (error)="assetService.handleImageError($event)">
+                    </div>
                     <div class="rider-header-main">
                       <div class="rider-meta-topline">
                         <span class="rider-role">{{ r.roleKey | t }}</span>
@@ -242,7 +250,8 @@ export class AllTeamsComponent implements OnInit {
     private raceDetailService: RaceDetailService,
     private dialog: MatDialog,
     private router: Router,
-    private navService: NavigationService
+    private navService: NavigationService,
+    public assetService: MotoGPAssetService
   ) {}
 
   ngOnInit(): void {

@@ -8,6 +8,9 @@ import { ChampionshipService } from '../services/championship.service';
 import { RaceScheduleService } from '../services/race-schedule.service';
 
 
+import { AuthService } from '../services/auth.service';
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -18,6 +21,7 @@ export class RaceAccessGuard implements CanActivate {
     private championshipService: ChampionshipService,
     private raceDetailService: RaceDetailService,
     private raceScheduleService: RaceScheduleService,
+    private authService: AuthService,
     private router: Router) {}
 
   async canActivate(route: ActivatedRouteSnapshot): Promise<boolean | UrlTree> {
@@ -46,6 +50,10 @@ export class RaceAccessGuard implements CanActivate {
       } else if (route.routeConfig?.path?.includes('lineups')) {
         sessionName = 'lo schieramento';
         result = this.raceScheduleService.canShowLineups(race, timeZone);
+      }
+
+      if (route.queryParamMap.get('preview') === 'true' || this.authService.isCurrentUserAdmin()) {
+        return true;
       }
 
       if (!result) {

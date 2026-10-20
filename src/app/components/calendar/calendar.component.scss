@@ -1151,6 +1151,301 @@ button:focus-visible {
   }
 }
 
+/* ═══════════════ Circuit Track Layouts ═══════════════ */
+
+.hero-circuit-wrap {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 140px;
+  height: 95px;
+  pointer-events: none;
+  opacity: 0.70;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  z-index: 1;
+
+  @media (min-width: 600px) {
+    width: 180px;
+    height: 120px;
+    opacity: 0.75;
+  }
+}
+
+.hero-circuit-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.45));
+}
+
+.panel-circuit-pill {
+  width: 44px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.panel-circuit-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.table-circuit-thumb {
+  width: 38px;
+  height: 26px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* ═══════════════ Light Theme Overrides ═══════════════ */
+:host-context([data-theme='light']),
+:host-context(html[data-theme='light']) {
+  .race-hero {
+    background:
+      radial-gradient(circle at top right, rgba(200, 16, 46, 0.12), transparent 36%),
+      linear-gradient(155deg, #ffffff 0%, #f7f8fa 100%);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+    color: #111214;
+
+    .hero-kicker {
+      background: rgba(0, 0, 0, 0.05);
+      border-color: rgba(0, 0, 0, 0.08);
+      color: #111214;
+    }
+
+    h2 {
+      color: #111214;
+    }
+
+    .hero-meta,
+    .hero-meta-item {
+      color: #565b66;
+    }
+
+    .hero-meta-item mat-icon {
+      color: #c8102e;
+    }
+
+    .countdown-chip {
+      background: rgba(200, 16, 46, 0.08);
+      border-color: rgba(200, 16, 46, 0.2);
+      color: #c8102e;
+
+      strong {
+        color: #c8102e;
+      }
+    }
+
+    .hero-session {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.07);
+      color: #111214;
+
+      strong {
+        color: #111214;
+      }
+
+      .hero-session-label {
+        color: #71717a;
+      }
+
+      mat-icon {
+        color: #c8102e;
+      }
+    }
+
+    .hero-session {
+      background: #ffffff;
+      border-color: rgba(0, 0, 0, 0.08);
+      color: #111214;
+
+      .hero-session-label {
+        color: #111214;
+      }
+
+      strong {
+        background: #f4f4f6;
+        border-color: rgba(0, 0, 0, 0.08);
+        color: #111214;
+      }
+    }
+
+    .hero-session--race {
+      background: #fff5f6;
+      border-color: rgba(200, 16, 46, 0.2);
+
+      strong {
+        background: rgba(200, 16, 46, 0.08);
+        border-color: rgba(200, 16, 46, 0.18);
+        color: #c8102e;
+      }
+    }
+
+    .status-summary-pill {
+      background: rgba(200, 16, 46, 0.08);
+      border-color: rgba(200, 16, 46, 0.2);
+      color: #c8102e;
+    }
+
+    .hero-action-secondary {
+      background: #f4f4f6 !important;
+      border-color: rgba(0, 0, 0, 0.15) !important;
+      color: #111214 !important;
+    }
+  }
+
+  .calendar-race-panel {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+
+    .card-header {
+      background: #ffffff;
+      color: #111214;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .race-title {
+      color: #111214;
+    }
+
+    .race-subtitle,
+    .detail-item {
+      color: #565b66;
+    }
+
+    .detail-item mat-icon {
+      color: #c8102e;
+    }
+
+    .race-state-pill {
+      background: rgba(0, 0, 0, 0.05);
+      border-color: rgba(0, 0, 0, 0.09);
+      color: #27272a;
+    }
+
+    .race-state-pill--current {
+      background: rgba(200, 16, 46, 0.08);
+      border-color: rgba(200, 16, 46, 0.25);
+      color: #c8102e;
+    }
+
+    .race-state-pill--past {
+      color: #71717a;
+    }
+
+    .panel-chevron {
+      background: rgba(0, 0, 0, 0.04);
+      border-color: rgba(0, 0, 0, 0.08);
+      color: #52525b;
+    }
+
+    .panel-circuit-pill {
+      background: transparent !important;
+      border: none !important;
+    }
+
+    .race-main {
+      background: #fafafa;
+      border-top: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .session-block {
+      background: #ffffff;
+      border-color: rgba(0, 0, 0, 0.06);
+
+      strong {
+        color: #111214;
+      }
+
+      .session-meta {
+        color: #71717a;
+      }
+    }
+
+    .action-buttons {
+      background: #ffffff;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+  }
+
+  .filter-chip {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.08);
+    color: #565b66;
+
+    &--active {
+      background: #c8102e;
+      border-color: #c8102e;
+      color: #ffffff;
+    }
+  }
+
+  .table-card {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  }
+
+  .dashboard-table thead th {
+    background: #fbfbfb;
+    color: #71717a;
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+  }
+
+  .dashboard-table tbody tr {
+    border-bottom-color: rgba(0, 0, 0, 0.05);
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+  }
+
+  .event-name {
+    color: #111214;
+  }
+
+  .event-location {
+    color: #71717a;
+  }
+
+  .detail-text {
+    color: #565b66;
+  }
+
+  .session-time {
+    color: #27272a;
+  }
+
+  .round-badge {
+    background: rgba(200, 16, 46, 0.08);
+    color: #c8102e;
+  }
+
+  .season-progress {
+    background: #fafafa;
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+
+    .season-progress-copy strong {
+      color: #111214;
+    }
+  }
+
+  .progress-track {
+    background: rgba(0, 0, 0, 0.08);
+  }
+}
+
 /* ═══════════════ Visibility switches — keep LAST so they win ═══════════════ */
 
 .mobile-only {
@@ -1165,4 +1460,194 @@ button:focus-visible {
   .mobile-only {
     display: grid;
   }
+}
+
+
+/* ── Calendar MotoGP Winner Badge ── */
+.race-winner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 3px 8px 3px 4px;
+  border-radius: 9999px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: fit-content;
+
+  &:hover {
+    background: rgba(245, 158, 11, 0.22);
+    transform: translateY(-1px);
+  }
+
+  .winner-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #27272a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(245, 158, 11, 0.5);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+    }
+  }
+
+  .winner-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #f59e0b;
+    text-transform: uppercase;
+  }
+
+  .winner-name {
+    font-weight: 800;
+  }
+
+  .winner-pts {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.2);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+}
+
+:host-context([data-theme='light']) {
+  .hero-kicker {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+  }
+
+  .countdown-chip {
+    background: rgba(200, 16, 46, 0.08);
+    border-color: rgba(200, 16, 46, 0.25);
+    color: #c8102e;
+
+    strong {
+      color: #990b22;
+    }
+
+    mat-icon {
+      color: #c8102e;
+    }
+  }
+
+  .status-pill {
+    background: rgba(0, 0, 0, 0.04) !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+    color: var(--text-secondary) !important;
+
+    &.status-pill-complete {
+      background: rgba(31, 143, 67, 0.14) !important;
+      border-color: rgba(31, 143, 67, 0.35) !important;
+      color: #15803d !important;
+      font-weight: 700 !important;
+    }
+
+    &.status-pill-missing {
+      background: rgba(220, 38, 38, 0.08) !important;
+      border-color: rgba(220, 38, 38, 0.25) !important;
+      color: #b91c1c !important;
+      font-weight: 700 !important;
+    }
+  }
+
+  .status-pill-complete {
+    background: rgba(31, 143, 67, 0.14) !important;
+    border-color: rgba(31, 143, 67, 0.35) !important;
+    color: #15803d !important;
+    font-weight: 700 !important;
+  }
+
+  .status-pill-missing {
+    background: rgba(220, 38, 38, 0.08) !important;
+    border-color: rgba(220, 38, 38, 0.25) !important;
+    color: #b91c1c !important;
+    font-weight: 700 !important;
+  }
+
+  .status-summary-pill {
+    background: rgba(200, 16, 46, 0.08);
+    border-color: rgba(200, 16, 46, 0.25);
+    color: #c8102e;
+  }
+
+  .hero-session {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: var(--text-primary);
+
+    mat-icon {
+      color: var(--text-muted);
+    }
+  }
+
+  .hero-session--race {
+    background: rgba(200, 16, 46, 0.06);
+    border-color: rgba(200, 16, 46, 0.22);
+    color: #c8102e;
+
+    mat-icon {
+      color: #c8102e;
+    }
+  }
+
+  .race-winner-badge {
+    background: rgba(245, 158, 11, 0.14) !important;
+    border-color: rgba(217, 119, 6, 0.35) !important;
+    color: #1e293b !important;
+
+    .winner-label {
+      color: #b45309 !important;
+    }
+
+    .winner-pts {
+      color: #92400e !important;
+      background: rgba(245, 158, 11, 0.25) !important;
+    }
+  }
+}
+
+
+.race-headline-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.race-headline-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.panel-circuit-aside {
+  width: 104px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.85;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.panel-circuit-aside-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }

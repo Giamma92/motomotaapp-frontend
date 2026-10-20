@@ -3,30 +3,754 @@
     <button mat-icon-button class="app-back-arrow" (click)="goBack()" aria-label="Back">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <h1>Dettaglio punteggi</h1>
+    <h1>Classifica e Punteggi</h1>
   </header>
 
   <main class="content">
-    <!-- ── Filters ── -->
-    <mat-card class="filters-card">
-      <div class="filters-grid">
-        <label class="filter-field">
-          <span>Gara</span>
-          <select [(ngModel)]="selectedRaceId" (ngModelChange)="hoverIdx = null">
-            <option value="">Tutte</option>
-            <option *ngFor="let race of raceOptions" [value]="race.id">{{ race.label }}</option>
-          </select>
-        </label>
+    <!-- ── Top Tab Switcher ── -->
+    <div class="tab-switcher-container">
+      <div class="tab-switcher-wrap" role="tablist" aria-label="Sezioni classifica">
+        <button
+          type="button"
+          role="tab"
+          class="tab-btn"
+          [class.active]="activeTab === 'standings'"
+          [attr.aria-selected]="activeTab === 'standings'"
+          (click)="setTab('standings')">
+          <i class="fa-solid fa-trophy tab-icon tab-icon--fanta"></i>
+          <span class="tab-label">Fanta</span>
+        </button>
 
-        <label class="filter-field">
-          <span>Partecipante</span>
-          <select [(ngModel)]="selectedParticipantId" (ngModelChange)="onParticipantChange()">
-            <option value="">Tutti</option>
-            <option *ngFor="let participant of participantOptions" [value]="participant.id">{{ participant.label }}</option>
-          </select>
-        </label>
+        <button
+          type="button"
+          role="tab"
+          class="tab-btn"
+          [class.active]="activeTab === 'motogp'"
+          [attr.aria-selected]="activeTab === 'motogp'"
+          (click)="setTab('motogp')">
+          <i class="fa-solid fa-motorcycle tab-icon tab-icon--motogp"></i>
+          <span class="tab-label">Mondiale</span>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          class="tab-btn"
+          [class.active]="activeTab === 'breakdown'"
+          [attr.aria-selected]="activeTab === 'breakdown'"
+          (click)="setTab('breakdown')">
+          <i class="fa-solid fa-chart-line tab-icon tab-icon--breakdown"></i>
+          <span class="tab-label">Andamento</span>
+        </button>
       </div>
-    </mat-card>
+    </div>
+    <!-- ══════════════════════════════════════════════════
+         TAB 1: CLASSIFICA GENERALE & PODIO
+    ══════════════════════════════════════════════════ -->
+    <ng-container *ngIf="activeTab === 'standings'">
+      <!-- Loading skeleton -->
+      <mat-card class="standings-card skeleton-card fullbleed-panel" *ngIf="loadingStandings" aria-hidden="true">
+        <mat-card-header class="standings-header">
+          <mat-card-title class="dashboard-section-title"><span class="sk sk-title"></span></mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="skeleton-content">
+          <span class="sk sk-summary"></span>
+          <span class="sk sk-podium"></span>
+          <span class="sk sk-line sk-w90"></span>
+          <span class="sk sk-line sk-w75"></span>
+          <span class="sk sk-line sk-w85"></span>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Error state -->
+      <mat-card class="standings-card state-card fullbleed-panel" *ngIf="!loadingStandings && errorStandings">
+        <mat-card-content>
+          <div class="card-state" role="alert">
+            <i class="fa-solid fa-triangle-exclamation state-icon"></i>
+            <p class="state-title">{{ 'common.error.title' | t }}</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Empty state -->
+      <mat-card class="standings-card state-card fullbleed-panel" *ngIf="!loadingStandings && !errorStandings && !classificationData?.length">
+        <mat-card-content>
+          <div class="card-state">
+            <i class="fa-solid fa-trophy state-icon"></i>
+            <p class="state-title">{{ 'dashboard.standings.empty' | t }}</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Standings Content -->
+      <mat-card class="standings-card fullbleed-panel" *ngIf="!loadingStandings && !errorStandings && classificationData && classificationData.length">
+        <mat-card-content>
+          <div class="standings-container">
+            <!-- Current User Summary -->
+            <div class="current-user-summary" *ngIf="currentUserPosition">
+              <div class="summary-compact">
+                <span class="summary-kicker">{{ 'dashboard.standings.yourPosition' | t }}</span>
+                <span class="summary-pill position-pill">
+                  #{{ currentUserPosition }} {{ 'dashboard.standings.of' | t:{total: classificationData.length} }}
+                </span>
+                <span class="summary-pill points-pill">
+                  {{ currentUserPoints | number:'1.0-0' }} {{ 'dashboard.standings.points' | t }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Top 3 Podium Section (Aligned with World Championship Podium) -->
+            <div class="motogp-podium-container rounded-2xl p-4 border shadow-md mb-6"
+                 *ngIf="classificationData.length"
+                 [class.bg-zinc-900]="theme.mode() === 'dark'"
+                 [class.border-zinc-800]="theme.mode() === 'dark'"
+                 [class.bg-white]="theme.mode() === 'light'"
+                 [class.border-zinc-200]="theme.mode() === 'light'">
+              <div class="flex items-center justify-between mb-4 px-1">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-crown text-amber-400 text-sm"></i>
+                  <h3 class="text-sm font-black uppercase tracking-wider text-zinc-400 m-0"
+                      [class.text-zinc-500]="theme.mode() === 'light'">Podio Campionato</h3>
+                </div>
+                <span class="text-xs text-zinc-500 font-medium">Top 3 Fanta</span>
+              </div>
+
+              <div class="motogp-podium-grid grid grid-cols-3 gap-2 sm:gap-4 items-end pt-2 pb-1">
+
+                <!-- 2nd Place (Silver) -->
+                <div class="podium-step step-p2 flex flex-col items-center text-center order-1" *ngIf="classificationData[1] as r2">
+                  <div class="relative mb-2">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-b from-slate-200/20 to-slate-400/10 border-2 border-slate-300 shadow-md flex items-center justify-center">
+                      <img *ngIf="r2?.user_id?.profile_image"
+                           [src]="r2.user_id.profile_image"
+                           [alt]="getUserDisplayName(r2)"
+                           (error)="assetService.handleManagerError($event)"
+                           class="w-full h-full object-cover">
+                      <span *ngIf="!r2?.user_id?.profile_image" class="text-xl sm:text-2xl font-black text-slate-300">
+                        {{ getUserDisplayName(r2).charAt(0).toUpperCase() }}
+                      </span>
+                    </div>
+                    <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-300 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-white">#2</span>
+                  </div>
+                  <strong class="text-xs sm:text-sm font-black truncate max-w-full text-zinc-200" [class.text-zinc-800]="theme.mode() === 'light'">
+                    {{ getUserDisplayName(r2) }}
+                  </strong>
+                  <span class="text-[10px] text-zinc-400 truncate max-w-full font-medium" [class.text-zinc-500]="theme.mode() === 'light'">2° Posto</span>
+                  <div class="mt-1.5 px-2 py-0.5 rounded-lg bg-slate-500/10 text-slate-300 text-xs font-black border border-slate-500/20"
+                       [class.bg-slate-100]="theme.mode() === 'light'"
+                       [class.border-slate-300]="theme.mode() === 'light'"
+                       [class.text-slate-700]="theme.mode() === 'light'">
+                    {{ r2?.score | number:'1.0-0' }} <span class="text-[9px] font-normal">PTS</span>
+                  </div>
+                </div>
+
+                <!-- 1st Place (Gold Champion) -->
+                <div class="podium-step step-p1 flex flex-col items-center text-center order-2 -mt-3" *ngIf="classificationData[0] as r1">
+                  <div class="text-amber-400 text-base mb-1 animate-bounce">
+                    <i class="fa-solid fa-crown"></i>
+                  </div>
+                  <div class="relative mb-2">
+                    <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-b from-amber-300/30 to-amber-500/10 border-2 border-amber-400 shadow-xl flex items-center justify-center ring-4 ring-amber-400/20">
+                      <img *ngIf="r1?.user_id?.profile_image"
+                           [src]="r1.user_id.profile_image"
+                           [alt]="getUserDisplayName(r1)"
+                           (error)="assetService.handleManagerError($event)"
+                           class="w-full h-full object-cover">
+                      <span *ngIf="!r1?.user_id?.profile_image" class="text-2xl sm:text-3xl font-black text-amber-300">
+                        {{ getUserDisplayName(r1).charAt(0).toUpperCase() }}
+                      </span>
+                    </div>
+                    <span class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full shadow-lg border border-amber-200">#1</span>
+                  </div>
+                  <strong class="text-sm sm:text-base font-black truncate max-w-full text-amber-400" [class.text-amber-600]="theme.mode() === 'light'">
+                    {{ getUserDisplayName(r1) }}
+                  </strong>
+                  <span class="text-[11px] text-zinc-400 truncate max-w-full font-medium" [class.text-zinc-500]="theme.mode() === 'light'">Leader Campionato</span>
+                  <div class="mt-1.5 px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-400 text-sm font-black border border-amber-500/30"
+                       [class.bg-amber-100/70]="theme.mode() === 'light'"
+                       [class.border-amber-300]="theme.mode() === 'light'"
+                       [class.text-amber-800]="theme.mode() === 'light'">
+                    {{ r1?.score | number:'1.0-0' }} <span class="text-[10px] font-bold">PTS</span>
+                  </div>
+                </div>
+
+                <!-- 3rd Place (Bronze) -->
+                <div class="podium-step step-p3 flex flex-col items-center text-center order-3" *ngIf="classificationData[2] as r3">
+                  <div class="relative mb-2">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-b from-amber-700/20 to-amber-900/10 border-2 border-amber-600 shadow-md flex items-center justify-center">
+                      <img *ngIf="r3?.user_id?.profile_image"
+                           [src]="r3.user_id.profile_image"
+                           [alt]="getUserDisplayName(r3)"
+                           (error)="assetService.handleManagerError($event)"
+                           class="w-full h-full object-cover">
+                      <span *ngIf="!r3?.user_id?.profile_image" class="text-xl sm:text-2xl font-black text-amber-500">
+                        {{ getUserDisplayName(r3).charAt(0).toUpperCase() }}
+                      </span>
+                    </div>
+                    <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-600 text-amber-100 text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-amber-400">#3</span>
+                  </div>
+                  <strong class="text-xs sm:text-sm font-black truncate max-w-full text-zinc-200" [class.text-zinc-800]="theme.mode() === 'light'">
+                    {{ getUserDisplayName(r3) }}
+                  </strong>
+                  <span class="text-[10px] text-zinc-400 truncate max-w-full font-medium" [class.text-zinc-500]="theme.mode() === 'light'">3° Posto</span>
+                  <div class="mt-1.5 px-2 py-0.5 rounded-lg bg-amber-700/10 text-amber-500 text-xs font-black border border-amber-700/20"
+                       [class.bg-amber-100/50]="theme.mode() === 'light'"
+                       [class.border-amber-300]="theme.mode() === 'light'"
+                       [class.text-amber-800]="theme.mode() === 'light'">
+                    {{ r3?.score | number:'1.0-0' }} <span class="text-[9px] font-normal">PTS</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Full Standings Table -->
+            <div class="table-container">
+              <table class="standings-table">
+                <thead>
+                  <tr>
+                    <th class="rank-col" [attr.aria-label]="'dashboard.standings.rank' | t">
+                      <span class="th-full">{{ 'dashboard.standings.rank' | t }}</span>
+                      <span class="th-short">#</span>
+                    </th>
+                    <th class="user-col" [attr.aria-label]="'dashboard.standings.user' | t">
+                      <span class="th-full">{{ 'dashboard.standings.user' | t }}</span>
+                      <span class="th-short">{{ 'dashboard.standings.userShort' | t }}</span>
+                    </th>
+                    <th class="score-col" [attr.aria-label]="'dashboard.standings.score' | t">
+                      <span class="th-full">{{ 'dashboard.standings.score' | t }}</span>
+                      <span class="th-short">Pts</span>
+                    </th>
+                    <th class="gap-col" [attr.aria-label]="'dashboard.standings.gap' | t">
+                      <span class="th-full">{{ 'dashboard.standings.gap' | t }}</span>
+                      <span class="th-short">&Delta;</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of classificationData; let i = index"
+                      [class.highlight]="row.user_id.id === loggedUserId"
+                      [class.top-three]="i < 3">
+                    <td class="rank-col">
+                      <div class="position-container">
+                        <span class="position" [class.top-position]="i < 3">{{ row.position }}</span>
+                      </div>
+                    </td>
+                    <td class="user-col">
+                      <div class="user-info">
+                        <div class="user-avatar-small overflow-hidden rounded-full flex items-center justify-center">
+                          <img *ngIf="row?.user_id?.profile_image"
+                               [src]="row.user_id.profile_image"
+                               (error)="assetService.handleManagerError($event)"
+                               class="w-full h-full object-cover">
+                          <i *ngIf="!row?.user_id?.profile_image" class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="user-details">
+                          <span class="username">{{ getUserDisplayName(row) }}</span>
+                          <div class="score-progress" *ngIf="classificationData[0]">
+                            <div class="progress-bar">
+                              <div class="progress-fill"
+                                   [style.width.%]="progressPct(row.score, classificationData[0].score)"
+                                   [attr.data-tier]="barTier(row.score, classificationData[0].score)"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="score-col">
+                      <div class="score-display">
+                        <span class="score-value">{{ row.score | number:'1.0-0' }}</span>
+                        <span class="score-label">pts</span>
+                      </div>
+                    </td>
+                    <td class="gap-col">
+                      <div class="gap-display" *ngIf="i < classificationData.length - 1">
+                        <span class="gap-value">+{{ Math.abs(row.score - classificationData[i + 1].score) | number:'1.0-0' }}</span>
+                        <span class="gap-label">pts</span>
+                      </div>
+                      <span class="gap-leader" *ngIf="i === 0">{{ 'dashboard.standings.leader' | t }}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </ng-container>
+
+    <!-- ══════════════════════════════════════════════════
+         TAB 2: MONDIALE MOTOGP UFFICIALE
+    ══════════════════════════════════════════════════ -->
+    <ng-container *ngIf="activeTab === 'motogp'">
+      <!-- Loading Skeleton -->
+      <mat-card class="standings-card skeleton-card fullbleed-panel" *ngIf="loadingMotoGP" aria-hidden="true">
+        <mat-card-header class="standings-header">
+          <mat-card-title class="dashboard-section-title"><span class="sk sk-title"></span></mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="skeleton-content">
+          <span class="sk sk-summary"></span>
+          <span class="sk sk-podium"></span>
+          <span class="sk sk-line sk-w90"></span>
+          <span class="sk sk-line sk-w75"></span>
+          <span class="sk sk-line sk-w85"></span>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Error State -->
+      <mat-card class="standings-card state-card fullbleed-panel" *ngIf="!loadingMotoGP && errorMotoGP">
+        <mat-card-content>
+          <div class="card-state" role="alert">
+            <i class="fa-solid fa-triangle-exclamation state-icon"></i>
+            <p class="state-title">Impossibile caricare la classifica MotoGP</p>
+            <p class="state-desc">Riprova piu tardi o ricarica la pagina.</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Empty State -->
+      <mat-card class="standings-card state-card fullbleed-panel" *ngIf="!loadingMotoGP && !errorMotoGP && !motogpStandings.length">
+        <mat-card-content>
+          <div class="card-state">
+            <i class="fa-solid fa-motorcycle state-icon"></i>
+            <p class="state-title">Nessun risultato MotoGP registrato</p>
+            <p class="state-desc">I punteggi della classifica mondiale appariranno non appena verranno disputate le gare.</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Main MotoGP Standings Content -->
+      <div class="motogp-standings-wrapper flex flex-col gap-4" *ngIf="!loadingMotoGP && !errorMotoGP && motogpStandings.length">
+        
+        <!-- Header Hero Banner -->
+        <div class="motogp-hero-card rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md border"
+             [class.bg-gradient-to-br]="true"
+             [class.from-zinc-900]="theme.mode() === 'dark'"
+             [class.via-zinc-900]="theme.mode() === 'dark'"
+             [class.to-red-950/40]="theme.mode() === 'dark'"
+             [class.border-red-500/20]="theme.mode() === 'dark'"
+             [class.from-red-50/80]="theme.mode() === 'light'"
+             [class.via-white]="theme.mode() === 'light'"
+             [class.to-white]="theme.mode() === 'light'"
+             [class.border-red-200]="theme.mode() === 'light'">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl shadow-inner flex-shrink-0"
+                 [class.bg-red-600/20]="theme.mode() === 'dark'"
+                 [class.border]="true"
+                 [class.border-red-500/40]="theme.mode() === 'dark'"
+                 [class.text-red-500]="theme.mode() === 'dark'"
+                 [class.bg-red-100]="theme.mode() === 'light'"
+                 [class.border-red-200]="theme.mode() === 'light'"
+                 [class.text-red-600]="theme.mode() === 'light'">
+              <i class="fa-solid fa-trophy"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border"
+                      [class.bg-red-600/30]="theme.mode() === 'dark'"
+                      [class.text-red-400]="theme.mode() === 'dark'"
+                      [class.border-red-500/30]="theme.mode() === 'dark'"
+                      [class.bg-red-100]="theme.mode() === 'light'"
+                      [class.text-red-700]="theme.mode() === 'light'"
+                      [class.border-red-200]="theme.mode() === 'light'">Dorna Ufficiale</span>
+                <span class="text-xs font-medium"
+                      [class.text-zinc-400]="theme.mode() === 'dark'"
+                      [class.text-zinc-500]="theme.mode() === 'light'">Stagione 2026</span>
+              </div>
+              <h2 class="text-lg sm:text-xl font-black m-0 tracking-tight"
+                  [class.text-white]="theme.mode() === 'dark'"
+                  [class.text-zinc-900]="theme.mode() === 'light'">Classifica Campionato Mondiale</h2>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto text-xs font-semibold px-3 py-1.5 rounded-xl border"
+               [class.text-zinc-300]="theme.mode() === 'dark'"
+               [class.bg-black/40]="theme.mode() === 'dark'"
+               [class.border-white/5]="theme.mode() === 'dark'"
+               [class.text-zinc-700]="theme.mode() === 'light'"
+               [class.bg-white/80]="theme.mode() === 'light'"
+               [class.border-zinc-200]="theme.mode() === 'light'">
+            <i class="fa-solid fa-flag-checkered"
+               [class.text-zinc-400]="theme.mode() === 'dark'"
+               [class.text-zinc-500]="theme.mode() === 'light'"></i>
+            <span>{{ motogpStandings.length }} piloti a punti</span>
+          </div>
+        </div>
+
+        <!-- Visual World Championship Podium (P2, P1, P3) -->
+        <div class="motogp-podium-container rounded-2xl p-4 border shadow-md"
+             [class.bg-zinc-900]="theme.mode() === 'dark'"
+             [class.border-zinc-800]="theme.mode() === 'dark'"
+             [class.bg-white]="theme.mode() === 'light'"
+             [class.border-zinc-200]="theme.mode() === 'light'">
+          <div class="flex items-center justify-between mb-4 px-1">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-crown text-amber-400 text-sm"></i>
+              <h3 class="text-sm font-black uppercase tracking-wider text-zinc-400 m-0">Podio Mondiale</h3>
+            </div>
+            <span class="text-xs text-zinc-500 font-medium">Top 3 Ufficiale</span>
+          </div>
+
+          <div class="motogp-podium-grid grid grid-cols-3 gap-2 sm:gap-4 items-end pt-2 pb-1">
+            
+            <!-- P2 SILVER -->
+            <div class="podium-step step-p2 flex flex-col items-center text-center order-1 cursor-pointer transition-transform hover:scale-105 active:scale-95" *ngIf="motogpStandings[1] as p2" (click)="toggleRiderExpand(p2.rider.number)">
+              <div class="relative mb-2">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-b from-slate-200/20 to-slate-400/10 border-2 border-slate-300 shadow-md flex items-end justify-center">
+                  <img [src]="assetService.getRiderPhotoUrl(p2.rider.number, p2.rider.first_name + ' ' + p2.rider.last_name)"
+                       [alt]="p2.rider.last_name"
+                       class="w-full h-full object-cover object-top"
+                       (error)="assetService.handleImageError($event)">
+                </div>
+                <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-300 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-white">#2</span>
+              </div>
+              <strong class="text-xs sm:text-sm font-black truncate max-w-full text-zinc-200" [class.text-zinc-800]="theme.mode() === 'light'">
+                {{ p2.rider.last_name }}
+              </strong>
+              <span class="text-[10px] text-zinc-400 truncate max-w-full font-medium">{{ p2.teamName }}</span>
+              <div class="mt-1.5 px-2 py-0.5 rounded-lg bg-slate-500/10 text-slate-300 text-xs font-black border border-slate-500/20" [class.bg-slate-100]="theme.mode() === 'light'" [class.border-slate-300]="theme.mode() === 'light'" [class.text-slate-700]="theme.mode() === 'light'">
+                {{ p2.totalPoints }} <span class="text-[9px] font-normal">PTS</span>
+              </div>
+            </div>
+
+            <!-- P1 GOLD -->
+            <div class="podium-step step-p1 flex flex-col items-center text-center order-2 -mt-3 cursor-pointer transition-transform hover:scale-105 active:scale-95" *ngIf="motogpStandings[0] as p1" (click)="toggleRiderExpand(p1.rider.number)">
+              <div class="text-amber-400 text-base mb-1 animate-bounce">
+                <i class="fa-solid fa-crown"></i>
+              </div>
+              <div class="relative mb-2">
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-b from-amber-300/30 to-amber-500/10 border-2 border-amber-400 shadow-xl flex items-end justify-center ring-4 ring-amber-400/20">
+                  <img [src]="assetService.getRiderPhotoUrl(p1.rider.number, p1.rider.first_name + ' ' + p1.rider.last_name)"
+                       [alt]="p1.rider.last_name"
+                       class="w-full h-full object-cover object-top"
+                       (error)="assetService.handleImageError($event)">
+                </div>
+                <span class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full shadow-lg border border-amber-200">#1</span>
+              </div>
+              <strong class="text-sm sm:text-base font-black truncate max-w-full text-amber-400" [class.text-amber-600]="theme.mode() === 'light'">
+                {{ p1.rider.last_name }}
+              </strong>
+              <span class="text-[11px] text-zinc-400 truncate max-w-full font-medium">{{ p1.teamName }}</span>
+              <div class="mt-1.5 px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-400 text-sm font-black border border-amber-500/30" [class.bg-amber-100/70]="theme.mode() === 'light'" [class.border-amber-300]="theme.mode() === 'light'" [class.text-amber-800]="theme.mode() === 'light'">
+                {{ p1.totalPoints }} <span class="text-[10px] font-bold">PTS</span>
+              </div>
+            </div>
+
+            <!-- P3 BRONZE -->
+            <div class="podium-step step-p3 flex flex-col items-center text-center order-3 cursor-pointer transition-transform hover:scale-105 active:scale-95" *ngIf="motogpStandings[2] as p3" (click)="toggleRiderExpand(p3.rider.number)">
+              <div class="relative mb-2">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-b from-amber-700/20 to-amber-900/10 border-2 border-amber-600 shadow-md flex items-end justify-center">
+                  <img [src]="assetService.getRiderPhotoUrl(p3.rider.number, p3.rider.first_name + ' ' + p3.rider.last_name)"
+                       [alt]="p3.rider.last_name"
+                       class="w-full h-full object-cover object-top"
+                       (error)="assetService.handleImageError($event)">
+                </div>
+                <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-600 text-amber-100 text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-amber-400">#3</span>
+              </div>
+              <strong class="text-xs sm:text-sm font-black truncate max-w-full text-zinc-200" [class.text-zinc-800]="theme.mode() === 'light'">
+                {{ p3.rider.last_name }}
+              </strong>
+              <span class="text-[10px] text-zinc-400 truncate max-w-full font-medium">{{ p3.teamName }}</span>
+              <div class="mt-1.5 px-2 py-0.5 rounded-lg bg-amber-700/10 text-amber-500 text-xs font-black border border-amber-700/20" [class.bg-amber-100/50]="theme.mode() === 'light'" [class.border-amber-300]="theme.mode() === 'light'" [class.text-amber-800]="theme.mode() === 'light'">
+                {{ p3.totalPoints }} <span class="text-[9px] font-normal">PTS</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="relative w-full">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-sm pointer-events-none"></i>
+          <input
+            type="text"
+            [(ngModel)]="motogpSearchTerm"
+            placeholder="Cerca pilota (#93 Marquez, Martin, Ducati...)"
+            class="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border transition-all duration-200 outline-none motogp-search-input"
+            style="padding-left: 38px !important;"
+            [class.bg-zinc-900]="theme.mode() === 'dark'"
+            [class.border-zinc-800]="theme.mode() === 'dark'"
+            [class.text-white]="theme.mode() === 'dark'"
+            [class.placeholder-zinc-500]="theme.mode() === 'dark'"
+            [class.bg-white]="theme.mode() === 'light'"
+            [class.border-zinc-300]="theme.mode() === 'light'"
+            [class.text-zinc-900]="theme.mode() === 'light'"
+            [class.placeholder-zinc-400]="theme.mode() === 'light'"
+          />
+          <button *ngIf="motogpSearchTerm" (click)="motogpSearchTerm = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white bg-transparent border-0 cursor-pointer">
+            <i class="fa-solid fa-circle-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Standings Table Card -->
+        <div class="motogp-table-card rounded-2xl border shadow-lg overflow-hidden"
+             [class.bg-zinc-900]="theme.mode() === 'dark'"
+             [class.border-zinc-800]="theme.mode() === 'dark'"
+             [class.bg-white]="theme.mode() === 'light'"
+             [class.border-zinc-200]="theme.mode() === 'light'">
+
+          <div class="table-responsive w-full overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="border-b"
+                    [class.border-zinc-800]="theme.mode() === 'dark'"
+                    [class.bg-zinc-950/60]="theme.mode() === 'dark'"
+                    [class.text-zinc-400]="theme.mode() === 'dark'"
+                    [class.border-zinc-200]="theme.mode() === 'light'"
+                    [class.bg-zinc-50]="theme.mode() === 'light'"
+                    [class.text-zinc-600]="theme.mode() === 'light'">
+                  <th class="py-3 px-3 text-center w-12 font-bold text-xs uppercase">Pos</th>
+                  <th class="py-3 px-3 font-bold text-xs uppercase">Pilota</th>
+                  <th class="py-3 px-3 hidden sm:table-cell font-bold text-xs uppercase">Costruttore</th>
+                  <th class="py-3 px-2 text-center hidden sm:table-cell font-bold text-xs uppercase">Sprint</th>
+                  <th class="py-3 px-2 text-center hidden sm:table-cell font-bold text-xs uppercase">Gara</th>
+                  <th class="py-3 px-2 text-center hidden md:table-cell font-bold text-xs uppercase">Vittorie</th>
+                  <th class="py-3 px-3 text-right font-black text-xs uppercase">Punti</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y"
+                     [class.divide-zinc-800/50]="theme.mode() === 'dark'"
+                     [class.divide-zinc-200]="theme.mode() === 'light'">
+                <ng-container *ngFor="let s of filteredMotoGPStandings">
+                <tr (click)="toggleRiderExpand(s.rider.number)"
+                    class="transition-colors hover:bg-zinc-800/30 cursor-pointer select-none"
+                    [class.bg-red-500/10]="expandedRiderNumber === s.rider.number"
+                    [class.hover:bg-zinc-100]="theme.mode() === 'light'">
+                  
+                  <!-- Position Badge -->
+                  <td class="py-3 px-3 text-center font-black">
+                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-black shadow-sm"
+                          [class.bg-amber-400]="s.position === 1"
+                          [class.text-amber-950]="s.position === 1"
+                          [class.bg-slate-300]="s.position === 2"
+                          [class.text-slate-900]="s.position === 2"
+                          [class.bg-amber-700]="s.position === 3"
+                          [class.text-amber-100]="s.position === 3"
+                          [class.bg-zinc-800]="s.position > 3 && theme.mode() === 'dark'"
+                          [class.text-zinc-300]="s.position > 3 && theme.mode() === 'dark'"
+                          [class.bg-zinc-200]="s.position > 3 && theme.mode() === 'light'"
+                          [class.text-zinc-700]="s.position > 3 && theme.mode() === 'light'">
+                      {{ s.position }}
+                    </span>
+                  </td>
+
+                  <!-- Rider Info -->
+                  <td class="py-3 px-3">
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-9 h-9 rounded-xl overflow-hidden bg-zinc-800 flex-shrink-0 border border-zinc-700/50 flex items-center justify-center shadow-inner">
+                        <img [src]="assetService.getRiderPhotoUrl(s.rider.number, s.rider.first_name + ' ' + s.rider.last_name)"
+                             [alt]="s.rider.last_name"
+                             class="w-full h-full object-cover object-top"
+                             (error)="assetService.handleImageError($event)">
+                      </div>
+                      <div class="flex flex-col min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                          <span class="text-xs font-black text-red-500 font-mono">#{{ s.rider.number }}</span>
+                          <strong class="text-sm font-bold truncate"
+                                  [class.text-white]="theme.mode() === 'dark'"
+                                  [class.text-zinc-900]="theme.mode() === 'light'">
+                            {{ s.rider.first_name }} {{ s.rider.last_name }}
+                          </strong>
+                        </div>
+                        <span class="text-[11px] text-zinc-400 sm:hidden truncate flex items-center gap-1">
+                          <span class="w-1.5 h-1.5 rounded-full inline-block flex-shrink-0" [style.backgroundColor]="s.teamColor"></span>
+                          {{ s.teamName }}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Constructor (Desktop/Tablet) -->
+                  <td class="py-3 px-3 hidden sm:table-cell">
+                    <div class="flex items-center gap-2">
+                      <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" [style.backgroundColor]="s.teamColor"></span>
+                      <span class="text-xs font-semibold"
+                            [class.text-zinc-300]="theme.mode() === 'dark'"
+                            [class.text-zinc-700]="theme.mode() === 'light'">
+                        {{ s.teamName }}
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- Sprint Points -->
+                  <td class="py-3 px-2 text-center text-xs font-semibold text-zinc-400 hidden sm:table-cell">
+                    <span class="px-2 py-0.5 rounded bg-zinc-800/40 border border-zinc-700/30"
+                          [class.bg-zinc-100]="theme.mode() === 'light'"
+                          [class.border-zinc-200]="theme.mode() === 'light'"
+                          [class.text-zinc-600]="theme.mode() === 'light'">
+                      {{ s.sprintPoints }}
+                    </span>
+                  </td>
+
+                  <!-- Race Points -->
+                  <td class="py-3 px-2 text-center text-xs font-semibold text-zinc-400 hidden sm:table-cell">
+                    <span class="px-2 py-0.5 rounded bg-zinc-800/40 border border-zinc-700/30"
+                          [class.bg-zinc-100]="theme.mode() === 'light'"
+                          [class.border-zinc-200]="theme.mode() === 'light'"
+                          [class.text-zinc-600]="theme.mode() === 'light'">
+                      {{ s.racePoints }}
+                    </span>
+                  </td>
+
+                  <!-- Wins (Desktop) -->
+                  <td class="py-3 px-2 text-center hidden md:table-cell text-xs font-bold"
+                      [class.text-amber-400]="s.wins > 0"
+                      [class.text-zinc-500]="s.wins === 0">
+                    <span *ngIf="s.wins > 0" class="inline-flex items-center gap-1">
+                      <i class="fa-solid fa-trophy text-[10px]"></i> {{ s.wins }}
+                    </span>
+                    <span *ngIf="s.wins === 0">—</span>
+                  </td>
+
+                  <!-- Total Points -->
+                  <td class="py-3 px-3 text-right">
+                    <span class="text-base font-black tracking-tight"
+                          [class.text-red-400]="theme.mode() === 'dark'"
+                          [class.text-red-600]="theme.mode() === 'light'">
+                      {{ s.totalPoints }}
+                    </span>
+                    <span class="text-[10px] font-bold text-zinc-500 uppercase ml-1">PT</span>
+                  </td>
+
+                </tr>
+
+                <!-- Expanded Rider Details Row -->
+                <tr *ngIf="expandedRiderNumber === s.rider.number" class="bg-zinc-900/40 border-b border-zinc-800/40"
+                    [class.bg-zinc-50]="theme.mode() === 'light'"
+                    [class.border-zinc-200]="theme.mode() === 'light'">
+                  <td colspan="7" class="p-3 sm:p-4">
+                    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                      <!-- Big High-Res Portrait -->
+                      <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-zinc-800 border-2 border-red-500/30 flex-shrink-0 shadow-lg relative group">
+                        <img [src]="assetService.getRiderPhotoUrl(s.rider.number, s.rider.first_name + ' ' + s.rider.last_name)"
+                             [alt]="s.rider.last_name"
+                             class="w-full h-full object-cover object-top"
+                             (error)="assetService.handleImageError($event)">
+                        <span class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/80 text-[10px] font-black text-red-400 font-mono">
+                          #{{ s.rider.number }}
+                        </span>
+                      </div>
+
+                      <!-- Rider Details & Season Stats -->
+                      <div class="flex-1 w-full space-y-2 text-center sm:text-left">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                          <div>
+                            <h4 class="text-base font-black tracking-tight"
+                                [class.text-white]="theme.mode() === 'dark'"
+                                [class.text-zinc-900]="theme.mode() === 'light'">
+                              {{ s.rider.first_name }} {{ s.rider.last_name }}
+                            </h4>
+                            <div class="flex items-center justify-center sm:justify-start gap-2 text-xs font-semibold text-zinc-400 mt-0.5">
+                              <span class="w-2 h-2 rounded-full inline-block" [style.backgroundColor]="s.teamColor"></span>
+                              <span>{{ s.teamName }}</span>
+                            </div>
+                          </div>
+
+                          <div class="inline-flex items-center gap-1.5 self-center sm:self-auto px-2.5 py-1 rounded-full text-xs font-bold"
+                               [class.bg-red-500/15]="theme.mode() === 'dark'"
+                               [class.text-red-400]="theme.mode() === 'dark'"
+                               [class.bg-red-50]="theme.mode() === 'light'"
+                               [class.text-red-600]="theme.mode() === 'light'">
+                            <span>Posizione {{ s.position }}°</span>
+                            <span>•</span>
+                            <span>{{ s.totalPoints }} PT</span>
+                          </div>
+                        </div>
+
+                        <!-- Stats Grid -->
+                        <div class="grid grid-cols-3 gap-2 pt-1 text-xs">
+                          <div class="p-2 rounded-xl bg-zinc-800/40 border border-zinc-700/30 text-center"
+                               [class.bg-zinc-100]="theme.mode() === 'light'"
+                               [class.border-zinc-200]="theme.mode() === 'light'">
+                            <span class="block text-[10px] uppercase font-bold text-zinc-500">Sprint</span>
+                            <span class="font-black text-sm" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">{{ s.sprintPoints }} pt</span>
+                          </div>
+                          <div class="p-2 rounded-xl bg-zinc-800/40 border border-zinc-700/30 text-center"
+                               [class.bg-zinc-100]="theme.mode() === 'light'"
+                               [class.border-zinc-200]="theme.mode() === 'light'">
+                            <span class="block text-[10px] uppercase font-bold text-zinc-500">Gara</span>
+                            <span class="font-black text-sm" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">{{ s.racePoints }} pt</span>
+                          </div>
+                          <div class="p-2 rounded-xl bg-zinc-800/40 border border-zinc-700/30 text-center"
+                               [class.bg-zinc-100]="theme.mode() === 'light'"
+                               [class.border-zinc-200]="theme.mode() === 'light'">
+                            <span class="block text-[10px] uppercase font-bold text-zinc-500">Vittorie</span>
+                            <span class="font-black text-sm text-amber-400">{{ s.wins }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                </ng-container>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </div>
+    </ng-container>
+
+    <!-- ══════════════════════════════════════════════════
+         TAB 2: ANDAMENTO PUNTI & DETTAGLIO GARA
+    ══════════════════════════════════════════════════ -->
+    <ng-container *ngIf="activeTab === 'breakdown'">
+    <!-- ── Filters ── -->
+    <div class="andamento-filters-card rounded-2xl p-4 border shadow-sm"
+           [class.bg-zinc-900]="theme.mode() === 'dark'"
+           [class.border-zinc-800]="theme.mode() === 'dark'"
+           [class.bg-white]="theme.mode() === 'light'"
+           [class.border-zinc-200]="theme.mode() === 'light'">
+        <div class="flex items-center gap-2 mb-3 px-1 text-xs font-black uppercase tracking-wider"
+             [class.text-zinc-400]="theme.mode() === 'dark'"
+             [class.text-zinc-500]="theme.mode() === 'light'">
+          <i class="fa-solid fa-sliders text-red-500"></i>
+          <span>Filtri Andamento</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="relative">
+            <label class="block text-[11px] font-bold uppercase tracking-wider mb-1.5"
+                   [class.text-zinc-400]="theme.mode() === 'dark'"
+                   [class.text-zinc-600]="theme.mode() === 'light'">Gara</label>
+            <div class="relative">
+              <i class="fa-solid fa-flag-checkered absolute left-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 pointer-events-none"></i>
+              <select [(ngModel)]="selectedRaceId" (ngModelChange)="hoverIdx = null"
+                      class="w-full pl-9 pr-8 py-2.5 text-sm rounded-xl border outline-none font-semibold cursor-pointer appearance-none"
+                      [class.bg-zinc-800]="theme.mode() === 'dark'"
+                      [class.border-zinc-700]="theme.mode() === 'dark'"
+                      [class.text-white]="theme.mode() === 'dark'"
+                      [class.bg-slate-50]="theme.mode() === 'light'"
+                      [class.border-zinc-300]="theme.mode() === 'light'"
+                      [class.text-zinc-900]="theme.mode() === 'light'">
+                <option value="">Tutte le gare</option>
+                <option *ngFor="let race of raceOptions" [value]="race.id">{{ race.label }}</option>
+              </select>
+              <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400 pointer-events-none"></i>
+            </div>
+          </div>
+
+          <div class="relative">
+            <label class="block text-[11px] font-bold uppercase tracking-wider mb-1.5"
+                   [class.text-zinc-400]="theme.mode() === 'dark'"
+                   [class.text-zinc-600]="theme.mode() === 'light'">Partecipante</label>
+            <div class="relative">
+              <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 pointer-events-none"></i>
+              <select [(ngModel)]="selectedParticipantId" (ngModelChange)="onParticipantChange()"
+                      class="w-full pl-9 pr-8 py-2.5 text-sm rounded-xl border outline-none font-semibold cursor-pointer appearance-none"
+                      [class.bg-zinc-800]="theme.mode() === 'dark'"
+                      [class.border-zinc-700]="theme.mode() === 'dark'"
+                      [class.text-white]="theme.mode() === 'dark'"
+                      [class.bg-slate-50]="theme.mode() === 'light'"
+                      [class.border-zinc-300]="theme.mode() === 'light'"
+                      [class.text-zinc-900]="theme.mode() === 'light'">
+                <option value="">Tutti i partecipanti</option>
+                <option *ngFor="let participant of participantOptions" [value]="participant.id">{{ participant.label }}</option>
+              </select>
+              <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400 pointer-events-none"></i>
+            </div>
+          </div>
+        </div>
+      </div>
 
     <!-- ── Season trend chart ── -->
     <mat-card class="chart-card skeleton-card">
@@ -307,5 +1031,6 @@
         </article>
       </div>
     </mat-card>
+    </ng-container>
   </main>
 </div>

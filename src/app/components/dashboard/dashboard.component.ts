@@ -7,20 +7,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { DashboardService, StandingsRow, CalendarRace, FantasyTeam } from '../../services/dashboard.service';
-import { AuthService } from '../../services/auth.service';
+import { DashboardService, StandingsRow, CalendarRace, FantasyTeam, StandingsBreakdownRow } from '../../services/dashboard.service';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 import { ChampionshipConfig, ChampionshipService } from '../../services/championship.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
 import { TimeFormatPipe } from '../../pipes/time-format.pipe';
 import { TranslatePipe } from '../../pipes/translate.pipe';
-import { RaceDetails } from '../../services/race-detail.service';
+import { RaceDetails, LineupsResult, BetResult, MotoGPStoredResult } from '../../services/race-detail.service';
 import { I18nService } from '../../services/i18n.service';
 import { ThemeService } from '../../services/theme.service';
 import { DateUtils } from '../../utils/date-utils';
 import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
-
-type Tab = 'standings' | 'next' | 'team' | 'config';
+import { AuthService, UserInfo } from '../../services/auth.service';
+import { MotoGPAssetService } from '../../services/motogp-asset.service';
+import { MoreMenuService } from '../../services/more-menu.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -31,10 +31,10 @@ type Tab = 'standings' | 'next' | 'team' | 'config';
   animations: [
     trigger('cardAnimation', [
       transition(':enter', [
-        query('.standings-card, .next-race-card, .fantasy-team-card', [
-          style({ opacity: 0, transform: 'translateY(20px)' }),
-          stagger(100, [
-            animate('300ms cubic-bezier(0.4, 0, 0.2, 1)',
+        query('.user-hero-card, .next-gp-card, .last-race-card, .team-quota-card, .championship-config-card', [
+          style({ opacity: 0, transform: 'translateY(16px)' }),
+          stagger(80, [
+            animate('320ms cubic-bezier(0.4, 0, 0.2, 1)',
               style({ opacity: 1, transform: 'translateY(0)' }))
           ])
         ], { optional: true })
@@ -51,8 +51,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   racesDetails?: RaceDetails;
   championshipConfig?: any;
   loggedUserId: string | null;
+  userInfo?: UserInfo;
   championshipId: number = 0;
-  totalRaces?: number
+  totalRaces?: number;
 
   // New boolean flags for button visibility
   showLineupsButton: boolean = false;
@@ -71,6 +72,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   loadingTeam = true;
   loadingNext = true;
   loadingConfig = true;
+  loadingLastRace = true;
+  lastCompletedRaceEntry?: StandingsBreakdownRow;
+  lastCompletedRaceRank?: number;
+  lastCompletedRaceLineup?: LineupsResult;
+  lastCompletedRaceSprintBet?: BetResult;
+  lastCompletedRaceBet?: BetResult;
+  lastCompletedRaceMotoGPPodium: MotoGPStoredResult[] = [];
   errorStandings = false;
   errorTeam = false;
   errorNext = false;
@@ -80,10 +88,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   now = Date.now();
   private tickTimer?: ReturnType<typeof setInterval>;
 
-  // Mobile tab state
-  currentTab: Tab = 'standings';
-  private swipeX = 0;
-  private tracking = false;
   constructor(
     private router: Router,
     private dashboardService: DashboardService,
@@ -92,12 +96,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private raceScheduleService: RaceScheduleService,
     private i18nService: I18nService,
     public theme: ThemeService,
+    public assetService: MotoGPAssetService,
+    public moreMenu: MoreMenuService,
     private cdr: ChangeDetectorRef
   ) {
     this.loggedUserId = this.authService.getUserId();
   }
 
   ngOnInit(): void {
+    this.authService.getUserInfo().subscribe({
+      next: (info) => {
+        this.userInfo = info;
+        this.cdr.markForCheck();
+      },
+      error: () => {}
+    });
+
     this.championshipService.getChampIdObs().subscribe((champId: number) => {
       champId > 0 && this.loadDashboardData(champId);
       this.cdr.markForCheck();
@@ -183,10 +197,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
+    this.loadingLastRace = true;
+    this.dashboardService.getStandingsBreakdown(champId).subscribe({
+      next: (rows: StandingsBreakdownRow[]) => {
+        this.computeLastRaceBreakdown(rows);
+        this.loadingLastRace = false;
+        this.cdr.markForCheck();
+      },
+      error: (err: any) => {
+        console.warn('Could not fetch standings breakdown for last race:', err);
+        this.lastCompletedRaceEntry = undefined;
+        this.loadingLastRace = false;
+        this.cdr.markForCheck();
+      }
+    });
     this.dashboardService.getRaceDetails(champId).subscribe({
       next: (data: RaceDetails) => {
           this.racesDetails = data;
           this.computeRidersQualifyingAndRaceCounts();
+          this.updateLastRaceDetails();
           this.cdr.markForCheck();
       },
       error: (err: any) => console.error('Error fetching race details:', err)
@@ -204,13 +233,80 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  public get currentUserPoints() {
-    return this.classificationData?.find(row => row.user_id.id === this.loggedUserId)?.score || 0;
+  public get currentUserRow(): StandingsRow | undefined {
+    return this.classificationData?.find(row => row.user_id.id === this.loggedUserId);
   }
 
-  public get currentUserPosition() {
-    const userRow = this.classificationData?.find(row => row.user_id.id === this.loggedUserId);
-    return userRow?.position || null;
+  public get currentUserPoints(): number {
+    return this.currentUserRow?.score || 0;
+  }
+
+  public get currentUserPosition(): number | null {
+    return this.currentUserRow?.position || null;
+  }
+
+  public get leaderRow(): StandingsRow | undefined {
+    return this.classificationData?.[0];
+  }
+
+    public get leaderName(): string {
+    const r = this.leaderRow?.user_id;
+    if (r?.alias) return r.alias;
+    return r ? `${r.first_name} ${r.last_name || ''}`.trim() : '';
+  }
+
+  public get distanceToLeader(): number {
+    if (!this.leaderRow || !this.currentUserRow) return 0;
+    return Math.max(0, this.leaderRow.score - this.currentUserRow.score);
+  }
+
+  public get gapToLeader(): number {
+    return this.distanceToLeader;
+  }
+
+  public get nextRiderBehind(): StandingsRow | undefined {
+    if (!this.classificationData || !this.currentUserPosition) return undefined;
+    return this.classificationData.find(row => row.position === (this.currentUserPosition! + 1));
+  }
+
+  public get nextRiderName(): string {
+    const r = this.nextRiderBehind?.user_id;
+    if (r?.alias) return r.alias;
+    return r ? `${r.first_name} ${r.last_name || ''}`.trim() : '';
+  }
+
+  public get advantageOverNext(): number | null {
+    if (!this.currentUserRow || !this.nextRiderBehind) return null;
+    return Math.max(0, this.currentUserRow.score - this.nextRiderBehind.score);
+  }
+
+  public get loggedUserName(): string {
+    if (this.userInfo?.alias) {
+      return this.userInfo.alias;
+    }
+    if (this.currentUserRow?.user_id?.alias) {
+      return this.currentUserRow.user_id.alias;
+    }
+    if (this.userInfo?.first_name) {
+      return `${this.userInfo.first_name} ${this.userInfo.last_name || ''}`.trim();
+    }
+    const myUser = this.currentUserRow?.user_id;
+    if (myUser?.first_name) {
+      return `${myUser.first_name} ${myUser.last_name || ''}`.trim();
+    }
+    return 'Fanta-Manager';
+  }
+
+  public get userProfileImage(): string | null {
+    return this.userInfo?.profile_image || this.currentUserRow?.user_id?.profile_image || null;
+  }
+
+  public getBatteryCells(riderId: number): Array<{ step: number; used: boolean }> {
+    const count = this.getRiderLineupsCount(riderId);
+    return Array.from({ length: this.maxLineups }, (_, i) => ({
+      step: i + 1,
+      used: (i + 1) <= count
+    }));
   }
 
   /**
@@ -310,6 +406,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (route === 'lineups') return 'dashboard.actions.placeLineups';
     if (route === 'sprint-bet') return 'dashboard.actions.placeSprintBet';
     if (route === 'race-bet') return 'dashboard.actions.placeRaceBet';
+    if (this.countdownParts) return 'Dettagli GP';
     return 'dashboard.actions.viewRaceResults';
   }
 
@@ -390,6 +487,41 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
+  private computeLastRaceBreakdown(rows: StandingsBreakdownRow[]): void {
+    if (!rows || !rows.length) {
+      this.lastCompletedRaceEntry = undefined;
+      return;
+    }
+    const myRows = rows.filter(r => r.user_id?.id === this.loggedUserId);
+    if (!myRows.length) {
+      this.lastCompletedRaceEntry = undefined;
+      return;
+    }
+    const maxOrder = Math.max(...myRows.map(r => Number(r.calendar_id?.race_order || 0)));
+    this.lastCompletedRaceEntry = myRows.find(r => Number(r.calendar_id?.race_order) === maxOrder);
+
+    if (this.lastCompletedRaceEntry) {
+      const calId = this.lastCompletedRaceEntry.calendar_id?.id;
+      const roundRows = rows.filter(r => r.calendar_id?.id === calId);
+      const sorted = [...roundRows].sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
+      const rank = sorted.findIndex(r => r.user_id?.id === this.loggedUserId);
+      this.lastCompletedRaceRank = rank >= 0 ? rank + 1 : undefined;
+
+      this.updateLastRaceDetails();
+    }
+  }
+
+  private updateLastRaceDetails(): void {
+    if (!this.lastCompletedRaceEntry || !this.racesDetails) return;
+    const calId = Number(this.lastCompletedRaceEntry.calendar_id?.id);
+    this.lastCompletedRaceLineup = this.racesDetails.lineups?.find(l => Number(l.calendar_id?.id) === calId);
+    this.lastCompletedRaceSprintBet = this.racesDetails.sprints?.find(s => Number(s.calendar_id?.id) === calId);
+    this.lastCompletedRaceBet = this.racesDetails.bets?.find(b => Number(b.calendar_id?.id) === calId);
+    this.lastCompletedRaceMotoGPPodium = (this.racesDetails.motogpResults || [])
+      .filter(r => Number(r.calendar_id) === calId && r.race_position != null && r.race_position >= 1 && r.race_position <= 3)
+      .sort((a, b) => (a.race_position ?? 99) - (b.race_position ?? 99));
+  }
+
   public getEventDateRange(eventDateString: string): { start: Date, end: Date } {
     if (!eventDateString) return { start: new Date(), end: new Date() };
 
@@ -403,7 +535,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     };
   }
 
-  isAdmin(): boolean {
+    goToLastRaceMotoGP(): void {
+    if (!this.lastCompletedRaceEntry?.calendar_id?.id) return;
+    this.router.navigate(['/race-detail', this.lastCompletedRaceEntry.calendar_id.id], { queryParams: { tab: 'motogp' } });
+  }
+
+isAdmin(): boolean {
     return this.authService.isCurrentUserAdmin();
   }
 
@@ -624,46 +761,4 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
 
   }
-
-  // --- Mobile bottom nav helpers ---
-  setTab(next: Tab) {
-    this.currentTab = next;
-    this.cdr.markForCheck();
-  }
-  isActive(name: Tab) {
-    return this.currentTab === name;
-  }
-
-  // Optional: keyboard support for convenience
-  @HostListener('window:keydown', ['$event'])
-  onKeydown(e: KeyboardEvent) {
-    if (e.key === 'ArrowLeft') this.shift(-1);
-    else if (e.key === 'ArrowRight') this.shift(1);
-  }
-
-  private shift(direction: -1 | 1) {
-    const order: Tab[] = ['standings', 'next', 'team', 'config'];
-    const i = order.indexOf(this.currentTab);
-    const j = Math.min(order.length - 1, Math.max(0, i + direction));
-    if (j !== i) {
-      this.currentTab = order[j];
-      this.cdr.markForCheck();
-    }
-  }
-
-  // --- Simple swipe handling (mobile) ---
-  onSwipeStart(ev: PointerEvent) {
-    this.swipeX = ev.clientX;
-    this.tracking = true;
-  }
-  onSwipeEnd(ev: PointerEvent) {
-    if (!this.tracking) return;
-    const dx = ev.clientX - this.swipeX;
-    this.tracking = false;
-    if (Math.abs(dx) > 60) {
-      if (dx < 0) this.shift(1);   // swipe left → next tab
-      if (dx > 0) this.shift(-1);  // swipe right → prev tab
-    }
-  }
-
 }

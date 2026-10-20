@@ -119,6 +119,13 @@
   .page-shell,
   .main-content,
   .content {
-    padding-bottom: calc(var(--app-bottom-nav-height, 64px) + 28px) !important;
+    padding-bottom: calc(var(--app-bottom-nav-height, 64px) + env(safe-area-inset-bottom, 24px) + 36px) !important;
+  }
+
+  /* Light theme floating navigation pill */
+  [data-theme='light'] app-bottom-nav nav > div {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    --tw-ring-color: rgba(0, 0, 0, 0.08) !important;
   }
 }

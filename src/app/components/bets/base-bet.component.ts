@@ -13,12 +13,28 @@ import { ExistingBetsModalComponent } from "./existing-bets-modal/existing-bets-
 import { LineupModalComponent } from "./lineup-modal/lineup-modal.component";
 import { NotificationServiceService } from "../../services/notification.service";
 import { NavigationService } from "../../services/navigation.service";
+import { MotoGPAssetService } from "../../services/motogp-asset.service";
+import { ThemeService } from "../../services/theme.service";
 
 @Component({
   template: ''
 })
 export abstract class BaseBetComponent implements OnInit, OnDestroy {
   protected navService = inject(NavigationService);
+  public motogpAssetService = inject(MotoGPAssetService);
+  public themeService = inject(ThemeService);
+
+  get isLightTheme(): boolean {
+    return this.themeService.mode() === 'light';
+  }
+
+  get circuitLayoutUrl(): string | null {
+    if (!this.calendarRace?.race_id) return null;
+    return this.motogpAssetService.getCircuitLayoutUrl(
+      this.calendarRace.race_id.country,
+      this.calendarRace.race_id.name
+    );
+  }
   abstract betForm: FormGroup;
   abstract betType: 'sprint' | 'race';
   abstract get betEndpoint(): string;
@@ -164,18 +180,43 @@ export abstract class BaseBetComponent implements OnInit, OnDestroy {
     return Number.isFinite(riderId) ? riderId : null;
   }
 
+  selectedConstructor = 'all';
+  showRiderRoster = true;
+
+  get constructorList(): string[] {
+    const set = new Set<string>();
+    for (const r of this.riders) {
+      if (r.constructor_id?.name) {
+        set.add(r.constructor_id.name);
+      }
+    }
+    return Array.from(set).sort();
+  }
+
+  setConstructorFilter(team: string): void {
+    this.selectedConstructor = this.selectedConstructor === team ? 'all' : team;
+  }
+
+  toggleRiderRoster(): void {
+    this.showRiderRoster = !this.showRiderRoster;
+  }
+
   get availableRiders(): ChampionshipRider[] {
     return this.riders;
   }
 
   get filteredRiders(): ChampionshipRider[] {
     const q = this.riderSearchQuery.trim().toLowerCase();
-    if (!q) return this.riders;
+    const team = this.selectedConstructor;
     return this.riders.filter(r => {
+      if (team !== 'all' && r.constructor_id?.name !== team) {
+        return false;
+      }
+      if (!q) return true;
       const fullName = `${r.rider_id.first_name} ${r.rider_id.last_name}`.toLowerCase();
       const num = String(r.rider_id.number);
-      const team = (r.constructor_id?.name || '').toLowerCase();
-      return fullName.includes(q) || num.includes(q) || team.includes(q);
+      const teamName = (r.constructor_id?.name || '').toLowerCase();
+      return fullName.includes(q) || num.includes(q) || teamName.includes(q);
     });
   }
 
@@ -233,6 +274,9 @@ export abstract class BaseBetComponent implements OnInit, OnDestroy {
 
     this.betForm.get('rider_id')?.setValue(riderId);
     this.betForm.updateValueAndValidity();
+    if (typeof window !== 'undefined' && window.innerWidth <= 820) {
+      this.showRiderRoster = false;
+    }
   }
 
   getSelectedRiderLabel(): string {
@@ -336,7 +380,12 @@ export abstract class BaseBetComponent implements OnInit, OnDestroy {
   }
 
   get pointsPresets(): number[] {
-    return [5, 10, 25].filter(value => value <= this.remainingPoints);
+    return [1, 5, 10, 25].filter(value => value <= this.remainingPoints);
+  }
+
+  setPointsPercent(percent: number): void {
+    const pts = Math.max(1, Math.round((this.remainingPoints * percent) / 100));
+    this.setPoints(pts);
   }
 
   get pointsAfterBet(): number {

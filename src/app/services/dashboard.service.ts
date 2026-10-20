@@ -24,6 +24,7 @@ export interface StandingsBreakdownRow {
     race_id: {
       name: string;
       location: string;
+      country?: string;
     };
   };
   user_id: UserInfo;
@@ -41,6 +42,7 @@ export interface Race {
   id: number;
   name: string;
   location: string;
+  country?: string;
 }
 
 export interface CalendarRace {

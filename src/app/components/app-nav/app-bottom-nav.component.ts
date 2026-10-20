@@ -1,127 +1,128 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, NavigationEnd } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
+import { HapticService } from '../../services/haptic.service';
+import { MoreMenuService } from '../../services/more-menu.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { MoreSheetComponent } from './more-sheet.component';
 
 @Component({
   selector: 'app-bottom-nav',
   standalone: true,
-  imports: [CommonModule, RouterLink, TranslatePipe],
+  imports: [CommonModule, RouterLink, RouterLinkActive, TranslatePipe, MoreSheetComponent],
   template: `
     @if (isVisible) {
-      <nav class="app-global-bottom-nav" [attr.aria-label]="'common.nav.primary' | t">
-        <a routerLink="/" class="nav-item" [class.active]="isCurrentRoute('/')" [attr.aria-label]="'dashboard.title' | t">
-          <i class="fa-solid fa-house" aria-hidden="true"></i>
-          <span class="nav-label">Home</span>
-        </a>
+      <nav
+        class="fixed inset-x-0 bottom-0 z-50 pointer-events-none px-4 pt-0 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] md:bottom-5 md:pb-0 transition-all duration-200"
+        [attr.aria-label]="'common.nav.primary' | t">
+        <div
+          class="pointer-events-auto max-w-md mx-auto backdrop-blur-2xl rounded-[28px] p-1.5 grid grid-cols-5 gap-1 transition-all duration-200 shadow-2xl"
+          [ngClass]="theme.mode() === 'light'
+            ? 'bg-white/95 ring-1 ring-black/[0.08] shadow-[0_10px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.04)]'
+            : 'bg-zinc-950/90 ring-1 ring-white/10 shadow-[0_14px_40px_rgba(0,0,0,0.7)]'">
 
-        <a routerLink="/calendar" class="nav-item" [class.active]="isCurrentRoute('/calendar')" [attr.aria-label]="'dashboard.header.calendar' | t">
-          <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>
-          <span class="nav-label">Gare</span>
-        </a>
+          <!-- 4 Voci Principali -->
+          @for (item of mainNavItems; track item.path) {
+            <a
+              [routerLink]="item.path"
+              (click)="onNavItemClick()"
+              routerLinkActive
+              #rla="routerLinkActive"
+              [routerLinkActiveOptions]="{exact: item.path === '/'}"
+              class="group relative flex flex-col items-center justify-center py-1.5 px-1 rounded-[22px] transition-all duration-200 active:scale-95 no-underline select-none cursor-pointer"
+              [class.bg-red-600/15]="rla.isActive && theme.mode() === 'dark'"
+              [class.bg-red-600/10]="rla.isActive && theme.mode() === 'light'"
+              [class.text-red-500]="rla.isActive && theme.mode() === 'dark'"
+              [class.text-red-600]="rla.isActive && theme.mode() === 'light'"
+              [class.text-zinc-400]="!rla.isActive && theme.mode() === 'dark'"
+              [class.text-zinc-500]="!rla.isActive && theme.mode() === 'light'"
+              [attr.aria-label]="item.label">
 
-        <a routerLink="/teams" class="nav-item" [class.active]="isCurrentRoute('/teams')" aria-label="Teams">
-          <i class="fa-solid fa-people-group" aria-hidden="true"></i>
-          <span class="nav-label">Teams</span>
-        </a>
+              <!-- Icona con micro-animazione e glow sportivo -->
+              <div
+                class="relative h-6 flex items-center justify-center text-[16px] transition-transform duration-200 group-hover:scale-110"
+                [class.scale-110]="rla.isActive"
+                [class.text-red-500]="rla.isActive && theme.mode() === 'dark'"
+                [class.text-red-600]="rla.isActive && theme.mode() === 'light'"
+                [class.drop-shadow-[0_0_8px_rgba(200,16,46,0.65)]]="rla.isActive && theme.mode() === 'dark'"
+                [class.drop-shadow-[0_0_6px_rgba(200,16,46,0.3)]]="rla.isActive && theme.mode() === 'light'">
+                <i [class]="item.icon"></i>
+              </div>
 
-        <a routerLink="/standings-breakdown" class="nav-item" [class.active]="isCurrentRoute('/standings-breakdown')" aria-label="Punteggi">
-          <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
-          <span class="nav-label">Punteggi</span>
-        </a>
+              <!-- Label -->
+              <span
+                class="text-[10px] tracking-tight font-sans mt-0.5 whitespace-nowrap leading-tight transition-all duration-150"
+                [class.font-extrabold]="rla.isActive"
+                [class.font-semibold]="!rla.isActive"
+                [class.text-red-500]="rla.isActive && theme.mode() === 'dark'"
+                [class.text-red-600]="rla.isActive && theme.mode() === 'light'"
+                [class.text-zinc-400]="!rla.isActive && theme.mode() === 'dark'"
+                [class.text-zinc-500]="!rla.isActive && theme.mode() === 'light'">
+                {{ item.label }}
+              </span>
+            </a>
+          }
 
-        <a routerLink="/settings" class="nav-item" [class.active]="isCurrentRoute('/settings')" [attr.aria-label]="'dashboard.menu.settings' | t">
-          <i class="fa-solid fa-gear" aria-hidden="true"></i>
-          <span class="nav-label">Profilo</span>
-        </a>
+          <!-- 5° Elemento: Pulsante Altro per aprire il foglio opzioni -->
+          <button
+            type="button"
+            (click)="toggleMore()"
+            class="group relative flex flex-col items-center justify-center py-1.5 px-1 rounded-[22px] transition-all duration-200 active:scale-95 border-0 bg-transparent select-none cursor-pointer"
+            [class.bg-red-600/15]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
+            [class.bg-red-600/10]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
+            [class.text-red-500]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
+            [class.text-red-600]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
+            [class.text-zinc-400]="!(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
+            [class.text-zinc-500]="!(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
+            aria-label="Altre sezioni">
+
+            <div
+              class="relative h-6 flex items-center justify-center text-[16px] transition-transform duration-200 group-hover:scale-110"
+              [class.scale-110]="moreMenu.isOpen() || isMoreActive"
+              [class.text-red-500]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
+              [class.text-red-600]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
+              [class.drop-shadow-[0_0_8px_rgba(200,16,46,0.65)]]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
+              [class.drop-shadow-[0_0_6px_rgba(200,16,46,0.3)]]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'">
+              <i class="fa-solid fa-ellipsis"></i>
+            </div>
+
+            <span
+              class="text-[10px] tracking-tight font-sans mt-0.5 whitespace-nowrap leading-tight transition-all duration-150"
+              [class.font-extrabold]="moreMenu.isOpen() || isMoreActive"
+              [class.font-semibold]="!(moreMenu.isOpen() || isMoreActive)"
+              [class.text-red-500]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
+              [class.text-red-600]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
+              [class.text-zinc-400]="!(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
+              [class.text-zinc-500]="!(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'">
+              Altro
+            </span>
+          </button>
+        </div>
       </nav>
-    }
-  `,
-  styles: [`
-    .app-global-bottom-nav {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 12px;
-      z-index: 999;
-      height: 60px;
-      display: none;
-      grid-template-columns: repeat(5, 1fr);
-      align-items: center;
-      gap: 2px;
-      padding: 5px 8px;
-      background: rgba(18, 18, 24, 0.92);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-radius: 22px;
-      width: min(440px, calc(100% - 24px));
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
 
-    @media (max-width: 768px) {
-      .app-global-bottom-nav {
-        display: grid;
-      }
+      <!-- Bottom / Center Modal Altro -->
+      <app-more-sheet [isOpen]="moreMenu.isOpen()" (close)="moreMenu.close()"></app-more-sheet>
     }
-
-    .nav-item {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      min-height: 48px;
-      padding: 4px 0;
-      text-decoration: none;
-      color: rgba(255, 255, 255, 0.55);
-      background: transparent;
-      border: 0;
-      border-radius: 14px;
-      font-size: 0.68rem;
-      line-height: 1;
-      font-weight: 600;
-      text-align: center;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-
-    .nav-item i {
-      font-size: 1.15rem;
-      transition: transform 0.2s ease, color 0.2s ease;
-    }
-
-    .nav-label {
-      display: block;
-      max-width: 60px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .nav-item:hover {
-      color: rgba(255, 255, 255, 0.85);
-    }
-
-    .nav-item.active {
-      color: #ff3344;
-      font-weight: 700;
-    }
-
-    .nav-item.active i {
-      color: #ff3344;
-      transform: translateY(-2px);
-    }
-  `]
+  `
 })
 export class AppBottomNavComponent {
   private router = inject(Router);
   private authService = inject(AuthService);
+  public theme = inject(ThemeService);
+  public haptic = inject(HapticService);
+  public moreMenu = inject(MoreMenuService);
 
   currentUrl = '/';
+
+  mainNavItems = [
+    { path: '/', label: 'Home', icon: 'fa-solid fa-house' },
+    { path: '/calendar', label: 'Gare', icon: 'fa-solid fa-flag-checkered' },
+    { path: '/teams', label: 'Teams', icon: 'fa-solid fa-people-group' },
+    { path: '/standings-breakdown', label: 'Punteggi', icon: 'fa-solid fa-chart-column' },
+  ];
 
   constructor() {
     this.currentUrl = this.router.url;
@@ -129,6 +130,7 @@ export class AppBottomNavComponent {
       filter((e): e is NavigationEnd => e instanceof NavigationEnd)
     ).subscribe(e => {
       this.currentUrl = e.urlAfterRedirects;
+      this.moreMenu.close();
     });
   }
 
@@ -136,13 +138,21 @@ export class AppBottomNavComponent {
     const token = this.authService.getToken();
     if (!token) return false;
     const url = this.currentUrl;
-    return !url.startsWith('/login') && !url.startsWith('/reset-password');
+    return !url.startsWith('/login') && !url.startsWith('/reset-password') && !url.startsWith('/admin');
   }
 
-  isCurrentRoute(basePath: string): boolean {
-    if (basePath === '/') {
-      return this.currentUrl === '/' || this.currentUrl === '' || this.currentUrl.startsWith('/?');
-    }
-    return this.currentUrl.startsWith(basePath);
+  get isMoreActive(): boolean {
+    const url = this.currentUrl;
+    return url.startsWith('/profile') || url.startsWith('/settings') || url.startsWith('/translation') || url.startsWith('/admin');
+  }
+
+  onNavItemClick(): void {
+    this.haptic.light();
+    this.moreMenu.close();
+  }
+
+  toggleMore(): void {
+    this.haptic.medium();
+    this.moreMenu.toggle();
   }
 }

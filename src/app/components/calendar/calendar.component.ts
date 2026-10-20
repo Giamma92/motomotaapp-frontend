@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { DashboardService, CalendarRace } from '../../services/dashboard.service';
+import { DashboardService, CalendarRace, Rider } from '../../services/dashboard.service';
 import { ChampionshipService } from '../../services/championship.service';
 import { TimeFormatPipe } from '../../pipes/time-format.pipe';
 import { AuthService } from '../../services/auth.service';
@@ -14,6 +14,8 @@ import { DateUtils } from '../../utils/date-utils';
 import { RaceDetails } from '../../services/race-detail.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
 import { NavigationService } from '../../services/navigation.service';
+import { ThemeService } from '../../services/theme.service';
+import { MotoGPAssetService } from '../../services/motogp-asset.service';
 
 @Component({
   selector: 'app-calendar',
@@ -49,6 +51,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
     private notificationService: NotificationServiceService,
     private raceSchedule: RaceScheduleService,
     private navService: NavigationService,
+    public theme: ThemeService,
+    public assetService: MotoGPAssetService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -222,7 +226,24 @@ export class CalendarComponent implements OnInit, OnDestroy {
     this.router.navigate(['/motogp-results', this.championshipId, race.id]);
   }
 
-  isAdmin() {
+    getRaceWinner(race: CalendarRace): { rider: any; points: number } | null {
+    if (!this.raceDetails?.motogpResults?.length) return null;
+    const res = this.raceDetails.motogpResults.find(r => r.calendar_id === race.id && r.race_position === 1);
+    if (!res || !res.rider_id) return null;
+    return {
+      rider: res.rider_id,
+      points: res.race_points ?? 25
+    };
+  }
+
+  goToRaceResults(race: CalendarRace, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.goToMotoGPResults(race);
+  }
+
+isAdmin() {
     return this.authService.isCurrentUserAdmin();
   }
 

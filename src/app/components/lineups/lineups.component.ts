@@ -6,7 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { CalendarRace, DashboardService, Rider } from '../../services/dashboard.service';
+import { CalendarRace, DashboardService, Rider, FantasyTeam } from '../../services/dashboard.service';
 import { ChampionshipService, ChampionshipConfig } from '../../services/championship.service';
 import { HttpService } from '../../services/http.service';
 import { LineupsResult, RaceDetailService } from '../../services/race-detail.service';
@@ -16,6 +16,8 @@ import { I18nService } from '../../services/i18n.service';
 import { DateUtils } from '../../utils/date-utils';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NavigationService } from '../../services/navigation.service';
+import { MotoGPAssetService } from '../../services/motogp-asset.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-lineups',
@@ -42,6 +44,15 @@ import { NavigationService } from '../../services/navigation.service';
 
       <!-- ═══════════ Hero ═══════════ -->
       <section class="lineup-hero" *ngIf="raceTitle">
+        <div class="bet-circuit-watermark" *ngIf="circuitLayoutUrl as trackUrl">
+          <img
+            [src]="trackUrl"
+            alt="Circuit layout"
+            class="circuit-watermark-img"
+            [class.filter-invert]="isLightTheme"
+            (error)="motogpAssetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')"
+          />
+        </div>
         <div class="lineup-hero-main">
           <span class="lineup-kicker" *ngIf="raceDateLabel">
             <i class="fa-regular fa-calendar"></i>
@@ -69,7 +80,7 @@ import { NavigationService } from '../../services/navigation.service';
       <!-- ═══════════ Progress ═══════════ -->
       <div class="lineup-progress" [ngClass]="progressClass">
         <div class="lineup-progress-copy">
-          <span class="summary-kicker">Schieramento</span>
+          <span class="summary-kicker">Stato Schieramento</span>
           <strong>{{ progressLabel }}</strong>
         </div>
         <div class="lineup-progress-track" aria-hidden="true">
@@ -98,31 +109,49 @@ import { NavigationService } from '../../services/navigation.service';
         <mat-card-content>
           <!-- ── Slots ── -->
           <section class="slot-grid">
-            <div class="slot-card" [class.filled]="!!selectedQualifyingRider">
-              <span class="slot-kicker">
+            <!-- Qualifying Slot -->
+            <div class="slot-card slot-qual" [class.filled]="!!selectedQualifyingRider">
+              <div class="slot-kicker">
                 <i class="fa-solid fa-stopwatch"></i>
-                Pilota qualifica
-              </span>
+                <span>Pilota qualifica</span>
+              </div>
 
               <div class="slot-rider" *ngIf="selectedQualifyingRider as qr">
-                <span class="rider-number">#{{ qr.number }}</span>
-                <div class="rider-copy">
-                  <strong>{{ qr.first_name }} {{ qr.last_name }}</strong>
-                  <span>Selezione attuale</span>
+                <div class="slot-avatar-wrap">
+                  <img
+                    class="slot-avatar-img"
+                    [src]="motogpAssetService.getRiderPhotoUrl(qr.number, qr.first_name + ' ' + qr.last_name)"
+                    [alt]="qr.last_name"
+                    (error)="motogpAssetService.handleImageError($event, 'assets/images/rider-placeholder.svg')"
+                  />
+                  <span class="slot-number-badge">#{{ qr.number }}</span>
+                </div>
+                <div class="slot-rider-copy">
+                  <div class="slot-name-row">
+                    <strong>{{ qr.first_name }} {{ qr.last_name }}</strong>
+                    <span class="rider-role-pill">{{ getRiderRoleLabel(qr.id) }}</span>
+                  </div>
+                  <span class="slot-usage-info">{{ getRiderUsageSummary(qr.id) }}</span>
                 </div>
                 <button
                   type="button"
                   class="slot-clear"
                   (click)="clearSlot('qualifying')"
                   aria-label="Rimuovi pilota in qualifica"
+                  title="Rimuovi pilota"
                 >
                   <i class="fa-solid fa-xmark"></i>
                 </button>
               </div>
 
               <div class="slot-empty" *ngIf="!selectedQualifyingRider">
-                <i class="fa-regular fa-circle-xmark"></i>
-                Non ancora scelto
+                <div class="slot-empty-icon">
+                  <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <div class="slot-empty-copy">
+                  <strong>Non ancora scelto</strong>
+                  <span>Tocca "Qualifica" su uno dei tuoi 3 piloti</span>
+                </div>
               </div>
 
               <p class="slot-error-msg" *ngIf="slotError('qualifying_rider_id') as err">
@@ -131,31 +160,49 @@ import { NavigationService } from '../../services/navigation.service';
               </p>
             </div>
 
-            <div class="slot-card" [class.filled]="!!selectedRaceRider">
-              <span class="slot-kicker">
+            <!-- Race Slot -->
+            <div class="slot-card slot-race" [class.filled]="!!selectedRaceRider">
+              <div class="slot-kicker">
                 <i class="fa-solid fa-flag-checkered"></i>
-                Pilota gara
-              </span>
+                <span>Pilota gara</span>
+              </div>
 
               <div class="slot-rider" *ngIf="selectedRaceRider as rr">
-                <span class="rider-number">#{{ rr.number }}</span>
-                <div class="rider-copy">
-                  <strong>{{ rr.first_name }} {{ rr.last_name }}</strong>
-                  <span>Selezione attuale</span>
+                <div class="slot-avatar-wrap">
+                  <img
+                    class="slot-avatar-img"
+                    [src]="motogpAssetService.getRiderPhotoUrl(rr.number, rr.first_name + ' ' + rr.last_name)"
+                    [alt]="rr.last_name"
+                    (error)="motogpAssetService.handleImageError($event, 'assets/images/rider-placeholder.svg')"
+                  />
+                  <span class="slot-number-badge">#{{ rr.number }}</span>
+                </div>
+                <div class="slot-rider-copy">
+                  <div class="slot-name-row">
+                    <strong>{{ rr.first_name }} {{ rr.last_name }}</strong>
+                    <span class="rider-role-pill">{{ getRiderRoleLabel(rr.id) }}</span>
+                  </div>
+                  <span class="slot-usage-info">{{ getRiderUsageSummary(rr.id) }}</span>
                 </div>
                 <button
                   type="button"
                   class="slot-clear"
                   (click)="clearSlot('race')"
                   aria-label="Rimuovi pilota in gara"
+                  title="Rimuovi pilota"
                 >
                   <i class="fa-solid fa-xmark"></i>
                 </button>
               </div>
 
               <div class="slot-empty" *ngIf="!selectedRaceRider">
-                <i class="fa-regular fa-circle-xmark"></i>
-                Non ancora scelto
+                <div class="slot-empty-icon">
+                  <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <div class="slot-empty-copy">
+                  <strong>Non ancora scelto</strong>
+                  <span>Tocca "Gara" su uno dei tuoi 3 piloti</span>
+                </div>
               </div>
 
               <p class="slot-error-msg" *ngIf="slotError('race_rider_id') as err">
@@ -169,13 +216,13 @@ import { NavigationService } from '../../services/navigation.service';
           <section class="selection-section">
             <div class="section-head">
               <div class="section-head-copy">
-                <h3>I tuoi piloti</h3>
-                <p>Tocca "Qualifica" o "Gara" per assegnare il pilota a quello slot.</p>
+                <h3>I tuoi 3 piloti</h3>
+                <p>Assegna i piloti della tua scuderia a Qualifica e Gara. Tocca i pulsanti per selezionare.</p>
               </div>
             </div>
 
-            <!-- Search box for lineup riders -->
-            <div class="rider-search-box" *ngIf="riders.length > 2">
+            <!-- Search box for lineup riders (if more than 3) -->
+            <div class="rider-search-box" *ngIf="riders.length > 3">
               <i class="fa-solid fa-magnifying-glass search-icon"></i>
               <input
                 type="text"
@@ -195,7 +242,7 @@ import { NavigationService } from '../../services/navigation.service';
               </button>
             </div>
 
-            <p class="empty-note" *ngIf="riders.length === 0">Caricamento piloti...</p>
+            <p class="empty-note" *ngIf="riders.length === 0">Caricamento piloti scuderia...</p>
             <p class="empty-note" *ngIf="riders.length > 0 && filteredRiders.length === 0">
               Nessun pilota trovato per "{{ riderSearchQuery }}".
             </p>
@@ -208,21 +255,40 @@ import { NavigationService } from '../../services/navigation.service';
                 [class.blocked]="isRiderBlocked(rider.id)"
               >
                 <div class="rider-card-main">
-                  <span class="rider-number">#{{ rider.number }}</span>
-                  <div class="rider-copy">
-                    <strong>{{ rider.first_name }} {{ rider.last_name }}</strong>
-                    <span>{{ getRiderUsageSummary(rider.id) }}</span>
+                  <div class="rider-avatar-wrap">
+                    <img
+                      class="rider-avatar-img"
+                      [src]="motogpAssetService.getRiderPhotoUrl(rider.number, rider.first_name + ' ' + rider.last_name)"
+                      [alt]="rider.last_name"
+                      loading="lazy"
+                      (error)="motogpAssetService.handleImageError($event, 'assets/images/rider-placeholder.svg')"
+                    />
+                    <span class="rider-number-badge">#{{ rider.number }}</span>
                   </div>
-                  <span class="rider-remaining" [class.tag-danger]="isRiderAtLimit(rider.id)">
-                    {{ getRemainingUses(rider.id) }} liberi
-                  </span>
+
+                  <div class="rider-copy">
+                    <div class="rider-title-row">
+                      <strong>{{ rider.first_name }} {{ rider.last_name }}</strong>
+                      <span class="rider-role-pill">{{ getRiderRoleLabel(rider.id) }}</span>
+                    </div>
+
+                    <div class="rider-meta-row">
+                      <div class="usage-meter-track" aria-hidden="true">
+                        <span [style.width.%]="getRiderUsagePercent(rider.id)"></span>
+                      </div>
+                      <span class="usage-summary-text">{{ getRiderUsageSummary(rider.id) }}</span>
+                      <span class="rider-remaining" [class.tag-danger]="isRiderAtLimit(rider.id)">
+                        {{ getRemainingUses(rider.id) }} liberi
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="rider-tags" *ngIf="isInSlot(rider.id) || isRiderBlocked(rider.id)">
-                  <span class="tag tag-ok" *ngIf="isQualifying(rider.id)">
+                  <span class="tag tag-qual" *ngIf="isQualifying(rider.id)">
                     <i class="fa-solid fa-stopwatch"></i> In qualifica
                   </span>
-                  <span class="tag tag-ok" *ngIf="isRace(rider.id)">
+                  <span class="tag tag-race" *ngIf="isRace(rider.id)">
                     <i class="fa-solid fa-flag-checkered"></i> In gara
                   </span>
                   <span class="tag tag-warning" *ngIf="isRiderBlocked(rider.id)">
@@ -233,25 +299,27 @@ import { NavigationService } from '../../services/navigation.service';
                 <div class="rider-assign">
                   <button
                     type="button"
-                    class="assign-btn"
+                    class="assign-btn qual-btn"
                     [class.active]="isQualifying(rider.id)"
                     [disabled]="isRiderBlocked(rider.id)"
                     [attr.aria-pressed]="isQualifying(rider.id)"
                     (click)="assignToSlot('qualifying', rider.id)"
                   >
                     <i class="fa-solid fa-stopwatch"></i>
-                    Qualifica
+                    <span>Qualifica</span>
+                    <i class="fa-solid fa-check check-indicator" *ngIf="isQualifying(rider.id)"></i>
                   </button>
                   <button
                     type="button"
-                    class="assign-btn"
+                    class="assign-btn race-btn"
                     [class.active]="isRace(rider.id)"
                     [disabled]="isRiderBlocked(rider.id)"
                     [attr.aria-pressed]="isRace(rider.id)"
                     (click)="assignToSlot('race', rider.id)"
                   >
                     <i class="fa-solid fa-flag-checkered"></i>
-                    Gara
+                    <span>Gara</span>
+                    <i class="fa-solid fa-check check-indicator" *ngIf="isRace(rider.id)"></i>
                   </button>
                 </div>
               </div>
@@ -267,8 +335,8 @@ import { NavigationService } from '../../services/navigation.service';
             [disabled]="lineupsForm.invalid || loading"
             (click)="onSubmit()"
           >
-            <mat-icon>{{ loading ? 'hourglass_top' : 'save' }}</mat-icon>
-            {{ loading ? ('lineups.submitting' | t) : ('lineups.save' | t) }}
+            <mat-icon>{{ loading ? 'hourglass_top' : (existingLineupForRace && !isDirty ? 'check_circle' : 'save') }}</mat-icon>
+            {{ loading ? ('lineups.submitting' | t) : (existingLineupForRace && !isDirty ? 'Schieramento Salvato' : ('lineups.save' | t)) }}
           </button>
           <button mat-stroked-button type="button" class="secondary-button" (click)="goToRaceDetail()">
             <mat-icon>flag</mat-icon>
@@ -276,6 +344,30 @@ import { NavigationService } from '../../services/navigation.service';
           </button>
         </mat-card-actions>
       </mat-card>
+
+      <!-- Sticky bottom bar for mobile -->
+      <div class="lineup-sticky-bar" *ngIf="slotsFilled > 0">
+        <div class="sticky-bar-picks">
+          <span class="sticky-pick-chip" [class.pick-filled]="!!selectedQualifyingRider">
+            <i class="fa-solid fa-stopwatch"></i>
+            {{ selectedQualifyingRider ? '#' + selectedQualifyingRider.number + ' ' + selectedQualifyingRider.last_name : 'Qual: —' }}
+          </span>
+          <span class="sticky-pick-chip" [class.pick-filled]="!!selectedRaceRider">
+            <i class="fa-solid fa-flag-checkered"></i>
+            {{ selectedRaceRider ? '#' + selectedRaceRider.number + ' ' + selectedRaceRider.last_name : 'Gara: —' }}
+          </span>
+        </div>
+        <button
+          mat-raised-button
+          color="primary"
+          class="sticky-submit-btn"
+          [disabled]="lineupsForm.invalid || loading"
+          (click)="onSubmit()"
+        >
+          <mat-icon>{{ loading ? 'hourglass_top' : (existingLineupForRace && !isDirty ? 'check_circle' : 'save') }}</mat-icon>
+          <span>{{ loading ? 'Salvataggio...' : (existingLineupForRace && !isDirty ? 'Salvato' : 'Salva') }}</span>
+        </button>
+      </div>
     </div>
   `
 })
@@ -283,6 +375,7 @@ export class LineupsComponent implements OnInit, OnDestroy {
   lineupsForm: FormGroup;
   loading = false;
   riders: Rider[] = [];
+  fantasyTeam: FantasyTeam | null = null;
   riderSearchQuery = '';
   countdownText = '';
   isDeadlinePassed = false;
@@ -307,7 +400,9 @@ export class LineupsComponent implements OnInit, OnDestroy {
     private notificationService: NotificationServiceService,
     private raceScheduleService: RaceScheduleService,
     private i18nService: I18nService,
-    private navService: NavigationService
+    private navService: NavigationService,
+    public motogpAssetService: MotoGPAssetService,
+    public themeService: ThemeService
   ) {
     this.lineupsForm = this.fb.group({
       race_rider_id: ['', Validators.required],
@@ -410,6 +505,7 @@ export class LineupsComponent implements OnInit, OnDestroy {
   loadRiders(championshipId: number): void {
     this.dashboardService.getFantasyTeam(championshipId).subscribe({
       next: (team) => {
+        this.fantasyTeam = team;
         this.riders = [
           team.official_rider_1,
           team.official_rider_2,
@@ -618,6 +714,31 @@ export class LineupsComponent implements OnInit, OnDestroy {
   getRiderUsageSummary(riderId: number): string {
     const used = this.countRiderInLineups(riderId);
     return `${used} / ${this.maxLineupsPerPilot} utilizzi`;
+  }
+
+  getRiderUsagePercent(riderId: number): number {
+    if (!this.maxLineupsPerPilot) return 0;
+    const count = this.countRiderInLineups(riderId);
+    return Math.min(100, Math.round((count / this.maxLineupsPerPilot) * 100));
+  }
+
+  getRiderRoleLabel(riderId: number): string {
+    if (this.fantasyTeam?.official_rider_1?.id === riderId) return 'Ufficiale 1';
+    if (this.fantasyTeam?.official_rider_2?.id === riderId) return 'Ufficiale 2';
+    if (this.fantasyTeam?.reserve_rider?.id === riderId) return 'Riserva';
+    return 'Pilota';
+  }
+
+  get circuitLayoutUrl(): string | null {
+    if (!this.calendarRace?.race_id) return null;
+    return this.motogpAssetService.getCircuitLayoutUrl(
+      this.calendarRace.race_id.country,
+      this.calendarRace.race_id.name
+    );
+  }
+
+  get isLightTheme(): boolean {
+    return this.themeService.mode() === 'light';
   }
 
   isRiderAtLimit(riderId: number): boolean {

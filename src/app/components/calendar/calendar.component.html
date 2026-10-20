@@ -24,7 +24,19 @@
     <ng-container *ngIf="!loading && calendar.length">
       <!-- ── Featured (next) race hero — both desktop & mobile ── -->
       <section class="race-hero" *ngIf="featuredRace as race" [class.race-hero--cancelled]="race.cancelled">
-        <div class="hero-copy">
+        <!-- Ambient Circuit Track Layout Watermark -->
+        <div
+          *ngIf="assetService.getCircuitLayoutUrl(race.race_id.country, race.race_id.name) as trackUrl"
+          class="hero-circuit-wrap">
+          <img
+            [src]="trackUrl"
+            [alt]="race.race_id.name"
+            class="hero-circuit-img"
+            [class.filter-invert]="theme.mode() === 'light'"
+            (error)="assetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')">
+        </div>
+
+        <div class="hero-copy relative z-10">
           <div class="hero-topline">
             <span class="hero-kicker">{{ getMobileRaceStateLabel(race) }}</span>
             <span class="cancelled-pill" *ngIf="race.cancelled">Cancellata</span>
@@ -151,8 +163,15 @@
                   <span class="round-badge">{{ race.race_order }}</span>
                 </td>
                 <td class="col-event">
-                  <div class="event-name">
-                    {{ race.race_id.name }}
+                  <div class="event-name flex items-center gap-2">
+                    <img
+                      *ngIf="assetService.getCircuitLayoutUrl(race.race_id.country, race.race_id.name) as trackUrl"
+                      [src]="trackUrl"
+                      [alt]="race.race_id.name"
+                      class="table-circuit-thumb"
+                      [class.filter-invert]="theme.mode() === 'light'"
+                      (error)="assetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')">
+                    <span>{{ race.race_id.name }}</span>
                     <span class="cancelled-pill" *ngIf="race.cancelled">Cancellata</span>
                     <span
                       class="state-pill"
@@ -164,6 +183,18 @@
                   <div class="event-location">
                     <mat-icon>location_on</mat-icon>
                     {{ race.race_id.location }}
+                  </div>
+                  <div *ngIf="getRaceWinner(race) as winner"
+                       class="race-winner-badge mt-1"
+                       (click)="goToRaceResults(race, $event)">
+                    <div class="winner-thumb">
+                      <img [src]="assetService.getRiderPhotoUrl(winner.rider.number, winner.rider.first_name + ' ' + winner.rider.last_name)"
+                           [alt]="winner.rider.last_name"
+                           (error)="assetService.handleImageError($event)">
+                    </div>
+                    <span class="winner-label">🏆 Vincitore:</span>
+                    <strong class="winner-name">#{{ winner.rider.number }} {{ winner.rider.last_name }}</strong>
+                    <span class="winner-pts">+{{ winner.points }}pt</span>
                   </div>
                 </td>
                 <td class="col-status">
@@ -236,23 +267,55 @@
                   </span>
                 </div>
               </div>
-              <h2 class="race-title">{{ race.race_id.name }}</h2>
-              <div class="race-subtitle">
-                <div class="event-details">
-                  <div class="detail-item">
-                    <mat-icon>event</mat-icon>
-                    <span class="detail-text">{{ formatEventRange(race.event_date) }}</span>
+
+              <!-- Main Info Row with Circuit Track on the right (Mobile) -->
+              <div class="race-headline-row">
+                <div class="race-headline-copy">
+                  <h2 class="race-title">{{ race.race_id.name }}</h2>
+                  <div class="race-subtitle">
+                    <div class="event-details">
+                      <div class="detail-item">
+                        <mat-icon>event</mat-icon>
+                        <span class="detail-text">{{ formatEventRange(race.event_date) }}</span>
+                      </div>
+                      <div class="detail-item">
+                        <mat-icon>location_on</mat-icon>
+                        <span class="location-text">{{ race.race_id.location }}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div class="detail-item">
-                    <mat-icon>location_on</mat-icon>
-                    <span class="location-text">{{ race.race_id.location }}</span>
-                  </div>
+                </div>
+
+                <!-- Circuit outline on the right (Mobile) -->
+                <div
+                  *ngIf="assetService.getCircuitLayoutUrl(race.race_id.country, race.race_id.name) as trackUrl"
+                  class="panel-circuit-aside">
+                  <img
+                    [src]="trackUrl"
+                    [alt]="race.race_id.name"
+                    class="panel-circuit-aside-img"
+                    [class.filter-invert]="theme.mode() === 'light'"
+                    (error)="assetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')">
                 </div>
               </div>
               <div class="race-personal-status">
                 <span class="status-pill" [class.status-pill-complete]="hasCompletedLineup(race)" [class.status-pill-missing]="!hasCompletedLineup(race)">Schieramento {{ hasCompletedLineup(race) ? '✓' : '✗' }}</span>
                 <span class="status-pill" [class.status-pill-complete]="hasCompletedSprintBet(race)" [class.status-pill-missing]="!hasCompletedSprintBet(race)">Sprint {{ hasCompletedSprintBet(race) ? '✓' : '✗' }}</span>
                 <span class="status-pill" [class.status-pill-complete]="hasCompletedRaceBet(race)" [class.status-pill-missing]="!hasCompletedRaceBet(race)">Race {{ hasCompletedRaceBet(race) ? '✓' : '✗' }}</span>
+              </div>
+
+              <!-- Winner MotoGP Pill (if completed) -->
+              <div *ngIf="getRaceWinner(race) as winner"
+                   class="race-winner-badge"
+                   (click)="goToRaceResults(race, $event)">
+                <div class="winner-thumb">
+                  <img [src]="assetService.getRiderPhotoUrl(winner.rider.number, winner.rider.first_name + ' ' + winner.rider.last_name)"
+                       [alt]="winner.rider.last_name"
+                       (error)="assetService.handleImageError($event)">
+                </div>
+                <span class="winner-label">🏆 Vincitore:</span>
+                <strong class="winner-name">#{{ winner.rider.number }} {{ winner.rider.last_name }}</strong>
+                <span class="winner-pts">+{{ winner.points }}pt</span>
               </div>
             </div>
           </summary>

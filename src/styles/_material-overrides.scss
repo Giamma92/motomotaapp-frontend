@@ -359,6 +359,24 @@ span.mat-mdc-menu-item-text {
   color: var(--text-primary);
 }
 
+/* Guarantee notched outline notch never renders spurious vertical borders */
+.mdc-notched-outline .mdc-notched-outline__notch {
+  border-left: none !important;
+  border-right: none !important;
+}
+
+/* Prevent iOS Safari auto-zoom on input focus */
+@media (max-width: 820px) {
+  .mat-mdc-form-field input.mat-mdc-input-element,
+  .mat-mdc-form-field textarea.mat-mdc-input-element,
+  .mat-mdc-select,
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Keep browser autofill readable on dark fields */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,

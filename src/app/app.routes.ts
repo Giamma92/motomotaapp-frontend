@@ -18,6 +18,8 @@ export const routes: Routes = [
   { path: 'admin', loadComponent: () => import('./components/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent), canActivate: [AuthGuard, AdminGuard] },
   // The root route shows the dashboard.
   { path: '', loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent), canActivate: [AuthGuard] },
+  { path: 'dashboard', redirectTo: '', pathMatch: 'full' },
+  { path: 'all-teams', redirectTo: 'teams', pathMatch: 'full' },
   // A route for a bet race page.
   { path: 'race-bet/:id', loadComponent: () => import('./components/bets/race-bet/race-bet.component').then(m => m.RaceBetComponent), canActivate: [AuthGuard, RaceAccessGuard] },
   // A route for a sprint bet page.
@@ -29,9 +31,13 @@ export const routes: Routes = [
   // A route for Race details page.
   { path: 'race-detail/:id', loadComponent: () => import('./components/race-detail/race-detail.component').then(m => m.RaceDetailComponent) },
   // A route for MotoGP results page.
+  { path: 'motogp-results', loadComponent: () => import('./components/motogp-results/motogp-results.component').then(m => m.MotoGPResultsComponent) },
   { path: 'motogp-results/:championshipId/:calendarId', loadComponent: () => import('./components/motogp-results/motogp-results.component').then(m => m.MotoGPResultsComponent) },
   // A route for championship standings breakdown page.
   { path: 'standings-breakdown', loadComponent: () => import('./components/standings-breakdown/standings-breakdown.component').then(m => m.StandingsBreakdownComponent), canActivate: [AuthGuard] },
   // A route for a teams page.
   { path: 'teams', loadComponent: () => import('./components/all-teams/all-teams.component').then(m => m.AllTeamsComponent), canActivate: [AuthGuard] },
+  // Wildcard redirect to home
+  { path: '**', redirectTo: '' }
 ];
+

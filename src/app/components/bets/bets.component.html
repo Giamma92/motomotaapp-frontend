@@ -8,6 +8,15 @@
 
   <!-- ═══════════ Hero ═══════════ -->
   <section class="bet-hero" *ngIf="raceTitle">
+    <div class="bet-circuit-watermark" *ngIf="circuitLayoutUrl as trackUrl">
+      <img
+        [src]="trackUrl"
+        alt="Circuit layout"
+        class="circuit-watermark-img"
+        [class.filter-invert]="isLightTheme"
+        (error)="motogpAssetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')"
+      />
+    </div>
     <div class="bet-hero-main">
       <span class="bet-kicker" *ngIf="raceDateLabel">
         <i class="fa-regular fa-calendar"></i>
@@ -110,71 +119,147 @@
           <section class="bet-step bet-step-rider" [class.step-filled]="!!selectedRiderId">
             <header class="step-head">
               <span class="step-index">1</span>
+              <img
+                *ngIf="selectedRider"
+                class="step-rider-avatar"
+                [src]="motogpAssetService.getRiderPhotoUrl(selectedRider.rider_id.number)"
+                [alt]="selectedRider.rider_id.last_name"
+                (error)="motogpAssetService.handleImageError($event, 'assets/images/rider-placeholder.svg')"
+              />
               <span class="step-copy">
                 <span class="summary-label">Scegli il pilota</span>
                 <strong>{{ selectedRider ? (selectedRider.rider_id.first_name + ' ' + selectedRider.rider_id.last_name) : 'Nessuna selezione' }}</strong>
               </span>
               <span class="step-state ok-tag" *ngIf="selectedRiderId">
-                <i class="fa-solid fa-check"></i> Fatto
+                <i class="fa-solid fa-check"></i> Scelto
               </span>
             </header>
 
-            <!-- Search box for riders -->
-            <div class="rider-search-box" *ngIf="availableRiders.length > 0">
-              <i class="fa-solid fa-magnifying-glass search-icon"></i>
-              <input
-                type="text"
-                [(ngModel)]="riderSearchQuery"
-                [ngModelOptions]="{standalone: true}"
-                placeholder="Cerca pilota per nome, numero (#) o team..."
-                aria-label="Cerca pilota"
-              />
-              <button
-                *ngIf="riderSearchQuery"
-                type="button"
-                class="search-clear-btn"
-                (click)="riderSearchQuery = ''"
-                aria-label="Cancella ricerca"
-              >
-                <i class="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-
-            <p class="step-hint" *ngIf="availableRiders.length === 0">Caricamento piloti...</p>
-            <p class="step-hint" *ngIf="availableRiders.length > 0 && filteredRiders.length === 0">
-              Nessun pilota trovato per "{{ riderSearchQuery }}".
-            </p>
-
-            <div class="rider-grid" role="list" aria-label="Lista piloti selezionabili" *ngIf="filteredRiders.length > 0">
-              <button
-                type="button"
-                class="rider-card"
-                *ngFor="let rider of filteredRiders"
-                role="listitem"
-                [class.selected]="selectedRiderId === rider.rider_id.id"
-                [class.unavailable]="isRiderUnavailable(rider)"
-                [disabled]="isRiderUnavailable(rider) || isFormLocked"
-                (click)="selectRiderCard(rider.rider_id.id)"
-              >
-                <span class="rider-check" *ngIf="selectedRiderId === rider.rider_id.id">
-                  <i class="fa-solid fa-circle-check"></i>
-                </span>
-                <span class="rider-number">#{{ rider.rider_id.number }}</span>
-                <div class="rider-copy">
-                  <strong>{{ rider.rider_id.first_name }} {{ rider.rider_id.last_name }}</strong>
-                  <span class="rider-team" *ngIf="rider.constructor_id?.name">{{ rider.constructor_id.name }}</span>
+            <!-- Selected rider preview card -->
+            <div class="selected-rider-banner" *ngIf="selectedRider">
+              <div class="selected-rider-card">
+                <div class="rider-avatar-wrap">
+                  <img
+                    class="rider-avatar-img"
+                    [src]="motogpAssetService.getRiderPhotoUrl(selectedRider.rider_id.number)"
+                    [alt]="selectedRider.rider_id.last_name"
+                    (error)="motogpAssetService.handleImageError($event, 'assets/images/rider-placeholder.svg')"
+                  />
+                  <span class="rider-number-badge">#{{ selectedRider.rider_id.number }}</span>
+                </div>
+                <div class="selected-rider-info">
+                  <div class="selected-rider-name">
+                    <strong>{{ selectedRider.rider_id.first_name }} {{ selectedRider.rider_id.last_name }}</strong>
+                    <span class="rider-team" *ngIf="selectedRider.constructor_id?.name">{{ selectedRider.constructor_id.name }}</span>
+                  </div>
                   <span class="rider-usage" *ngIf="!pilotUsesUnlimited">
-                    {{ getRiderUsageCount(rider.rider_id.id) }} / {{ maxBetsPerPilot }} utilizzi ·
-                    {{ getRiderRemainingUses(rider.rider_id.id) }} liberi
-                  </span>
-                  <span class="rider-usage" *ngIf="pilotUsesUnlimited">
-                    {{ getRiderUsageCount(rider.rider_id.id) }} utilizzi · nessun limite
-                  </span>
-                  <span class="rider-reason" *ngIf="getRiderDisabledReason(rider) as reason">
-                    <i class="fa-solid fa-lock"></i> {{ reason }}
+                    {{ getRiderUsageCount(selectedRider.rider_id.id) }} / {{ maxBetsPerPilot }} utilizzi ·
+                    {{ getRiderRemainingUses(selectedRider.rider_id.id) }} liberi
                   </span>
                 </div>
-              </button>
+                <button
+                  type="button"
+                  class="change-rider-btn"
+                  (click)="toggleRiderRoster()"
+                  aria-label="Mostra o nascondi lista piloti"
+                >
+                  <i class="fa-solid" [ngClass]="showRiderRoster ? 'fa-chevron-up' : 'fa-arrows-rotate'"></i>
+                  <span>{{ showRiderRoster ? 'Chiudi' : 'Cambia' }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Roster container (collapsible on mobile when rider chosen) -->
+            <div class="roster-expandable" *ngIf="showRiderRoster || !selectedRider">
+              <!-- Team / Constructor filter chips -->
+              <div class="constructor-filter-pills" *ngIf="constructorList.length > 0">
+                <button
+                  type="button"
+                  class="filter-pill"
+                  [class.active]="selectedConstructor === 'all'"
+                  (click)="setConstructorFilter('all')"
+                >
+                  Tutti ({{ riders.length }})
+                </button>
+                <button
+                  type="button"
+                  *ngFor="let team of constructorList"
+                  class="filter-pill"
+                  [class.active]="selectedConstructor === team"
+                  (click)="setConstructorFilter(team)"
+                >
+                  {{ team }}
+                </button>
+              </div>
+
+              <!-- Search box for riders -->
+              <div class="rider-search-box" *ngIf="availableRiders.length > 0">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input
+                  type="text"
+                  [(ngModel)]="riderSearchQuery"
+                  [ngModelOptions]="{standalone: true}"
+                  placeholder="Cerca per nome, #numero o team..."
+                  aria-label="Cerca pilota"
+                />
+                <button
+                  *ngIf="riderSearchQuery"
+                  type="button"
+                  class="search-clear-btn"
+                  (click)="riderSearchQuery = ''"
+                  aria-label="Cancella ricerca"
+                >
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              <p class="step-hint" *ngIf="availableRiders.length === 0">Caricamento piloti...</p>
+              <p class="step-hint" *ngIf="availableRiders.length > 0 && filteredRiders.length === 0">
+                Nessun pilota trovato per "{{ riderSearchQuery }}".
+              </p>
+
+              <div class="rider-grid" role="list" aria-label="Lista piloti selezionabili" *ngIf="filteredRiders.length > 0">
+                <button
+                  type="button"
+                  class="rider-card"
+                  *ngFor="let rider of filteredRiders"
+                  role="listitem"
+                  [class.selected]="selectedRiderId === rider.rider_id.id"
+                  [class.unavailable]="isRiderUnavailable(rider)"
+                  [disabled]="isRiderUnavailable(rider) || isFormLocked"
+                  (click)="selectRiderCard(rider.rider_id.id)"
+                >
+                  <span class="rider-check" *ngIf="selectedRiderId === rider.rider_id.id">
+                    <i class="fa-solid fa-circle-check"></i>
+                  </span>
+                  <div class="rider-avatar-wrap">
+                    <img
+                      class="rider-avatar-img"
+                      [src]="motogpAssetService.getRiderPhotoUrl(rider.rider_id.number)"
+                      [alt]="rider.rider_id.last_name"
+                      loading="lazy"
+                      (error)="motogpAssetService.handleImageError($event, 'assets/images/rider-placeholder.svg')"
+                    />
+                    <span class="rider-number-badge">#{{ rider.rider_id.number }}</span>
+                  </div>
+                  <div class="rider-copy">
+                    <div class="rider-name-line">
+                      <strong>{{ rider.rider_id.first_name }} {{ rider.rider_id.last_name }}</strong>
+                    </div>
+                    <span class="rider-team" *ngIf="rider.constructor_id?.name">{{ rider.constructor_id.name }}</span>
+                    <span class="rider-usage" *ngIf="!pilotUsesUnlimited">
+                      {{ getRiderUsageCount(rider.rider_id.id) }} / {{ maxBetsPerPilot }} utilizzi ·
+                      {{ getRiderRemainingUses(rider.rider_id.id) }} liberi
+                    </span>
+                    <span class="rider-usage" *ngIf="pilotUsesUnlimited">
+                      {{ getRiderUsageCount(rider.rider_id.id) }} utilizzi · illimitato
+                    </span>
+                    <span class="rider-reason" *ngIf="getRiderDisabledReason(rider) as reason">
+                      <i class="fa-solid fa-lock"></i> {{ reason }}
+                    </span>
+                  </div>
+                </button>
+              </div>
             </div>
           </section>
         </div>
@@ -190,7 +275,7 @@
                 <strong>{{ positionValue ? 'P' + positionValue + ' / P' + (positionValue + 1) : 'Posizione finale del pilota' }}</strong>
               </span>
               <span class="step-state ok-tag" *ngIf="positionValue">
-                <i class="fa-solid fa-check"></i> Fatto
+                <i class="fa-solid fa-check"></i> Scelta
               </span>
             </header>
 
@@ -200,24 +285,30 @@
                 class="pos-chip"
                 *ngFor="let p of positionOptions"
                 [class.selected]="positionValue === p"
+                [class.pos-p1]="p === 1"
+                [class.pos-p2]="p === 2"
+                [class.pos-p3]="p === 3"
                 [disabled]="isFormLocked"
                 [attr.aria-pressed]="positionValue === p"
                 (click)="setPosition(p)"
               >
-                P{{ p }}
+                <span class="pos-medal" *ngIf="p === 1">🥇</span>
+                <span class="pos-medal" *ngIf="p === 2">🥈</span>
+                <span class="pos-medal" *ngIf="p === 3">🥉</span>
+                <span>P{{ p }}</span>
               </button>
             </div>
 
             <div class="win-rule" *ngIf="positionValue">
               <i class="fa-solid fa-trophy"></i>
               <span>
-                Vincente se il pilota chiude <strong>{{ positionValue }}°</strong>
-                oppure <strong>{{ positionValue + 1 }}°</strong>
+                Vincente se <strong>{{ selectedRider ? selectedRider.rider_id.last_name : 'il pilota' }}</strong> chiude
+                <strong>{{ positionValue }}°</strong> oppure <strong>{{ positionValue + 1 }}°</strong>
               </span>
             </div>
 
             <p class="step-hint" *ngIf="!positionValue">
-              Seleziona la posizione finale: la scommessa vale per quella posizione e per la successiva.
+              Seleziona la posizione finale: la scommessa copre quella posizione e la successiva.
             </p>
           </section>
 
@@ -227,10 +318,10 @@
               <span class="step-index">3</span>
               <span class="step-copy">
                 <span class="summary-label">Scegli la posta</span>
-                <strong>{{ pointsValue ? pointsValue + ' punti' : 'Quanti punti rischi' }}</strong>
+                <strong>{{ pointsValue ? pointsValue + ' punti' : 'Quanti punti punti' }}</strong>
               </span>
               <span class="step-state ok-tag" *ngIf="pointsValue">
-                <i class="fa-solid fa-check"></i> Fatto
+                <i class="fa-solid fa-check"></i> Scelta
               </span>
             </header>
 
@@ -240,7 +331,7 @@
                 class="step-btn"
                 [disabled]="isFormLocked || pointsValue <= 1"
                 (click)="stepPoints(-5)"
-                aria-label="Riduci posta"
+                aria-label="Riduci posta di 5 punti"
               >
                 <i class="fa-solid fa-minus"></i>
               </button>
@@ -260,7 +351,7 @@
                 class="step-btn"
                 [disabled]="isFormLocked || pointsValue >= remainingPoints"
                 (click)="stepPoints(5)"
-                aria-label="Aumenta posta"
+                aria-label="Aumenta posta di 5 punti"
               >
                 <i class="fa-solid fa-plus"></i>
               </button>
@@ -275,7 +366,15 @@
                 [disabled]="isFormLocked"
                 (click)="setPoints(q)"
               >
-                {{ q }}
+                {{ q }} pt
+              </button>
+              <button
+                type="button"
+                class="preset-chip preset-half"
+                [disabled]="isFormLocked || remainingPoints < 2"
+                (click)="setPointsPercent(50)"
+              >
+                50%
               </button>
               <button
                 type="button"
@@ -284,7 +383,7 @@
                 [disabled]="isFormLocked"
                 (click)="setPoints(remainingPoints)"
               >
-                Tutto
+                Tutto ({{ remainingPoints }})
               </button>
             </div>
 
@@ -389,4 +488,32 @@
       </form>
     </mat-card-content>
   </mat-card>
+
+  <!-- Sticky mobile bottom bar -->
+  <div class="bet-sticky-bar" *ngIf="selectedRiderId || positionValue || pointsValue">
+    <div class="sticky-bar-summary">
+      <span class="sticky-chip" [class.chip-filled]="!!selectedRider">
+        <i class="fa-solid fa-helmet-safety"></i>
+        {{ selectedRider ? '#' + selectedRider.rider_id.number + ' ' + selectedRider.rider_id.last_name : 'Pilota: —' }}
+      </span>
+      <span class="sticky-chip" [class.chip-filled]="!!positionValue">
+        <i class="fa-solid fa-trophy"></i>
+        {{ positionValue ? 'P' + positionValue + '/P' + (positionValue + 1) : 'Pos: —' }}
+      </span>
+      <span class="sticky-chip" [class.chip-filled]="!!pointsValue">
+        <i class="fa-solid fa-coins"></i>
+        {{ pointsValue ? pointsValue + ' pt' : 'Posta: —' }}
+      </span>
+    </div>
+    <button
+      mat-raised-button
+      color="primary"
+      class="sticky-submit-btn"
+      [disabled]="betForm.invalid || loading"
+      (click)="onSubmit()"
+    >
+      <mat-icon>{{ loading ? 'hourglass_top' : 'save' }}</mat-icon>
+      <span>{{ loading ? 'Invio...' : 'Scommetti' }}</span>
+    </button>
+  </div>
 </div>
