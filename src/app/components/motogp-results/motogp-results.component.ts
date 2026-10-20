@@ -160,7 +160,7 @@ interface StatTile {
                 [src]="trackUrl"
                 [alt]="heroTitle"
                 class="hero-circuit-img"
-                (error)="assetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')">
+                (error)="assetService.handleImageError($event, '/assets/images/circuit-placeholder.svg')">
             </div>
             <div class="hero-main">
               <span class="hero-kicker">

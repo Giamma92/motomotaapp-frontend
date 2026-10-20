@@ -33,7 +33,7 @@
             [alt]="race.race_id.name"
             class="hero-circuit-img"
             [class.filter-invert]="theme.mode() === 'light'"
-            (error)="assetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')">
+            (error)="assetService.handleImageError($event, '/assets/images/circuit-placeholder.svg')">
         </div>
 
         <div class="hero-copy relative z-10">
@@ -170,7 +170,7 @@
                       [alt]="race.race_id.name"
                       class="table-circuit-thumb"
                       [class.filter-invert]="theme.mode() === 'light'"
-                      (error)="assetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')">
+                      (error)="assetService.handleImageError($event, '/assets/images/circuit-placeholder.svg')">
                     <span>{{ race.race_id.name }}</span>
                     <span class="cancelled-pill" *ngIf="race.cancelled">Cancellata</span>
                     <span
@@ -295,7 +295,7 @@
                     [alt]="race.race_id.name"
                     class="panel-circuit-aside-img"
                     [class.filter-invert]="theme.mode() === 'light'"
-                    (error)="assetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')">
+                    (error)="assetService.handleImageError($event, '/assets/images/circuit-placeholder.svg')">
                 </div>
               </div>
               <div class="race-personal-status">

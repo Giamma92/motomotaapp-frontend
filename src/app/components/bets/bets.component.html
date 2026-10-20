@@ -14,7 +14,7 @@
         alt="Circuit layout"
         class="circuit-watermark-img"
         [class.filter-invert]="isLightTheme"
-        (error)="motogpAssetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')"
+        (error)="motogpAssetService.handleImageError($event, '/assets/images/circuit-placeholder.svg')"
       />
     </div>
     <div class="bet-hero-main">
@@ -124,7 +124,7 @@
                 class="step-rider-avatar"
                 [src]="motogpAssetService.getRiderPhotoUrl(selectedRider.rider_id.number)"
                 [alt]="selectedRider.rider_id.last_name"
-                (error)="motogpAssetService.handleImageError($event, 'assets/images/rider-placeholder.svg')"
+                (error)="motogpAssetService.handleImageError($event, '/assets/images/rider-placeholder.svg')"
               />
               <span class="step-copy">
                 <span class="summary-label">Scegli il pilota</span>
@@ -143,7 +143,7 @@
                     class="rider-avatar-img"
                     [src]="motogpAssetService.getRiderPhotoUrl(selectedRider.rider_id.number)"
                     [alt]="selectedRider.rider_id.last_name"
-                    (error)="motogpAssetService.handleImageError($event, 'assets/images/rider-placeholder.svg')"
+                    (error)="motogpAssetService.handleImageError($event, '/assets/images/rider-placeholder.svg')"
                   />
                   <span class="rider-number-badge">#{{ selectedRider.rider_id.number }}</span>
                 </div>
@@ -238,7 +238,7 @@
                       [src]="motogpAssetService.getRiderPhotoUrl(rider.rider_id.number)"
                       [alt]="rider.rider_id.last_name"
                       loading="lazy"
-                      (error)="motogpAssetService.handleImageError($event, 'assets/images/rider-placeholder.svg')"
+                      (error)="motogpAssetService.handleImageError($event, '/assets/images/rider-placeholder.svg')"
                     />
                     <span class="rider-number-badge">#{{ rider.rider_id.number }}</span>
                   </div>

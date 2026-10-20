@@ -165,7 +165,7 @@ export class MotoGPAssetService {
     }
 
     // Default stylized fallback avatar
-    return 'assets/images/rider-placeholder.svg';
+    return '/assets/images/rider-placeholder.svg';
   }
 
   /**
@@ -211,7 +211,7 @@ export class MotoGPAssetService {
    * Immediately clears onerror to eliminate ANY possibility of recursive loops,
    * then swaps cleanly with the fallback source.
    */
-  handleImageError(event: Event, fallbackSrc: string = 'assets/images/rider-placeholder.svg'): void {
+  handleImageError(event: Event, fallbackSrc: string = '/assets/images/rider-placeholder.svg'): void {
     const target = event.target as HTMLImageElement;
     if (target) {
       target.onerror = null;
@@ -225,13 +225,13 @@ export class MotoGPAssetService {
    * Safe error handler for manager / user profile avatars.
    */
   handleManagerError(event: Event): void {
-    this.handleImageError(event, 'assets/images/manager-placeholder.svg');
+    this.handleImageError(event, '/assets/images/manager-placeholder.svg');
   }
 
   /**
    * Safe error handler for circuit layout tracks.
    */
   handleCircuitError(event: Event): void {
-    this.handleImageError(event, 'assets/images/circuit-placeholder.svg');
+    this.handleImageError(event, '/assets/images/circuit-placeholder.svg');
   }
 }

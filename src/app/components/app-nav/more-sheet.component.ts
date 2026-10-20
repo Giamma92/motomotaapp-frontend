@@ -60,9 +60,9 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                      [src]="userInfo?.profile_image"
                      alt="Profile"
                      class="w-full h-full object-cover"
-                     (error)="$any($event.target).onerror = null; $any($event.target).src = 'assets/images/manager-placeholder.svg'">
+                     (error)="$any($event.target).onerror = null; $any($event.target).src = '/assets/images/manager-placeholder.svg'">
                 <img *ngIf="!userInfo?.profile_image"
-                     src="assets/images/manager-placeholder.svg"
+                     src="/assets/images/manager-placeholder.svg"
                      alt="Profile"
                      class="w-full h-full object-cover">
               </div>

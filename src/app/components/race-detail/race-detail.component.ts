@@ -111,7 +111,7 @@ export interface ParticipantCard {
                 [alt]="calendarRace.race_id.name"
                 class="hero-circuit-img"
                 [class.filter-invert]="theme.mode() === 'light'"
-                (error)="assetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')">
+                (error)="assetService.handleImageError($event, '/assets/images/circuit-placeholder.svg')">
             </div>
 
             <div class="page-race-hero-main relative z-10">

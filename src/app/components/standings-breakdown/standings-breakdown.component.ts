@@ -88,6 +88,16 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
     return this.getUserDisplayName(user);
   }
 
+  getUserAvatar(rowOrUser: any): string {
+    if (!rowOrUser) return '/assets/images/manager-placeholder.svg';
+    if (typeof rowOrUser === 'string') return '/assets/images/manager-placeholder.svg';
+    const img = rowOrUser.profile_image || rowOrUser.user_id?.profile_image || rowOrUser.avatar;
+    if (img && typeof img === 'string' && img.trim().length > 0) {
+      return img.trim();
+    }
+    return '/assets/images/manager-placeholder.svg';
+  }
+
   toggleRiderExpand(num: number): void {
     this.expandedRiderNumber = (this.expandedRiderNumber === num ? null : num);
   }

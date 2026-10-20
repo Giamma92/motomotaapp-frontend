@@ -50,7 +50,7 @@ import { ThemeService } from '../../services/theme.service';
             alt="Circuit layout"
             class="circuit-watermark-img"
             [class.filter-invert]="isLightTheme"
-            (error)="motogpAssetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')"
+            (error)="motogpAssetService.handleImageError($event, '/assets/images/circuit-placeholder.svg')"
           />
         </div>
         <div class="lineup-hero-main">
@@ -122,7 +122,7 @@ import { ThemeService } from '../../services/theme.service';
                     class="slot-avatar-img"
                     [src]="motogpAssetService.getRiderPhotoUrl(qr.number, qr.first_name + ' ' + qr.last_name)"
                     [alt]="qr.last_name"
-                    (error)="motogpAssetService.handleImageError($event, 'assets/images/rider-placeholder.svg')"
+                    (error)="motogpAssetService.handleImageError($event, '/assets/images/rider-placeholder.svg')"
                   />
                   <span class="slot-number-badge">#{{ qr.number }}</span>
                 </div>
@@ -173,7 +173,7 @@ import { ThemeService } from '../../services/theme.service';
                     class="slot-avatar-img"
                     [src]="motogpAssetService.getRiderPhotoUrl(rr.number, rr.first_name + ' ' + rr.last_name)"
                     [alt]="rr.last_name"
-                    (error)="motogpAssetService.handleImageError($event, 'assets/images/rider-placeholder.svg')"
+                    (error)="motogpAssetService.handleImageError($event, '/assets/images/rider-placeholder.svg')"
                   />
                   <span class="slot-number-badge">#{{ rr.number }}</span>
                 </div>
@@ -261,7 +261,7 @@ import { ThemeService } from '../../services/theme.service';
                       [src]="motogpAssetService.getRiderPhotoUrl(rider.number, rider.first_name + ' ' + rider.last_name)"
                       [alt]="rider.last_name"
                       loading="lazy"
-                      (error)="motogpAssetService.handleImageError($event, 'assets/images/rider-placeholder.svg')"
+                      (error)="motogpAssetService.handleImageError($event, '/assets/images/rider-placeholder.svg')"
                     />
                     <span class="rider-number-badge">#{{ rider.number }}</span>
                   </div>

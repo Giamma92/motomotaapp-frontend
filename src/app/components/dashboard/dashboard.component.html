@@ -83,7 +83,7 @@
                 (error)="assetService.handleManagerError($event)">
               <img
                 *ngIf="!userProfileImage"
-                src="assets/images/manager-placeholder.svg"
+                src="/assets/images/manager-placeholder.svg"
                 alt="Avatar"
                 class="w-full h-full object-cover">
             </div>
@@ -215,7 +215,7 @@
             [alt]="nextCalendarRace.race_id.name"
             class="w-full h-full object-contain"
             [class.filter-invert]="theme.mode() === 'light'"
-            (error)="assetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')">
+            (error)="assetService.handleImageError($event, '/assets/images/circuit-placeholder.svg')">
         </div>
 
         <!-- GP Header Banner -->
@@ -418,7 +418,7 @@
             [alt]="lastCompletedRaceEntry.calendar_id.race_id.name"
             class="w-full h-full object-contain"
             [class.filter-invert]="theme.mode() === 'light'"
-            (error)="assetService.handleImageError($event, 'assets/images/circuit-placeholder.svg')">
+            (error)="assetService.handleImageError($event, '/assets/images/circuit-placeholder.svg')">
         </div>
 
         <!-- Header Row -->

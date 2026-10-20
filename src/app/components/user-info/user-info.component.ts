@@ -93,7 +93,7 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
                     *ngIf="avatarDraft || userInfo.profile_image"
                     [src]="avatarDraft || userInfo.profile_image"
                     alt="Foto Profilo"
-                    (error)="$any($event.target).onerror = null; $any($event.target).src = 'assets/images/manager-placeholder.svg'"
+                    (error)="$any($event.target).onerror = null; $any($event.target).src = '/assets/images/manager-placeholder.svg'"
                     class="w-full h-full object-cover">
                   <span *ngIf="!avatarDraft && !userInfo.profile_image"
                         class="text-3xl sm:text-4xl font-black text-red-500">

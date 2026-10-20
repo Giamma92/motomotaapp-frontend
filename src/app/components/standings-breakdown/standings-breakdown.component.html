@@ -121,14 +121,10 @@
                 <div class="podium-step step-p2 flex flex-col items-center text-center order-1" *ngIf="classificationData[1] as r2">
                   <div class="relative mb-2">
                     <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-b from-slate-200/20 to-slate-400/10 border-2 border-slate-300 shadow-md flex items-center justify-center">
-                      <img *ngIf="r2?.user_id?.profile_image"
-                           [src]="r2.user_id.profile_image"
+                      <img [src]="getUserAvatar(r2)"
                            [alt]="getUserDisplayName(r2)"
                            (error)="assetService.handleManagerError($event)"
                            class="w-full h-full object-cover">
-                      <span *ngIf="!r2?.user_id?.profile_image" class="text-xl sm:text-2xl font-black text-slate-300">
-                        {{ getUserDisplayName(r2).charAt(0).toUpperCase() }}
-                      </span>
                     </div>
                     <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-300 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-white">#2</span>
                   </div>
@@ -151,14 +147,10 @@
                   </div>
                   <div class="relative mb-2">
                     <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-b from-amber-300/30 to-amber-500/10 border-2 border-amber-400 shadow-xl flex items-center justify-center ring-4 ring-amber-400/20">
-                      <img *ngIf="r1?.user_id?.profile_image"
-                           [src]="r1.user_id.profile_image"
+                      <img [src]="getUserAvatar(r1)"
                            [alt]="getUserDisplayName(r1)"
                            (error)="assetService.handleManagerError($event)"
                            class="w-full h-full object-cover">
-                      <span *ngIf="!r1?.user_id?.profile_image" class="text-2xl sm:text-3xl font-black text-amber-300">
-                        {{ getUserDisplayName(r1).charAt(0).toUpperCase() }}
-                      </span>
                     </div>
                     <span class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full shadow-lg border border-amber-200">#1</span>
                   </div>
@@ -178,14 +170,10 @@
                 <div class="podium-step step-p3 flex flex-col items-center text-center order-3" *ngIf="classificationData[2] as r3">
                   <div class="relative mb-2">
                     <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-b from-amber-700/20 to-amber-900/10 border-2 border-amber-600 shadow-md flex items-center justify-center">
-                      <img *ngIf="r3?.user_id?.profile_image"
-                           [src]="r3.user_id.profile_image"
+                      <img [src]="getUserAvatar(r3)"
                            [alt]="getUserDisplayName(r3)"
                            (error)="assetService.handleManagerError($event)"
                            class="w-full h-full object-cover">
-                      <span *ngIf="!r3?.user_id?.profile_image" class="text-xl sm:text-2xl font-black text-amber-500">
-                        {{ getUserDisplayName(r3).charAt(0).toUpperCase() }}
-                      </span>
                     </div>
                     <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-600 text-amber-100 text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-amber-400">#3</span>
                   </div>
@@ -239,11 +227,10 @@
                     <td class="user-col">
                       <div class="user-info">
                         <div class="user-avatar-small overflow-hidden rounded-full flex items-center justify-center">
-                          <img *ngIf="row?.user_id?.profile_image"
-                               [src]="row.user_id.profile_image"
+                          <img [src]="getUserAvatar(row)"
+                               [alt]="getUserDisplayName(row)"
                                (error)="assetService.handleManagerError($event)"
                                class="w-full h-full object-cover">
-                          <i *ngIf="!row?.user_id?.profile_image" class="fa-solid fa-user"></i>
                         </div>
                         <div class="user-details">
                           <span class="username">{{ getUserDisplayName(row) }}</span>
