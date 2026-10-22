@@ -1070,7 +1070,12 @@
                   </div>
                 </div>
               </td>
-              <td class="name-col">{{ fullName(row) }}</td>
+              <td class="name-col">
+                <div class="flex items-center gap-1.5">
+                  <span>{{ fullName(row) }}</span>
+                  <span *ngIf="row.user_id?.id === loggedUserId" class="user-you-tag">Tu</span>
+                </div>
+              </td>
               <td class="col-num">
                 <span class="rank-trend-pill" [ngClass]="getRankTrend(row).class">
                   <mat-icon>{{ getRankTrend(row).icon }}</mat-icon>
@@ -1100,7 +1105,10 @@
                     <span>{{ badge.text }}</span>
                   </span>
                 </div>
-                <span class="truncate block">{{ fullName(row) }}</span>
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span class="truncate block">{{ fullName(row) }}</span>
+                  <span *ngIf="row.user_id?.id === loggedUserId" class="user-you-tag">Tu</span>
+                </div>
               </div>
             </div>
             <div class="mobile-head-right">
