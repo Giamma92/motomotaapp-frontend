@@ -21,8 +21,8 @@ import { MoreSheetComponent } from './more-sheet.component';
         <div
           class="pointer-events-auto max-w-md mx-auto backdrop-blur-2xl rounded-[28px] p-1.5 grid grid-cols-5 gap-1 transition-all duration-200 shadow-2xl"
           [ngClass]="theme.mode() === 'light'
-            ? 'bg-white/95 ring-1 ring-black/[0.08] shadow-[0_10px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.04)]'
-            : 'bg-zinc-950/90 ring-1 ring-white/10 shadow-[0_14px_40px_rgba(0,0,0,0.7)]'">
+            ? 'bg-white/85 ring-1 ring-black/[0.08] shadow-[0_12px_36px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.9)]'
+            : 'bg-zinc-950/80 ring-1 ring-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.75),inset_0_1px_1px_rgba(255,255,255,0.22)]'">
 
           <!-- 4 Voci Principali -->
           @for (item of mainNavItems; track item.path) {
@@ -34,7 +34,9 @@ import { MoreSheetComponent } from './more-sheet.component';
               [routerLinkActiveOptions]="{exact: item.path === '/'}"
               class="group relative flex flex-col items-center justify-center py-1.5 px-1 rounded-[22px] transition-all duration-200 active:scale-95 no-underline select-none cursor-pointer"
               [class.bg-red-600/15]="rla.isActive && theme.mode() === 'dark'"
+              [class.shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]]="rla.isActive && theme.mode() === 'dark'"
               [class.bg-red-600/10]="rla.isActive && theme.mode() === 'light'"
+              [class.shadow-[inset_0_1px_0_rgba(200,16,46,0.2)]]="rla.isActive && theme.mode() === 'light'"
               [class.text-red-500]="rla.isActive && theme.mode() === 'dark'"
               [class.text-red-600]="rla.isActive && theme.mode() === 'light'"
               [class.text-zinc-400]="!rla.isActive && theme.mode() === 'dark'"
@@ -72,7 +74,9 @@ import { MoreSheetComponent } from './more-sheet.component';
             (click)="toggleMore()"
             class="group relative flex flex-col items-center justify-center py-1.5 px-1 rounded-[22px] transition-all duration-200 active:scale-95 border-0 bg-transparent select-none cursor-pointer"
             [class.bg-red-600/15]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
+            [class.shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
             [class.bg-red-600/10]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
+            [class.shadow-[inset_0_1px_0_rgba(200,16,46,0.2)]]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
             [class.text-red-500]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
             [class.text-red-600]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
             [class.text-zinc-400]="!(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"

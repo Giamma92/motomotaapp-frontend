@@ -413,6 +413,7 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
     sprintBetTotal: number;
     raceBetTotal: number;
     grandTotal: number;
+    status?: string | null;
   } {
     const rows = this.filteredRows;
     if (!rows.length) {
@@ -432,8 +433,49 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
       raceTotal: Number(targetRow.race_score || 0),
       sprintBetTotal: Number(this.sprintBetValue(targetRow)),
       raceBetTotal: Number(this.raceBetValue(targetRow)),
-      grandTotal: Number(targetRow.score || 0)
+      grandTotal: Number(targetRow.score || 0),
+      status: targetRow.calendar_id?.status || targetRow.status || null
     };
+  }
+
+  get activePartialRound(): { name: string; message: string; icon: string; stage: string } | null {
+    const partialRow = this.rows.find(r =>
+      r.calendar_id?.status === 'partial_qualifying' ||
+      r.calendar_id?.status === 'partial_sprint' ||
+      r.status === 'partial_qualifying' ||
+      r.status === 'partial_sprint'
+    );
+    if (!partialRow) return null;
+    const st = partialRow.calendar_id?.status || partialRow.status;
+    const gpName = partialRow.calendar_id?.race_id?.name || `Round ${partialRow.calendar_id?.race_order || ''}`;
+    if (st === 'partial_qualifying') {
+      return {
+        name: gpName,
+        message: 'Classifica live aggiornata con le Qualifiche. Sprint e Gara in arrivo.',
+        icon: 'timer',
+        stage: 'Qualifiche'
+      };
+    }
+    if (st === 'partial_sprint') {
+      return {
+        name: gpName,
+        message: 'Classifica live aggiornata con Qualifiche e Sprint Race. In attesa della Gara domenicale.',
+        icon: 'bolt',
+        stage: 'Sprint Race'
+      };
+    }
+    return null;
+  }
+
+  getRaceStatusBadge(row: StandingsBreakdownRow): { text: string; class: string; icon: string } | null {
+    const status = row.calendar_id?.status || row.status;
+    if (status === 'partial_qualifying') {
+      return { text: 'Qualifiche', class: 'badge-partial-quali', icon: 'timer' };
+    }
+    if (status === 'partial_sprint') {
+      return { text: 'Sprint', class: 'badge-partial-sprint', icon: 'bolt' };
+    }
+    return null;
   }
 
   /* ── Chart: state ── */

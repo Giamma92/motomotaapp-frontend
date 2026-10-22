@@ -35,7 +35,7 @@
   font-size: 0.95em;
 
   th {
-    padding: 0.15rem 1rem;
+    padding: 0.65rem 0.75rem;
     font-weight: 600;
     color: var(--text-primary);
     /* MotoGP red accent line under the header */
@@ -52,7 +52,7 @@
   .th-full  { display: inline; }
 
   td {
-    padding: 0.15rem;
+    padding: 0.65rem 0.75rem;
     border-bottom: 1px solid var(--border-subtle);
     vertical-align: middle;
   }
@@ -78,7 +78,7 @@
 
   /* ---- Rank column ---- */
   .rank-col {
-    width: 12%;
+    width: 56px;
     text-align: center;
     font-weight: 600;
     color: var(--text-primary);
@@ -134,7 +134,7 @@
 
   /* ---- User column ---- */
   .user-col {
-    width: 45%;
+    width: auto;
 
     .user-info {
       display: flex;
@@ -209,8 +209,8 @@
 
   /* ---- Score column ---- */
   .score-col {
-    width: 20%;
-    text-align: center;
+    width: 95px;
+    text-align: right;
 
     .score-display {
       display: flex;
@@ -235,8 +235,8 @@
 
   /* ---- Gap column ---- */
   .gap-col {
-    width: 23%;
-    text-align: center;
+    width: 105px;
+    text-align: right;
 
     .gap-display {
       display: flex;
@@ -773,7 +773,47 @@ button i {
 }
 
 .standings-table .score-value {
-  color: var(--primary-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.standings-table .score-value.text-red-500 {
+  color: #ef4444 !important;
+}
+
+.standings-table .pos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  line-height: 1;
+
+  &.pos-p1 {
+    background: #fbbf24;
+    color: #451a03;
+    box-shadow: 0 2px 6px rgba(251, 191, 36, 0.35);
+  }
+
+  &.pos-p2 {
+    background: #cbd5e1;
+    color: #0f172a;
+    box-shadow: 0 2px 6px rgba(203, 213, 225, 0.25);
+  }
+
+  &.pos-p3 {
+    background: #b45309;
+    color: #fef3c7;
+    box-shadow: 0 2px 6px rgba(180, 83, 9, 0.3);
+  }
+
+  &.pos-other {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+  }
 }
 
 .standings-table .gap-value {
@@ -834,70 +874,98 @@ button i {
 
 /* ---- Responsive: max-width 768px ---- */
 @media (max-width: 768px) {
-  .standings-card .table-container {
+  .standings-card .table-container,
+  .table-container {
     overflow-x: hidden !important;
   }
 
-  .standings-card .standings-table {
-    table-layout: fixed;
+  .standings-table th .th-full {
+    display: none !important;
+  }
+  .standings-table th .th-short {
+    display: inline-block !important;
   }
 
-  .standings-card .standings-table .user-col {
-    width: 40%;
+  .standings-card .standings-table,
+  .standings-table {
+    table-layout: fixed !important;
+    width: 100% !important;
 
-    .user-info {
-      gap: 0.5rem;
+    .rank-col {
+      width: 40px !important;
+      padding: 8px 2px !important;
+      text-align: center !important;
+    }
 
-      .user-avatar-small {
-        width: 28px;
-        height: 28px;
+    .user-col {
+      width: auto !important;
+      padding: 8px 4px !important;
+      text-align: left !important;
+
+      .user-info {
+        gap: 0.4rem;
+
+        .user-avatar-wrap {
+          width: 28px;
+          height: 28px;
+        }
+
+        .user-details .username {
+          font-size: 0.8rem;
+        }
+      }
+    }
+
+    .score-col {
+      width: 66px !important;
+      padding: 8px 3px !important;
+      text-align: right !important;
+
+      .score-display .score-value {
+        font-size: 0.92rem;
       }
 
-      .user-details .username {
+      .score-display .score-unit {
+        font-size: 0.65rem;
+      }
+    }
+
+    .gap-col {
+      width: 76px !important;
+      padding: 8px 6px 8px 2px !important;
+      text-align: right !important;
+
+      .gap-display .gap-value {
         font-size: 0.82rem;
       }
 
-      .user-details .score-progress .progress-bar {
-        height: 3px;
+      .gap-display .gap-unit {
+        font-size: 0.65rem;
       }
 
-      .user-details .score-progress .score-progress {
-        max-width: 120px;
+      .gap-leader-badge {
+        font-size: 0.62rem;
+        padding: 0.15rem 0.35rem;
+        letter-spacing: 0.3px;
       }
     }
-  }
 
-  .standings-card .standings-table .score-col {
-    width: 15%;
-
-    .score-display .score-value {
-      font-size: 1rem;
+    th {
+      padding: 8px 4px !important;
+      font-size: 0.7rem !important;
+      letter-spacing: 0.5px !important;
     }
 
-    .score-display .score-label {
-      font-size: 0.7rem; /* readability floor: was 0.6rem = 9.6px */
-    }
-  }
-
-  .standings-card .standings-table .gap-col {
-    width: 10%;
-
-    .gap-display .gap-value {
-      font-size: 0.8rem;
+    td {
+      padding: 8px 4px !important;
     }
 
-    .gap-display .gap-label {
-      font-size: 0.7rem; /* readability floor: was 0.6rem = 9.6px */
+    .pos-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      font-size: 0.68rem;
     }
-
-    .gap-leader {
-      font-size: 0.7rem;
-      padding: 0.2rem 0.4rem;
-    }
-  }
-
-  .standings-card .standings-table th, td {
-    padding: 8px 4px;
   }
 
   .standings-card .current-user-summary {
