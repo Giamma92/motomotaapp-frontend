@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject, ApplicationRef } from '@angular/core';
 
 export type ThemeMode = 'dark' | 'light';
 
@@ -18,6 +18,7 @@ const STORAGE_KEY = 'mm-theme';
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   readonly mode = signal<ThemeMode>(ThemeService.readStoredMode());
+  private appRef = inject(ApplicationRef, { optional: true });
 
   constructor() {
     this.apply(this.mode());
@@ -34,6 +35,13 @@ export class ThemeService {
       localStorage.setItem(STORAGE_KEY, mode);
     } catch {
       /* storage unavailable (private mode) — theme stays for this session */
+    }
+    // Force global change detection across the entire app so OnPush components
+    // (Dashboard, Calendar, etc.) update all [ngClass]="theme.mode() === 'light' ? ..." classes immediately.
+    try {
+      this.appRef?.tick();
+    } catch {
+      /* Ignore tick during initial bootstrap */
     }
   }
 
