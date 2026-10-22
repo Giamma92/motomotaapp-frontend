@@ -1,6 +1,6 @@
 import { Component, ViewEncapsulation, inject } from '@angular/core';
 import { ThemeService } from '../../services/theme.service';
-import { FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
@@ -20,6 +20,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     MatInputModule,
     MatButtonModule,
     MatProgressSpinnerModule,
@@ -36,7 +37,10 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
           <span class="hero-checker" aria-hidden="true"></span>
           <span class="hero-ghost" aria-hidden="true">GP</span>
 
-          <span class="hero-kicker"><span class="hero-kicker-inner">Fanta Moto GP</span></span>
+          <div class="live-season-badge">
+            <span class="live-pulse-dot"></span>
+            <span>Stagione 2026 Ufficiale</span>
+          </div>
 
           <div class="hero-brand">
             <svg class="hero-logo" viewBox="0 0 100 100" role="img" aria-label="Moto Mota logo">
@@ -103,41 +107,76 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               <span class="login-kicker">Area piloti</span>
               <h2 class="app-title">{{ 'login.signIn' | t }}</h2>
             </div>
-            <button type="button"
-                    class="login-theme-btn"
-                    (click)="theme.toggle()"
-                    [title]="theme.mode() === 'dark' ? 'Passa al tema chiaro' : 'Passa al tema scuro'"
-                    aria-label="Cambia tema">
-              <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
-            </button>
+
+            <div class="login-header-actions">
+              <!-- Compact language picker pill -->
+              <div class="login-lang-pill" title="Seleziona lingua">
+                <i class="fa-solid fa-globe lang-icon" aria-hidden="true"></i>
+                <select
+                  [value]="currentLang"
+                  (change)="onLanguageChange($any($event.target).value)"
+                  class="login-lang-select"
+                  aria-label="Lingua">
+                  <option *ngFor="let l of languages" [value]="l.code">{{ l.code.toUpperCase() }}</option>
+                </select>
+              </div>
+
+              <!-- Theme switch button -->
+              <button type="button"
+                      class="login-theme-btn"
+                      (click)="theme.toggle()"
+                      [title]="theme.mode() === 'dark' ? 'Passa al tema chiaro' : 'Passa al tema scuro'"
+                      aria-label="Cambia tema">
+                <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+              </button>
+            </div>
           </header>
 
           <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'login.language' | t }}</mat-label>
-              <mat-select [value]="currentLang" (selectionChange)="onLanguageChange($event.value)">
-                <mat-option *ngFor="let l of languages" [value]="l.code">
-                  {{ l.label }}
-                </mat-option>
-              </mat-select>
-              <mat-icon matPrefix>language</mat-icon>
-            </mat-form-field>
-
+            <!-- Username Input -->
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'login.username' | t }}</mat-label>
-              <input matInput formControlName="username" required>
+              <input matInput formControlName="username" autocomplete="username" required>
               <mat-icon matPrefix>person</mat-icon>
             </mat-form-field>
 
+            <!-- Password Input with Show/Hide Toggle -->
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'login.password' | t }}</mat-label>
-              <input matInput type="password" formControlName="password" required>
+              <input
+                matInput
+                [type]="showPassword ? 'text' : 'password'"
+                formControlName="password"
+                autocomplete="current-password"
+                required>
               <mat-icon matPrefix>lock</mat-icon>
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="toggleShowPassword()"
+                class="password-eye-btn"
+                [attr.aria-label]="showPassword ? 'Nascondi password' : 'Mostra password'"
+                [title]="showPassword ? 'Nascondi password' : 'Mostra password'">
+                <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
             </mat-form-field>
 
+            <!-- Ricordami Options Row -->
+            <div class="login-options-row">
+              <label class="remember-me-toggle">
+                <input type="checkbox" [(ngModel)]="rememberMe" [ngModelOptions]="{standalone: true}">
+                <span class="remember-label">Ricorda username</span>
+              </label>
+            </div>
+
+            <!-- Submit Button with racing arrow -->
             <button mat-raised-button color="primary" class="login-button" type="submit"
                     [disabled]="loginForm.invalid || loading">
-              <span *ngIf="!loading">{{ 'login.signIn' | t }}</span>
+              <span *ngIf="!loading" class="login-button-inner">
+                <span>{{ 'login.signIn' | t }}</span>
+                <i class="fa-solid fa-arrow-right-to-bracket login-button-icon"></i>
+              </span>
               <mat-spinner *ngIf="loading" diameter="22"></mat-spinner>
             </button>
           </form>
@@ -158,6 +197,8 @@ export class LoginComponent {
   loginForm: FormGroup;
   errorMessage: string | null = null;
   loading: boolean = false;
+  showPassword: boolean = false;
+  rememberMe: boolean = true;
   languages = [
     { code: 'en', label: 'English' },
     { code: 'it', label: 'Italiano' },
@@ -167,17 +208,29 @@ export class LoginComponent {
   currentLang: string = 'en';
 
   constructor(private fb: FormBuilder, private authService: AuthService, private router: Router, private i18n: I18nService) {
+    const savedUser = localStorage.getItem('motomota_remembered_user') || '';
     this.loginForm = this.fb.group({
-      username: ['', Validators.required],
+      username: [savedUser, Validators.required],
       password: ['', Validators.required],
     });
+    this.rememberMe = !!savedUser;
     this.currentLang = localStorage.getItem('lang') || this.i18n.currentLanguage || 'en';
+  }
+
+  toggleShowPassword(): void {
+    this.showPassword = !this.showPassword;
   }
 
   onSubmit(): void {
     if (this.loginForm.valid) {
       this.loading = true;
       let { username, password } = this.loginForm.value;
+
+      if (this.rememberMe) {
+        localStorage.setItem('motomota_remembered_user', username);
+      } else {
+        localStorage.removeItem('motomota_remembered_user');
+      }
 
       // 🔹 Hash the password using SHA-256
       const hashedPassword = CryptoJS.SHA256(password).toString();
