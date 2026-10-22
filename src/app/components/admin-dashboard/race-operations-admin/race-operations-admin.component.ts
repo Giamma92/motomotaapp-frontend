@@ -10,7 +10,7 @@ import { ThemeService } from '../../../services/theme.service';
   standalone: true,
   imports: [CommonModule, FormsModule, MatSnackBarModule],
   template: `
-    <div class="space-y-6">
+    <div class="flex flex-col gap-6">
       <!-- Selettore Round Gara -->
       <div class="rounded-2xl p-4 sm:p-5 border"
            [ngClass]="theme.mode() === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#141720] border-white/10 shadow-md'">

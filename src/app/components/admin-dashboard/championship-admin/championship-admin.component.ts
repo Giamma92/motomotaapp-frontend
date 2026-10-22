@@ -14,7 +14,7 @@ import { ThemeService } from '../../../services/theme.service';
     MatSnackBarModule
   ],
   template: `
-    <div class="space-y-6">
+    <div class="flex flex-col gap-6">
       <!-- Header Sezione -->
       <div class="rounded-2xl p-4 sm:p-5 border"
            [ngClass]="theme.mode() === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#141720] border-white/10 shadow-md'">
@@ -54,7 +54,7 @@ import { ThemeService } from '../../../services/theme.service';
           {{ editingId ? 'Modifica Campionato' : 'Crea Nuovo Campionato' }}
         </h4>
 
-        <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
+        <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4">
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider mb-1.5"

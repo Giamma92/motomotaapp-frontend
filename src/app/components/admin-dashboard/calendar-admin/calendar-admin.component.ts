@@ -10,7 +10,7 @@ import { ThemeService } from '../../../services/theme.service';
   standalone: true,
   imports: [CommonModule, FormsModule, MatSnackBarModule],
   template: `
-    <div class="space-y-6">
+    <div class="flex flex-col gap-6">
       <!-- Sub-Tab Header -->
       <div class="rounded-2xl p-2 sm:p-2.5 border flex items-center gap-1.5 overflow-x-auto"
            [ngClass]="theme.mode() === 'light' ? 'bg-zinc-100 border-zinc-200' : 'bg-zinc-900 border-white/10'">
@@ -40,7 +40,7 @@ import { ThemeService } from '../../../services/theme.service';
       <!-- ==========================================
            SUB-TAB 1: CALENDARIO CAMPIONATO
       ========================================== -->
-      <div *ngIf="activeSubTab === 'calendar'" class="space-y-6">
+      <div *ngIf="activeSubTab === 'calendar'" class="flex flex-col gap-6">
         <!-- Form Aggiungi/Modifica Gara in Calendario -->
         <div class="rounded-2xl p-4 sm:p-5 border"
              [ngClass]="theme.mode() === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#141720] border-white/10 shadow-md'">
@@ -321,7 +321,7 @@ import { ThemeService } from '../../../services/theme.service';
       <!-- ==========================================
            SUB-TAB 2: MASTER CIRCUITI
       ========================================== -->
-      <div *ngIf="activeSubTab === 'circuits'" class="space-y-6">
+      <div *ngIf="activeSubTab === 'circuits'" class="flex flex-col gap-6">
         <!-- Form Aggiungi/Modifica Master Circuito -->
         <div class="rounded-2xl p-4 sm:p-5 border"
              [ngClass]="theme.mode() === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#141720] border-white/10 shadow-md'">

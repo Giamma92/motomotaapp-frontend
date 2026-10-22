@@ -10,7 +10,7 @@ import { ThemeService } from '../../../services/theme.service';
   standalone: true,
   imports: [CommonModule, FormsModule, MatSnackBarModule],
   template: `
-    <div class="space-y-6">
+    <div class="flex flex-col gap-6">
       <!-- Header con Azione Aggiungi -->
       <div class="rounded-2xl p-4 sm:p-5 border"
            [ngClass]="theme.mode() === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#141720] border-white/10 shadow-md'">
@@ -55,7 +55,7 @@ import { ThemeService } from '../../../services/theme.service';
           </button>
         </div>
 
-        <form (ngSubmit)="saveTeam()" class="space-y-4">
+        <form (ngSubmit)="saveTeam()" class="flex flex-col gap-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Nome Squadra -->
             <div>

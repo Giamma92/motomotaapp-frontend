@@ -66,7 +66,7 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
       </header>
 
       <!-- Contenuto Profilo -->
-      <main class="max-w-2xl mx-auto px-4 py-5 space-y-5">
+      <main class="max-w-2xl mx-auto px-4 py-5 flex flex-col gap-6">
 
         <!-- Loading State -->
         <div *ngIf="loading" class="py-16 text-center">
@@ -74,7 +74,7 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
           <p class="text-xs font-bold text-zinc-400 mt-3">Caricamento profilo...</p>
         </div>
 
-        <div *ngIf="!loading && userInfo" class="space-y-5">
+        <div *ngIf="!loading && userInfo" class="flex flex-col gap-6">
 
           <!-- ════ CARD 1: HERO AVATAR & IDENTITÀ ════ -->
           <section class="rounded-3xl p-5 sm:p-6 border relative overflow-hidden transition-all shadow-md"
@@ -182,7 +182,7 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
               </p>
             </div>
 
-            <form (ngSubmit)="onSaveProfile()" class="space-y-4">
+            <form (ngSubmit)="onSaveProfile()" class="flex flex-col gap-4">
 
               <!-- Campo ALIAS (Nickname) -->
               <div>
@@ -366,7 +366,7 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
           </div>
 
           <!-- Controlli Zoom & Reset -->
-          <div class="mt-5 space-y-3">
+          <div class="mt-5 flex flex-col gap-3">
             <div class="flex items-center gap-3 px-2">
               <button
                 type="button"
