@@ -114,23 +114,26 @@
     }
   }
 
-  /* Medal tint per rank — gold / silver / bronze like the podium */
+  /* Medal tint per rank — gold / silver / bronze with metallic glow */
   tr:nth-child(1) .position.top-position {
     color: var(--medal-gold-text);
-    background: rgba(255, 215, 0, 0.16);
-    border: 1px solid rgba(255, 215, 0, 0.55);
+    background: rgba(255, 215, 0, 0.18);
+    border: 1px solid rgba(255, 215, 0, 0.65);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.45);
   }
 
   tr:nth-child(2) .position.top-position {
     color: var(--medal-silver-text);
-    background: rgba(201, 206, 214, 0.2);
-    border: 1px solid rgba(160, 168, 180, 0.75);
+    background: rgba(201, 206, 214, 0.22);
+    border: 1px solid rgba(160, 168, 180, 0.8);
+    box-shadow: 0 0 8px rgba(201, 206, 214, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.45);
   }
 
   tr:nth-child(3) .position.top-position {
     color: var(--medal-bronze-text);
-    background: rgba(205, 127, 50, 0.18);
-    border: 1px solid rgba(205, 127, 50, 0.6);
+    background: rgba(205, 127, 50, 0.2);
+    border: 1px solid rgba(205, 127, 50, 0.7);
+    box-shadow: 0 0 8px rgba(205, 127, 50, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.45);
   }
 
   /* ---- User column ---- */

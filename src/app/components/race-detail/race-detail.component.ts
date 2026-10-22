@@ -92,10 +92,38 @@ export interface ParticipantCard {
       </header>
 
       <main class="main-content" @cardAnimation>
-        <div *ngIf="loading" class="ux-state loading-container">
-          <div class="ux-state-card">
-            <mat-spinner diameter="34"></mat-spinner>
-            <p>{{ 'common.loading' | t }}</p>
+        <!-- ── MotoGP Skeleton Loader for Race Detail ── -->
+        <div *ngIf="loading" class="w-full space-y-4" aria-hidden="true">
+          <div class="sk-racing-card p-6 rounded-3xl" style="height: 180px;">
+            <div class="flex items-center justify-between mb-4">
+              <span class="sk sk-badge"></span>
+              <span class="sk sk-badge" style="width: 100px;"></span>
+            </div>
+            <span class="sk sk-title mb-4" style="width: 55%; height: 26px;"></span>
+            <div class="flex gap-2">
+              <span class="sk sk-pill"></span>
+              <span class="sk sk-pill"></span>
+              <span class="sk sk-pill"></span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="sk-racing-card p-5">
+              <span class="sk sk-title mb-4" style="width: 40%;"></span>
+              <div class="space-y-3">
+                <span class="sk sk-row" style="height: 52px;"></span>
+                <span class="sk sk-row" style="height: 52px;"></span>
+                <span class="sk sk-row" style="height: 52px;"></span>
+              </div>
+            </div>
+            <div class="sk-racing-card p-5">
+              <span class="sk sk-title mb-4" style="width: 45%;"></span>
+              <div class="space-y-3">
+                <span class="sk sk-row" style="height: 52px;"></span>
+                <span class="sk sk-row" style="height: 52px;"></span>
+                <span class="sk sk-row" style="height: 52px;"></span>
+              </div>
+            </div>
           </div>
         </div>
 

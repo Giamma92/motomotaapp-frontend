@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, HostListener, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../services/theme.service';
 import { HapticService } from '../../services/haptic.service';
+import { LoadingService } from '../../services/loading.service';
 
 @Component({
   selector: 'app-splash-screen',
@@ -437,6 +438,7 @@ import { HapticService } from '../../services/haptic.service';
 export class SplashScreenComponent implements OnInit, OnDestroy {
   public theme = inject(ThemeService);
   private haptic = inject(HapticService);
+  private loadingService = inject(LoadingService);
 
   isVisible = true;
   isFading = false;
@@ -446,9 +448,58 @@ export class SplashScreenComponent implements OnInit, OnDestroy {
   rpmPercent = 15;
 
   private timeouts: any[] = [];
+  private startTime = 0;
+
+  constructor() {
+    // Fast-track dismissal if data is already loaded and at least initial rev happened
+    effect(() => {
+      const isLoaded = this.loadingService.isInitialAppLoaded();
+      if (isLoaded && this.isVisible && !this.isFading && this.litCount >= 3) {
+        this.triggerEarlyLaunch();
+      }
+    });
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape' || event.key === ' ' || event.key === 'Enter') {
+      this.dismissFast();
+    }
+  }
 
   ngOnInit(): void {
+    if (typeof window !== 'undefined') {
+      const alreadyShown = sessionStorage.getItem('motomota_splash_shown');
+      if (alreadyShown === 'true') {
+        this.isVisible = false;
+        return;
+      }
+      try {
+        sessionStorage.setItem('motomota_splash_shown', 'true');
+      } catch {}
+    }
+    this.startTime = Date.now();
     this.startRaceSequence();
+  }
+
+  private triggerEarlyLaunch(): void {
+    // Clear future timeouts
+    this.timeouts.forEach(t => clearTimeout(t));
+    this.timeouts = [];
+
+    // Instant lights-out and launch!
+    this.litCount = 0;
+    this.isLaunched = true;
+    this.rpmValue = '18,500 MAX';
+    this.haptic.success();
+
+    this.timeouts.push(setTimeout(() => {
+      this.isFading = true;
+    }, 400));
+
+    this.timeouts.push(setTimeout(() => {
+      this.isVisible = false;
+    }, 750));
   }
 
   private startRaceSequence(): void {
@@ -474,6 +525,9 @@ export class SplashScreenComponent implements OnInit, OnDestroy {
       this.rpmValue = '11,500';
       this.rpmPercent = 72;
       this.haptic.light();
+      if (this.loadingService.isInitialAppLoaded()) {
+        this.triggerEarlyLaunch();
+      }
     }, 790));
 
     // Light 4 at 1060ms
@@ -482,6 +536,9 @@ export class SplashScreenComponent implements OnInit, OnDestroy {
       this.rpmValue = '14,200';
       this.rpmPercent = 88;
       this.haptic.light();
+      if (this.loadingService.isInitialAppLoaded()) {
+        this.triggerEarlyLaunch();
+      }
     }, 1060));
 
     // Light 5 at 1330ms (All 5 RED - Redline!)

@@ -1,29 +1,33 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of, switchMap, tap, catchError, forkJoin } from 'rxjs';
+import { BehaviorSubject, Observable, of, tap, catchError, forkJoin } from 'rxjs';
 import { HttpService } from './http.service';
 import { AuthService } from './auth.service';
 import { UserSettingsService } from './user-settings.service';
 
-const I18N_CACHE_VERSION = 'v2026.1';
+const I18N_CACHE_VERSION = 'v2026.2';
+
+export const ALLOWED_LANGUAGES = ['it', 'en', 'es', 'fr'];
+export const DEFAULT_LANGUAGE = 'it';
 
 export type TranslationsMap = Record<string, string>;
 
 export interface Translation {
   value: string;
   i18n_keys: {
-    key: string,
-    namespace: string,
-    description: string
+    key: string;
+    namespace: string;
+    description: string;
   };
   language_id: {
-    code: string,
-    name: string
-  }
+    code: string;
+    name: string;
+  };
 }
+
 @Injectable({ providedIn: 'root' })
 export class I18nService {
   private translations: TranslationsMap = {};
-  private languageSubject = new BehaviorSubject<string>('en');
+  private languageSubject = new BehaviorSubject<string>(I18nService.getInitialLanguage());
   language$ = this.languageSubject.asObservable();
   private translationsSubject = new BehaviorSubject<TranslationsMap>({});
   translations$ = this.translationsSubject.asObservable();
@@ -34,15 +38,27 @@ export class I18nService {
     private userSettingsService: UserSettingsService
   ) {}
 
+  static getInitialLanguage(): string {
+    try {
+      const saved = localStorage.getItem('lang')?.toLowerCase();
+      if (saved && ALLOWED_LANGUAGES.includes(saved)) {
+        return saved;
+      }
+      const browser = navigator.language?.split('-')[0]?.toLowerCase();
+      if (browser && ALLOWED_LANGUAGES.includes(browser)) {
+        return browser;
+      }
+    } catch {}
+    return DEFAULT_LANGUAGE;
+  }
+
   init(): void {
     const cachedVersion = localStorage.getItem('i18n_cache_version');
     if (cachedVersion !== I18N_CACHE_VERSION) {
       this.clearCache();
       localStorage.setItem('i18n_cache_version', I18N_CACHE_VERSION);
     }
-    const saved = localStorage.getItem('lang');
-    const browser = navigator.language?.split('-')[0] ?? 'en';
-    const initial = (saved || browser || 'en').toLowerCase();
+    const initial = I18nService.getInitialLanguage();
     this.setLanguage(initial).subscribe();
   }
 
@@ -63,20 +79,29 @@ export class I18nService {
   }
 
   setLanguage(langCode: string, champId?: number): Observable<TranslationsMap> {
-    const normalized = (langCode || 'en').toLowerCase();
-    if (this.currentLanguage === normalized && Object.keys(this.translations).length > 0) {
-      return of(this.translations);
+    let normalized = (langCode || DEFAULT_LANGUAGE).toLowerCase().trim();
+    if (!ALLOWED_LANGUAGES.includes(normalized)) {
+      normalized = DEFAULT_LANGUAGE;
     }
+
+    const alreadyLoaded = this.currentLanguage === normalized && Object.keys(this.translations).length > 0;
     this.languageSubject.next(normalized);
     localStorage.setItem('lang', normalized);
+
+    if (champId !== undefined) {
+      this.persistUserPreferenceIfAuthenticated(champId, normalized);
+    }
+
+    if (alreadyLoaded) {
+      return of(this.translations);
+    }
+
     return this.fetchTranslations(normalized).pipe(
       tap(map => {
         this.translations = map;
         this.translationsSubject.next(this.translations);
       }),
-      tap(() => { if(champId) {this.persistUserPreferenceIfAuthenticated(champId, normalized)}}),
       catchError(() => {
-        if(champId) { this.persistUserPreferenceIfAuthenticated(champId, normalized); }
         this.translations = {};
         this.translationsSubject.next(this.translations);
         return of(this.translations);
@@ -87,13 +112,14 @@ export class I18nService {
   translate(key: string, params?: Record<string, string | number>): string {
     if (!key) return '';
     const value = this.translations[key] ?? key;
-    if (value === key) console.warn('key not found', key);
+    if (value === key && !key.startsWith('nav.') && !key.startsWith('more.')) {
+      console.warn('key not found', key);
+    }
     if (!params) return value;
     return Object.keys(params).reduce((acc, p) => acc.replace(new RegExp(`{${p}}`, 'g'), String(params[p])), value);
   }
 
   private fetchTranslations(langCode: string): Observable<TranslationsMap> {
-    // Check cache first
     const cacheKey = `translations_${langCode}`;
     const cached = localStorage.getItem(cacheKey);
     const cacheTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
@@ -107,13 +133,11 @@ export class I18nService {
         const parsedCache = JSON.parse(cached);
         return of(parsedCache);
       } catch (e) {
-        // Invalid cache, remove it
         localStorage.removeItem(cacheKey);
         localStorage.removeItem(`${cacheKey}_timestamp`);
       }
     }
 
-    // Fetch from API and cache
     return this.httpService.genericGet<TranslationsMap>(`i18n/${langCode}`).pipe(
       tap(translations => {
         localStorage.setItem(cacheKey, JSON.stringify(translations));
@@ -126,7 +150,6 @@ export class I18nService {
     return this.httpService.genericGet<Translation[]>(`i18n/translations/recent`);
   }
 
-  // Method to clear cache (useful for development or when translations are updated)
   clearCache(): void {
     const keys = Object.keys(localStorage);
     keys.forEach(key => {
@@ -136,7 +159,6 @@ export class I18nService {
     });
   }
 
-  // Method to force refresh translations (bypass cache)
   refreshTranslations(langCode: string): Observable<TranslationsMap> {
     const cacheKey = `translations_${langCode}`;
     localStorage.removeItem(cacheKey);
@@ -144,17 +166,11 @@ export class I18nService {
     return this.setLanguage(langCode);
   }
 
-  // Preload all available languages for instant switching
-  preloadLanguages(availableLanguages: string[] = ['en', 'it']): Observable<TranslationsMap[]> {
-    // Filter out languages that are already loaded or currently being loaded
+  preloadLanguages(availableLanguages: string[] = ALLOWED_LANGUAGES): Observable<TranslationsMap[]> {
     const languagesToPreload = availableLanguages.filter(lang => {
-      // Skip if it's the current language (already loaded)
       if (lang === this.currentLanguage) return false;
-
-      // Skip if it's already cached
       const cached = this.getCachedTranslations(lang);
       if (cached) return false;
-
       return true;
     });
 
@@ -171,14 +187,13 @@ export class I18nService {
     return forkJoin(preloadObservables);
   }
 
-  // Get cached translations for a language without switching to it
   getCachedTranslations(langCode: string): TranslationsMap | null {
     const cacheKey = `translations_${langCode}`;
     const cached = localStorage.getItem(cacheKey);
     const cacheTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
 
     if (cached && cacheTimestamp) {
-      const CACHE_DURATION = 3600000; // 1 hour
+      const CACHE_DURATION = 3600000;
       const now = Date.now();
 
       if ((now - parseInt(cacheTimestamp)) < CACHE_DURATION) {
@@ -194,11 +209,9 @@ export class I18nService {
     return null;
   }
 
-  private persistUserPreferenceIfAuthenticated(champId: number, langCode: string): void {
+  persistUserPreferenceIfAuthenticated(champId: number | undefined, langCode: string): void {
     const token = this.authService.getToken();
     if (!token) return;
-    this.userSettingsService.updateUserLanguage(champId,langCode).subscribe({ next: () => {}, error: () => {} });
+    this.userSettingsService.updateUserSettings(champId, langCode).subscribe({ next: () => {}, error: () => {} });
   }
 }
-
-

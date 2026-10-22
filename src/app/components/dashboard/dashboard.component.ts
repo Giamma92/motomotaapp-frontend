@@ -21,6 +21,8 @@ import { NotificationBellComponent } from '../notification-bell/notification-bel
 import { AuthService, UserInfo } from '../../services/auth.service';
 import { MotoGPAssetService } from '../../services/motogp-asset.service';
 import { MoreMenuService } from '../../services/more-menu.service';
+import { HapticService } from '../../services/haptic.service';
+import { LoadingService } from '../../services/loading.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -67,6 +69,53 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   Math = Math;
 
+  // Pull to refresh state
+  pullDistance = 0;
+  isPulling = false;
+  isRefreshing = false;
+  private touchStartY = 0;
+  private hasVibratedThreshold = false;
+
+  @HostListener('touchstart', ['$event'])
+  onTouchStart(e: TouchEvent): void {
+    if (typeof window !== 'undefined' && window.scrollY <= 0 && !this.isRefreshing) {
+      this.touchStartY = e.touches[0].clientY;
+      this.isPulling = true;
+      this.hasVibratedThreshold = false;
+    }
+  }
+
+  @HostListener('touchmove', ['$event'])
+  onTouchMove(e: TouchEvent): void {
+    if (this.isPulling && typeof window !== 'undefined' && window.scrollY <= 0) {
+      const diff = e.touches[0].clientY - this.touchStartY;
+      if (diff > 0) {
+        this.pullDistance = Math.min(85, diff * 0.42);
+        if (this.pullDistance >= 60 && !this.hasVibratedThreshold) {
+          this.haptic.medium();
+          this.hasVibratedThreshold = true;
+        }
+        this.cdr.markForCheck();
+      }
+    }
+  }
+
+  @HostListener('touchend')
+  onTouchEnd(): void {
+    if (this.isPulling) {
+      this.isPulling = false;
+      if (this.pullDistance >= 60) {
+        this.isRefreshing = true;
+        this.pullDistance = 50;
+        this.reload();
+      } else {
+        this.pullDistance = 0;
+      }
+      this.cdr.markForCheck();
+    }
+  }
+
+
   // Loading / error state per card (skeleton + UX states)
   loadingStandings = true;
   loadingTeam = true;
@@ -98,6 +147,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     public theme: ThemeService,
     public assetService: MotoGPAssetService,
     public moreMenu: MoreMenuService,
+    private haptic: HapticService,
+    private loadingService: LoadingService,
     private cdr: ChangeDetectorRef
   ) {
     this.loggedUserId = this.authService.getUserId();
@@ -146,6 +197,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       next: (data: StandingsRow[]) => {
         this.classificationData = data;
         this.loadingStandings = false;
+        checkAllLoaded();
         this.cdr.markForCheck();
       },
       error: (error: any) => {
@@ -160,6 +212,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.nextCalendarRace = race;
         this.loadingNext = false;
         this.computeButtonVisibility();
+        checkAllLoaded();
         this.cdr.markForCheck();
       },
       error: (error: any) => {
@@ -184,6 +237,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       next: (team: FantasyTeam) => {
         this.fantasyTeam = team;
         this.loadingTeam = false;
+        checkAllLoaded();
         this.cdr.markForCheck();
       },
       error: (error: any) => {
@@ -197,6 +251,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
+    const checkAllLoaded = () => {
+      if (!this.loadingStandings && !this.loadingNext && !this.loadingTeam) {
+        this.loadingService.markInitialAppLoaded();
+        if (this.isRefreshing) {
+          this.isRefreshing = false;
+          this.pullDistance = 0;
+          this.haptic.success();
+        }
+        this.cdr.markForCheck();
+      }
+    };
     this.loadingLastRace = true;
     this.dashboardService.getStandingsBreakdown(champId).subscribe({
       next: (rows: StandingsBreakdownRow[]) => {

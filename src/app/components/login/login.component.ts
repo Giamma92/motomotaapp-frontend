@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation, inject } from '@angular/core';
+import { Component, ViewEncapsulation, inject, OnInit, OnDestroy } from '@angular/core';
 import { ThemeService } from '../../services/theme.service';
 import { FormGroup, FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -13,6 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { I18nService } from '../../services/i18n.service';
 import { UserSettingsService } from '../../services/user-settings.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -114,8 +115,8 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               <div class="login-lang-pill" [title]="'login.selectLanguage' | t">
                 <i class="fa-solid fa-globe lang-icon" aria-hidden="true"></i>
                 <select
-                  [value]="currentLang"
-                  (change)="onLanguageChange($any($event.target).value)"
+                  [(ngModel)]="currentLang"
+                  (ngModelChange)="onLanguageChange($event)"
                   class="login-lang-select"
                   [attr.aria-label]="'login.language' | t">
                   <option *ngFor="let l of languages" [value]="l.code">{{ l.code.toUpperCase() }}</option>
@@ -193,7 +194,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   `,
   styleUrl: './login.component.scss'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit, OnDestroy {
   public theme = inject(ThemeService);
   loginForm: FormGroup;
   errorMessage: string | null = null;
@@ -201,13 +202,14 @@ export class LoginComponent {
   showPassword: boolean = false;
   rememberMe: boolean = true;
   languages = [
-    { code: 'en', label: 'English' },
     { code: 'it', label: 'Italiano' },
+    { code: 'en', label: 'English' },
     { code: 'es', label: 'Español' },
     { code: 'fr', label: 'Français' }
   ];
-  currentLang: string = 'en';
+  currentLang: string = 'it';
   langManuallyChanged: boolean = false;
+  private langSub?: Subscription;
 
   constructor(
     private fb: FormBuilder,
@@ -222,7 +224,18 @@ export class LoginComponent {
       password: ['', Validators.required],
     });
     this.rememberMe = !!savedUser;
-    this.currentLang = localStorage.getItem('lang') || this.i18n.currentLanguage || 'en';
+    this.currentLang = this.i18n.currentLanguage || 'it';
+  }
+
+  ngOnInit(): void {
+    this.currentLang = this.i18n.currentLanguage || 'it';
+    this.langSub = this.i18n.language$.subscribe((lang) => {
+      this.currentLang = lang;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.langSub?.unsubscribe();
   }
 
   toggleShowPassword(): void {
@@ -249,17 +262,15 @@ export class LoginComponent {
 
           // If language was explicitly selected on the login page, save it to user_settings
           if (this.langManuallyChanged) {
-            this.userSettingsService.updateUserLanguage(undefined, this.currentLang).subscribe({ error: () => {} });
+            this.userSettingsService.updateUserSettings(undefined, this.currentLang).subscribe({ error: () => {} });
+          } else if (res.language) {
+            // Apply language preference stored in DB
+            if (res.language !== this.i18n.currentLanguage) {
+              this.i18n.setLanguage(res.language).subscribe();
+            }
           } else {
-            // Otherwise, fetch user preference from user_settings and apply it if present
-            this.userSettingsService.getUserSettings().subscribe({
-              next: (settings) => {
-                if (settings?.language && settings.language !== this.i18n.currentLanguage) {
-                  this.i18n.setLanguage(settings.language).subscribe();
-                }
-              },
-              error: () => {}
-            });
+            // No preference saved yet in DB: persist current active language
+            this.userSettingsService.updateUserSettings(undefined, this.currentLang).subscribe({ error: () => {} });
           }
 
           this.authService.getUserInfo().subscribe({
@@ -275,7 +286,7 @@ export class LoginComponent {
               this.loading = false;
               this.router.navigate(['/']);
             }
-          })
+          });
         },
         error: (err) => {
           this.loading = false;

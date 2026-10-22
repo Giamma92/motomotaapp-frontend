@@ -33,8 +33,8 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
         (touchend)="onTouchEnd($event)"
         (touchcancel)="onTouchCancel()"
         [ngClass]="theme.mode() === 'light'
-          ? 'bg-white/95 backdrop-blur-2xl text-zinc-900 border-black/[0.08]'
-          : 'bg-[#141720]/95 backdrop-blur-2xl text-white border-white/10'"
+          ? 'bg-white/90 backdrop-blur-2xl text-zinc-900 border-black/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_-16px_48px_rgba(0,0,0,0.12)]'
+          : 'bg-[#12151e]/85 backdrop-blur-2xl text-white border-white/15 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_-16px_48px_rgba(0,0,0,0.85)]'"
         role="dialog"
         aria-modal="true"
         [attr.aria-label]="'more.title' | t">

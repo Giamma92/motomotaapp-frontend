@@ -15,6 +15,7 @@ import { NotificationServiceService } from "../../services/notification.service"
 import { NavigationService } from "../../services/navigation.service";
 import { MotoGPAssetService } from "../../services/motogp-asset.service";
 import { ThemeService } from "../../services/theme.service";
+import { HapticService } from "../../services/haptic.service";
 
 @Component({
   template: ''
@@ -23,6 +24,7 @@ export abstract class BaseBetComponent implements OnInit, OnDestroy {
   protected navService = inject(NavigationService);
   public motogpAssetService = inject(MotoGPAssetService);
   public themeService = inject(ThemeService);
+  protected haptic = inject(HapticService);
 
   get isLightTheme(): boolean {
     return this.themeService.mode() === 'light';
@@ -113,6 +115,7 @@ export abstract class BaseBetComponent implements OnInit, OnDestroy {
       this.httpService.genericPut(`championship/${this.champId}/${this.betEndpoint}`, payload).subscribe({
         next: () => {
           this.loading = false;
+          this.haptic.success();
           this.notificationService.showSuccess('bets.submitSuccess');
           this.lastSavedBetSummary = {
             riderName: this.getSelectedRiderLabel(),
@@ -130,6 +133,7 @@ export abstract class BaseBetComponent implements OnInit, OnDestroy {
           if (backendMessage) {
             this.notificationService.showErrorMessage(backendMessage);
           } else {
+            this.haptic.error();
             this.notificationService.showError('bets.submitFail');
           }
         }
@@ -267,6 +271,7 @@ export abstract class BaseBetComponent implements OnInit, OnDestroy {
   }
 
   selectRiderCard(riderId: number): void {
+    this.haptic.light();
     const rider = this.riders.find(entry => entry.rider_id.id === riderId);
     if (!rider || this.isRiderUnavailable(rider)) {
       return;
@@ -358,6 +363,7 @@ export abstract class BaseBetComponent implements OnInit, OnDestroy {
 
   setPosition(position: number): void {
     if (this.betForm.disabled) return;
+    this.haptic.light();
     this.betForm.get('position')?.setValue(position);
   }
 

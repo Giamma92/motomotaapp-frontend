@@ -18,6 +18,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NavigationService } from '../../services/navigation.service';
 import { MotoGPAssetService } from '../../services/motogp-asset.service';
 import { ThemeService } from '../../services/theme.service';
+import { HapticService } from '../../services/haptic.service';
 
 @Component({
   selector: 'app-lineups',
@@ -242,7 +243,20 @@ import { ThemeService } from '../../services/theme.service';
               </button>
             </div>
 
-            <p class="empty-note" *ngIf="riders.length === 0">Caricamento piloti scuderia...</p>
+            <!-- Skeleton Rider Cards while fetching -->
+            <div class="space-y-3" *ngIf="riders.length === 0" aria-hidden="true">
+              <div class="sk-racing-card p-4 flex flex-row items-center gap-4" *ngFor="let i of [1, 2, 3]">
+                <span class="sk sk-avatar-lg"></span>
+                <div class="flex-1 space-y-2">
+                  <span class="sk sk-title" style="width: 50%; height: 20px;"></span>
+                  <span class="sk sk-line" style="width: 35%;"></span>
+                </div>
+                <div class="flex gap-2">
+                  <span class="sk sk-badge"></span>
+                  <span class="sk sk-badge"></span>
+                </div>
+              </div>
+            </div>
             <p class="empty-note" *ngIf="riders.length > 0 && filteredRiders.length === 0">
               Nessun pilota trovato per "{{ riderSearchQuery }}".
             </p>
@@ -402,7 +416,8 @@ export class LineupsComponent implements OnInit, OnDestroy {
     private i18nService: I18nService,
     private navService: NavigationService,
     public motogpAssetService: MotoGPAssetService,
-    public themeService: ThemeService
+    public themeService: ThemeService,
+    private haptic: HapticService
   ) {
     this.lineupsForm = this.fb.group({
       race_rider_id: ['', Validators.required],
@@ -554,6 +569,7 @@ export class LineupsComponent implements OnInit, OnDestroy {
       this.raceDetailService.upsertLineup(this.champId, payload).subscribe({
         next: () => {
           this.loading = false;
+          this.haptic.success();
           this.notificationService.showSuccess('lineups.submitSuccess');
           this.loadExistingLineupAndUpdateForm(this.champId);
           this.loadAllLineupsAndUpdateRiders();
@@ -565,6 +581,7 @@ export class LineupsComponent implements OnInit, OnDestroy {
           if (backendMessage) {
             this.notificationService.showErrorMessage(backendMessage);
           } else {
+            this.haptic.error();
             this.notificationService.showError('lineups.submitFail');
           }
         }
@@ -611,6 +628,7 @@ export class LineupsComponent implements OnInit, OnDestroy {
 
   assignToSlot(slot: 'qualifying' | 'race', riderId: number): void {
     if (this.isRiderBlocked(riderId)) return;
+    this.haptic.light();
 
     const targetName = slot === 'qualifying' ? 'qualifying_rider_id' : 'race_rider_id';
     const otherName = slot === 'qualifying' ? 'race_rider_id' : 'qualifying_rider_id';
@@ -633,6 +651,7 @@ export class LineupsComponent implements OnInit, OnDestroy {
   }
 
   clearSlot(slot: 'qualifying' | 'race'): void {
+    this.haptic.light();
     const control = this.lineupsForm.get(slot === 'qualifying' ? 'qualifying_rider_id' : 'race_rider_id');
     control?.setValue('');
     this.lineupsForm.updateValueAndValidity();

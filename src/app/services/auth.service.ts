@@ -6,6 +6,8 @@ import { environment } from '../../environments/environment';
 
 export interface LoginResponse {
   token: string;
+  language?: string | null;
+  championship_id?: number | null;
 }
 
 export interface UserInfo {

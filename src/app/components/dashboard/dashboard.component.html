@@ -57,6 +57,20 @@
        MAIN COCKPIT CONTENT
   ══════════════════════════════════════════════════ -->
   <main class="grid-content">
+    <!-- ── Mobile Pull to Refresh Indicator ── -->
+    <div
+      *ngIf="pullDistance > 0 || isRefreshing"
+      class="ptr-container"
+      [style.height.px]="pullDistance">
+      <div class="ptr-content">
+        <i
+          class="fa-solid fa-flag-checkered ptr-icon"
+          [class.ptr-icon--spinning]="isRefreshing"
+          [style.transform]="!isRefreshing ? 'rotate(' + (pullDistance * 4) + 'deg)' : ''"></i>
+        <span>{{ isRefreshing ? 'Aggiornamento sessioni...' : (pullDistance >= 60 ? 'Rilascia per aggiornare' : 'Trascina per aggiornare') }}</span>
+      </div>
+    </div>
+
     <div class="cockpit-stack">
 
       <!-- ──────────────────────────────────────────────

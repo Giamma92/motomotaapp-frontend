@@ -9,7 +9,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { UserSettingsService } from '../../services/user-settings.service';
-import { I18nService } from '../../services/i18n.service';
+import { I18nService, ALLOWED_LANGUAGES } from '../../services/i18n.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationServiceService } from '../../services/notification.service';
 import { InAppNotificationService, NotificationSettings } from '../../services/in-app-notification.service';
@@ -40,9 +40,9 @@ import { NavigationService } from '../../services/navigation.service';
       <main class="settings-main">
         <section class="settings-panel">
           <div class="panel-head">
-            <span class="panel-kicker">Preferenze</span>
-            <h2>Campionato e lingua</h2>
-            <p class="panel-sub">Seleziona il campionato di riferimento e la lingua dell'interfaccia.</p>
+            <span class="panel-kicker">{{ 'settings.preferences' | t }}</span>
+            <h2>{{ 'settings.championshipAndLang' | t }}</h2>
+            <p class="panel-sub">{{ 'settings.championshipAndLangSub' | t }}</p>
           </div>
 
           <form class="settings-form" [formGroup]="settingsForm" (ngSubmit)="save()">
@@ -75,34 +75,34 @@ import { NavigationService } from '../../services/navigation.service';
 
         <section class="settings-panel notification-settings-panel" *ngIf="selectedChampionshipId">
           <div class="panel-head">
-            <span class="panel-kicker">Promemoria</span>
-            <h2>Notifiche</h2>
-            <p class="panel-sub">Scegli quali aggiornamenti ricevere per questo campionato. Le modifiche vengono salvate subito.</p>
+            <span class="panel-kicker">{{ 'settings.reminders' | t }}</span>
+            <h2>{{ 'settings.notifications' | t }}</h2>
+            <p class="panel-sub">{{ 'settings.notificationsSub' | t }}</p>
           </div>
 
           <div class="notification-toggles">
             <label class="toggle-row">
-              <span class="toggle-label">Schieramenti</span>
+              <span class="toggle-label">{{ 'settings.notif.lineup' | t }}</span>
               <input type="checkbox" [checked]="notifSettings.lineup" (change)="toggleNotif('lineup', $event)" />
               <span class="toggle-switch"></span>
             </label>
             <label class="toggle-row">
-              <span class="toggle-label">Aggiornamento punteggi</span>
+              <span class="toggle-label">{{ 'settings.notif.scoreUpdate' | t }}</span>
               <input type="checkbox" [checked]="notifSettings.score_update" (change)="toggleNotif('score_update', $event)" />
               <span class="toggle-switch"></span>
             </label>
             <label class="toggle-row">
-              <span class="toggle-label">Cambio posizione classifica</span>
+              <span class="toggle-label">{{ 'settings.notif.standingChange' | t }}</span>
               <input type="checkbox" [checked]="notifSettings.standing_change" (change)="toggleNotif('standing_change', $event)" />
               <span class="toggle-switch"></span>
             </label>
             <label class="toggle-row">
-              <span class="toggle-label">Gara cancellata</span>
+              <span class="toggle-label">{{ 'settings.notif.raceCancelled' | t }}</span>
               <input type="checkbox" [checked]="notifSettings.race_cancelled" (change)="toggleNotif('race_cancelled', $event)" />
               <span class="toggle-switch"></span>
             </label>
             <label class="toggle-row">
-              <span class="toggle-label">Generali</span>
+              <span class="toggle-label">{{ 'settings.notif.general' | t }}</span>
               <input type="checkbox" [checked]="notifSettings.general" (change)="toggleNotif('general', $event)" />
               <span class="toggle-switch"></span>
             </label>
@@ -127,8 +127,8 @@ export class SettingsComponent implements OnInit {
   };
   selectedChampionshipId: number | null = null;
   languages = [
-    { code: 'en', label: 'English' },
     { code: 'it', label: 'Italiano' },
+    { code: 'en', label: 'English' },
     { code: 'es', label: 'Español' },
     { code: 'fr', label: 'Français' }
   ];
@@ -199,7 +199,10 @@ export class SettingsComponent implements OnInit {
           this.settingsForm.patchValue({ championship_id: userSettings.championship_id });
           this.originalChampionshipId = userSettings.championship_id as unknown as number;
         }
-        const lang = userSettings?.language || localStorage.getItem('lang') || this.i18n.currentLanguage || 'en';
+        let lang = userSettings?.language || localStorage.getItem('lang') || this.i18n.currentLanguage || 'it';
+        if (!ALLOWED_LANGUAGES.includes(lang)) {
+          lang = 'it';
+        }
         this.settingsForm.patchValue({ language: lang });
         this.originalLanguage = lang;
       },
@@ -216,36 +219,43 @@ export class SettingsComponent implements OnInit {
 
     const championshipId = this.settingsForm.get('championship_id')?.value;
     const language = this.settingsForm.get('language')?.value;
-    const updates: Promise<any>[] = [];
 
-    if (this.originalChampionshipId !== championshipId) {
-      updates.push(
-        this.userSettingsService.updateUserSettings(championshipId).toPromise()
-      );
-    }
+    const champChanged = this.originalChampionshipId !== championshipId;
+    const langChanged = this.originalLanguage !== language;
 
-    if (this.originalLanguage !== language) {
-      updates.push(
-        this.i18n.setLanguage(language, championshipId).toPromise()
-      );
-    }
-
-    if (updates.length === 0) {
+    if (!champChanged && !langChanged) {
       this.loading = false;
       this.successMessageKey = 'settings.noChanges';
       return;
     }
 
-    Promise.all(updates)
-      .then(() => {
+    this.userSettingsService.updateUserSettings(championshipId, language).subscribe({
+      next: () => {
         this.championshipService.subjChampId.next(championshipId);
-        this.successMessageKey = 'settings.success';
-        this.loading = false;
-      })
-      .catch((err) => {
+        this.originalChampionshipId = championshipId;
+
+        if (langChanged) {
+          this.i18n.setLanguage(language).subscribe({
+            next: () => {
+              this.originalLanguage = language;
+              this.loading = false;
+              this.successMessageKey = 'settings.savedSuccessfully';
+            },
+            error: () => {
+              this.loading = false;
+              this.successMessageKey = 'settings.savedSuccessfully';
+            }
+          });
+        } else {
+          this.loading = false;
+          this.successMessageKey = 'settings.savedSuccessfully';
+        }
+      },
+      error: (err) => {
         console.error('Error updating settings:', err);
         this.loading = false;
-      });
+      }
+    });
   }
 
   // Development helper: Clear translation cache
@@ -256,7 +266,7 @@ export class SettingsComponent implements OnInit {
 
   // Development helper: Refresh translations
   refreshTranslations(): void {
-    const language = this.settingsForm.get('language')?.value || 'en';
+    const language = this.settingsForm.get('language')?.value || 'it';
     this.i18n.refreshTranslations(language).subscribe({
       next: () => this.notificationService.showSuccess('settings.refreshTranslationsSuccess'),
       error: () => this.notificationService.showError('settings.refreshTranslationsFail')

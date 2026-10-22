@@ -4,11 +4,30 @@
   </header>
 
   <main class="main-content">
-    <!-- ── Loading skeleton ── -->
+    <!-- ── MotoGP Skeleton Loader for Calendar ── -->
     <ng-container *ngIf="loading">
-      <section class="sk sk-hero" aria-hidden="true"></section>
-      <section class="skeleton-list" aria-hidden="true">
-        <span class="sk sk-row" *ngFor="let s of [1, 2, 3, 4, 5]"></span>
+      <div class="sk-racing-card p-6 rounded-3xl mb-6" style="height: 180px;" aria-hidden="true">
+        <div class="flex items-center justify-between mb-3">
+          <span class="sk sk-badge"></span>
+          <span class="sk sk-badge" style="width: 110px;"></span>
+        </div>
+        <span class="sk sk-title mb-4" style="width: 50%; height: 26px;"></span>
+        <div class="flex gap-2">
+          <span class="sk sk-pill"></span>
+          <span class="sk sk-pill"></span>
+        </div>
+      </div>
+      <section class="skeleton-list space-y-3" aria-hidden="true">
+        <div class="sk-racing-card p-4 flex items-center justify-between gap-4" *ngFor="let s of [1, 2, 3, 4, 5, 6]">
+          <div class="flex items-center gap-3 flex-1">
+            <span class="sk sk-avatar-sm" style="border-radius: 8px;"></span>
+            <div class="space-y-2 flex-1">
+              <span class="sk sk-title" style="width: 45%; height: 18px;"></span>
+              <span class="sk sk-line" style="width: 30%;"></span>
+            </div>
+          </div>
+          <span class="sk sk-badge" style="width: 80px;"></span>
+        </div>
       </section>
     </ng-container>
 

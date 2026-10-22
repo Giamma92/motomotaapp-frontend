@@ -119,6 +119,13 @@ export class HapticService {
     this.playTactileImpulse(90, 0.03);
   }
 
+  /**
+   * Vibrazione di errore
+   */
+  error(): void {
+    this.warning();
+  }
+
   private vibrate(pattern: number | number[]): void {
     try {
       if (typeof window !== 'undefined' && 'navigator' in window && typeof navigator.vibrate === 'function') {

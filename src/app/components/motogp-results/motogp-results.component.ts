@@ -114,10 +114,30 @@ interface StatTile {
       </header>
 
       <main class="main-content">
-        <div *ngIf="loading" class="ux-state loading-container">
-          <div class="ux-state-card">
-            <mat-spinner diameter="34"></mat-spinner>
-            <p>{{ 'common.loading' | t }}</p>
+        <!-- ═══════════ MotoGP Results Skeleton ═══════════ -->
+        <div *ngIf="loading" class="results-container w-full space-y-4" aria-hidden="true">
+          <div class="sk-racing-card p-6 rounded-3xl" style="height: 160px;">
+            <span class="sk sk-badge mb-3"></span>
+            <span class="sk sk-title mb-4" style="width: 50%; height: 26px;"></span>
+            <div class="flex gap-2">
+              <span class="sk sk-pill"></span>
+              <span class="sk sk-pill"></span>
+            </div>
+          </div>
+
+          <div class="sk-racing-card p-5">
+            <span class="sk sk-title mb-4" style="width: 35%;"></span>
+            <div class="grid grid-cols-3 gap-3 mb-6" style="height: 140px;">
+              <span class="sk sk-box" style="height: 100%;"></span>
+              <span class="sk sk-box" style="height: 100%;"></span>
+              <span class="sk sk-box" style="height: 100%;"></span>
+            </div>
+            <div class="space-y-3">
+              <span class="sk sk-row" style="height: 48px;"></span>
+              <span class="sk sk-row" style="height: 48px;"></span>
+              <span class="sk sk-row" style="height: 48px;"></span>
+              <span class="sk sk-row" style="height: 48px;"></span>
+            </div>
           </div>
         </div>
 

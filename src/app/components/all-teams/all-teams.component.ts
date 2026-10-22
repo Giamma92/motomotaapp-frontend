@@ -58,12 +58,35 @@ interface TeamView {
       </header>
 
       <main class="main-content">
-        <!-- ═══════════ Loading ═══════════ -->
-        <div *ngIf="loading" class="ux-state loading-container">
-          <div class="ux-state-card">
-            <mat-spinner diameter="34"></mat-spinner>
-            <p>{{ 'common.loading' | t }}</p>
-          </div>
+        <!-- ═══════════ MotoGP Skeleton Loader for Teams ═══════════ -->
+        <div *ngIf="loading" class="teams-layout" aria-hidden="true">
+          <section class="stats-strip">
+            <article class="stat-tile" *ngFor="let i of [1, 2, 3]">
+              <span class="sk sk-avatar-sm"></span>
+              <div class="stat-copy" style="width: 100%;">
+                <span class="sk sk-line mb-1" style="width: 50%;"></span>
+                <span class="sk sk-title" style="width: 30%; height: 16px;"></span>
+              </div>
+            </article>
+          </section>
+
+          <section class="teams-grid">
+            <article class="team-card" *ngFor="let i of [1, 2, 3, 4, 5, 6]">
+              <div class="team-top">
+                <span class="sk sk-avatar-sm" style="border-radius: 50%;"></span>
+                <span class="sk sk-avatar"></span>
+                <div class="team-ident" style="flex: 1;">
+                  <span class="sk sk-title mb-2" style="width: 60%; height: 18px;"></span>
+                  <span class="sk sk-line" style="width: 40%;"></span>
+                </div>
+              </div>
+              <div class="riders-list" style="margin-top: 12px; display: grid; gap: 8px;">
+                <span class="sk sk-row" style="height: 42px;"></span>
+                <span class="sk sk-row" style="height: 42px;"></span>
+                <span class="sk sk-row" style="height: 42px;"></span>
+              </div>
+            </article>
+          </section>
         </div>
 
         <!-- ═══════════ Retryable error state ═══════════ -->
