@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of, tap, shareReplay } from 'rxjs';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
@@ -29,6 +29,7 @@ export class AuthService {
   private apiUrl = environment.apiUrl;
   private cachedUserInfo: UserInfo | null = null;
   private userInfo$?: Observable<UserInfo>;
+  readonly tokenSignal = signal<string | null>(typeof window !== 'undefined' ? localStorage.getItem('token') : null);
 
   constructor(private http: HttpClient) {}
 
@@ -41,16 +42,18 @@ export class AuthService {
     localStorage.setItem('token', token);
     this.cachedUserInfo = null;
     this.userInfo$ = undefined;
+    this.tokenSignal.set(token);
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return this.tokenSignal() ?? (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
   }
 
   logout(): void {
     localStorage.removeItem('token');
     this.cachedUserInfo = null;
     this.userInfo$ = undefined;
+    this.tokenSignal.set(null);
   }
 
   getUserInfo(forceRefresh = false): Observable<UserInfo> {

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -12,7 +12,7 @@ import { NotificationBellComponent } from '../notification-bell/notification-bel
   standalone: true,
   imports: [CommonModule, RouterLink, NotificationBellComponent],
   template: `
-    @if (isVisible()) {
+    @if (isVisible) {
       <header
         class="fixed top-0 inset-x-0 h-[48px] z-[1000] pointer-events-auto px-3 sm:px-6 flex items-center justify-between backdrop-blur-xl transition-colors duration-200"
         [ngClass]="theme.mode() === 'light'
@@ -43,7 +43,7 @@ import { NotificationBellComponent } from '../notification-bell/notification-bel
         <!-- Right: Actions & Utilities (Notifications + Theme + Admin) -->
         <div class="flex items-center gap-1.5 sm:gap-2">
           <!-- Admin Shortcut (Visible only to Admin) -->
-          @if (isAdmin()) {
+          @if (isAdmin) {
             <a
               routerLink="/admin"
               (click)="haptic.light()"
@@ -84,41 +84,51 @@ export class AppTopNavComponent {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
-  currentUrl = signal<string>(this.router.url);
+  currentUrl: string = '/';
 
   constructor() {
+    this.currentUrl = this.cleanUrl(this.router.url);
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd)
     ).subscribe(e => {
-      this.currentUrl.set(e.urlAfterRedirects.split('?')[0]);
+      this.currentUrl = this.cleanUrl(e.urlAfterRedirects);
       this.cdr.markForCheck();
     });
   }
 
+  private cleanUrl(url: string): string {
+    if (!url) return '/';
+    const path = url.split('?')[0].split('#')[0];
+    if (path.length > 1 && path.endsWith('/')) {
+      return path.slice(0, -1);
+    }
+    return path;
+  }
+
   // Primary routes where the top-nav brand is shown instead of redundant headers
-  readonly isPrimaryRoute = computed(() => {
-    const url = this.currentUrl();
+  get isPrimaryRoute(): boolean {
+    const url = this.cleanUrl(this.currentUrl);
     const isHome = url === '' || url === '/' || url === '/dashboard';
     return isHome || url === '/calendar' || url === '/teams' || url === '/standings-breakdown';
-  });
+  }
 
-  readonly isVisible = computed(() => {
-    const token = this.authService.getToken();
+  get isVisible(): boolean {
+    const token = this.authService.tokenSignal() ?? this.authService.getToken();
     if (!token) return false;
-    const url = this.currentUrl();
+    const url = this.cleanUrl(this.currentUrl);
     if (url.startsWith('/login') || url.startsWith('/reset-password')) return false;
-    return this.isPrimaryRoute();
-  });
+    return this.isPrimaryRoute;
+  }
 
-  readonly isAdmin = computed(() => {
+  get isAdmin(): boolean {
     return this.authService.isCurrentUserAdmin();
-  });
+  }
 
   onBrandClick(): void {
     try {
       this.haptic.light();
     } catch {}
-    if (this.currentUrl() !== '/') {
+    if (this.cleanUrl(this.currentUrl) !== '/') {
       this.router.navigate(['/']);
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
