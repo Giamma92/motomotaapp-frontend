@@ -25,6 +25,7 @@ import { I18nService } from '../../services/i18n.service';
 import { NavigationService } from '../../services/navigation.service';
 import { ThemeService } from '../../services/theme.service';
 import { MotoGPAssetService } from '../../services/motogp-asset.service';
+import { PullToRefreshComponent } from '../pull-to-refresh/pull-to-refresh.component';
 
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 
@@ -68,7 +69,8 @@ export interface ParticipantCard {
     MatIconModule,
     FormsModule,
     TranslatePipe,
-    TimeFormatPipe
+    TimeFormatPipe,
+    PullToRefreshComponent
   ],
   animations: [
     trigger('cardAnimation', [
@@ -92,6 +94,7 @@ export interface ParticipantCard {
       </header>
 
       <main class="main-content" @cardAnimation>
+        <app-pull-to-refresh [isRefreshing]="loading" (refresh)="reload($event)"></app-pull-to-refresh>
         <!-- ── MotoGP Skeleton Loader for Race Detail ── -->
         <div *ngIf="loading" class="w-full space-y-4" aria-hidden="true">
           <div class="sk-racing-card p-6 rounded-3xl" style="height: 180px;">
@@ -1096,6 +1099,24 @@ export class RaceDetailComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
+  private currentChampId = 0;
+
+  reload(done?: () => void): void {
+    if (!this.currentChampId || !this.raceId) { done?.(); return; }
+    this.raceDetailService.getRaceDetails(this.currentChampId, this.raceId, { allUsers: true, allCalendar: false }).subscribe({
+      next: (data) => {
+        this.lineups = data.lineups ?? [];
+        this.sprints = data.sprints ?? [];
+        this.bets = data.bets ?? [];
+        this.setMotoGPResults(data.motogpResults ?? []);
+        this.loading = false;
+        this.cdr.markForCheck();
+        done?.();
+      },
+      error: () => done?.()
+    });
+  }
+
   ngOnInit(): void {
     this.raceId = this.route.snapshot.paramMap.get('id');
     const requestedTab = this.route.snapshot.queryParamMap.get('tab') as any;
@@ -1103,6 +1124,7 @@ export class RaceDetailComponent implements OnInit {
       this.activeTab = requestedTab;
     }
     this.championshipService.getChampIdObs().subscribe((champId: number) => {
+      this.currentChampId = champId;
       if (!champId || !this.raceId) { this.loading = false; this.cdr.markForCheck(); return; }
 
       // Data

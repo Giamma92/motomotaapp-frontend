@@ -15,12 +15,13 @@ import { RaceDetails } from '../../services/race-detail.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
 import { ThemeService } from '../../services/theme.service';
 import { MotoGPAssetService } from '../../services/motogp-asset.service';
+import { PullToRefreshComponent } from '../pull-to-refresh/pull-to-refresh.component';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MatButtonModule, MatIconModule, TimeFormatPipe, TranslatePipe],
+  imports: [CommonModule, MatButtonModule, MatIconModule, TimeFormatPipe, TranslatePipe, PullToRefreshComponent],
   templateUrl: './calendar.component.html',
   styleUrl: './calendar.component.scss'
 })
@@ -53,6 +54,21 @@ export class CalendarComponent implements OnInit, OnDestroy {
     public assetService: MotoGPAssetService,
     private cdr: ChangeDetectorRef
   ) {}
+
+  reload(done?: () => void): void {
+    if (this.championshipId <= 0) { done?.(); return; }
+    this.dashboardService.getCalendar(this.championshipId).subscribe({
+      next: (data: CalendarRace[]) => {
+        this.calendar = data ?? [];
+        this.findCurrentRace();
+        this.rebuildRaceStatusCache();
+        this.startCountdown();
+        this.cdr.markForCheck();
+        done?.();
+      },
+      error: () => done?.()
+    });
+  }
 
   ngOnInit(): void {
     this.championshipService.getChampIdObs().subscribe((champId: number) => {

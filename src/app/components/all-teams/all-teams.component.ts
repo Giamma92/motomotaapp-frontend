@@ -13,6 +13,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 import { RaceDetailService, RaceDetails, LineupsResult } from '../../services/race-detail.service';
 import { LineupModalComponent } from '../bets/lineup-modal/lineup-modal.component';
 import { MotoGPAssetService } from '../../services/motogp-asset.service';
+import { PullToRefreshComponent } from '../pull-to-refresh/pull-to-refresh.component';
 
 interface StatTile {
   icon: string;
@@ -49,7 +50,8 @@ interface TeamView {
     MatExpansionModule,
     MatProgressSpinnerModule,
     MatDialogModule,
-    TranslatePipe
+    TranslatePipe,
+    PullToRefreshComponent
   ],
   template: `
     <div class="page-container">
@@ -58,6 +60,7 @@ interface TeamView {
       </header>
 
       <main class="main-content">
+        <app-pull-to-refresh [isRefreshing]="loading" (refresh)="reload()"></app-pull-to-refresh>
         <!-- ═══════════ MotoGP Skeleton Loader for Teams ═══════════ -->
         <div *ngIf="loading" class="teams-layout" aria-hidden="true">
           <section class="stats-strip">

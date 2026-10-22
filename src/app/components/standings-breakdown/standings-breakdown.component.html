@@ -4,6 +4,7 @@
   </header>
 
   <main class="content">
+    <app-pull-to-refresh [isRefreshing]="loadingStandings && loadingMotoGP" (refresh)="reload($event)"></app-pull-to-refresh>
     <!-- ── Top Tab Switcher ── -->
     <div class="tab-switcher-container">
       <div class="tab-switcher-wrap" role="tablist" aria-label="Sezioni classifica">

@@ -23,13 +23,14 @@ import { MotoGPAssetService } from '../../services/motogp-asset.service';
 import { MoreMenuService } from '../../services/more-menu.service';
 import { HapticService } from '../../services/haptic.service';
 import { LoadingService } from '../../services/loading.service';
+import { PullToRefreshComponent } from '../pull-to-refresh/pull-to-refresh.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule, MatExpansionModule, TimeFormatPipe, TranslatePipe, NotificationBellComponent],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule, MatExpansionModule, TimeFormatPipe, TranslatePipe, NotificationBellComponent, PullToRefreshComponent],
   animations: [
     trigger('cardAnimation', [
       transition(':enter', [
@@ -69,51 +70,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   Math = Math;
 
-  // Pull to refresh state
-  pullDistance = 0;
-  isPulling = false;
   isRefreshing = false;
-  private touchStartY = 0;
-  private hasVibratedThreshold = false;
-
-  @HostListener('touchstart', ['$event'])
-  onTouchStart(e: TouchEvent): void {
-    if (typeof window !== 'undefined' && window.scrollY <= 0 && !this.isRefreshing) {
-      this.touchStartY = e.touches[0].clientY;
-      this.isPulling = true;
-      this.hasVibratedThreshold = false;
-    }
-  }
-
-  @HostListener('touchmove', ['$event'])
-  onTouchMove(e: TouchEvent): void {
-    if (this.isPulling && typeof window !== 'undefined' && window.scrollY <= 0) {
-      const diff = e.touches[0].clientY - this.touchStartY;
-      if (diff > 0) {
-        this.pullDistance = Math.min(85, diff * 0.42);
-        if (this.pullDistance >= 60 && !this.hasVibratedThreshold) {
-          this.haptic.medium();
-          this.hasVibratedThreshold = true;
-        }
-        this.cdr.markForCheck();
-      }
-    }
-  }
-
-  @HostListener('touchend')
-  onTouchEnd(): void {
-    if (this.isPulling) {
-      this.isPulling = false;
-      if (this.pullDistance >= 60) {
-        this.isRefreshing = true;
-        this.pullDistance = 50;
-        this.reload();
-      } else {
-        this.pullDistance = 0;
-      }
-      this.cdr.markForCheck();
-    }
-  }
 
 
   // Loading / error state per card (skeleton + UX states)
@@ -256,8 +213,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.loadingService.markInitialAppLoaded();
         if (this.isRefreshing) {
           this.isRefreshing = false;
-          this.pullDistance = 0;
-          this.haptic.success();
+                    this.haptic.success();
         }
         this.cdr.markForCheck();
       }

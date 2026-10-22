@@ -13,6 +13,7 @@ import { NotificationServiceService } from '../../services/notification.service'
 import { I18nService } from '../../services/i18n.service';
 import { NavigationService } from '../../services/navigation.service';
 import { MotoGPAssetService } from '../../services/motogp-asset.service';
+import { PullToRefreshComponent } from '../pull-to-refresh/pull-to-refresh.component';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 
 type SessionKey = 'Q1' | 'Q2' | 'SPR' | 'RAC';
@@ -90,7 +91,8 @@ interface StatTile {
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
-    TranslatePipe
+    TranslatePipe,
+    PullToRefreshComponent
   ],
   animations: [
     trigger('cardAnimation', [
@@ -114,6 +116,7 @@ interface StatTile {
       </header>
 
       <main class="main-content">
+        <app-pull-to-refresh [isRefreshing]="loading" (refresh)="loadResults()"></app-pull-to-refresh>
         <!-- ═══════════ MotoGP Results Skeleton ═══════════ -->
         <div *ngIf="loading" class="results-container w-full space-y-4" aria-hidden="true">
           <div class="sk-racing-card p-6 rounded-3xl" style="height: 160px;">

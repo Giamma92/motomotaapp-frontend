@@ -4,6 +4,7 @@
   </header>
 
   <main class="main-content">
+    <app-pull-to-refresh [isRefreshing]="loading" (refresh)="reload($event)"></app-pull-to-refresh>
     <!-- ── MotoGP Skeleton Loader for Calendar ── -->
     <ng-container *ngIf="loading">
       <div class="sk-racing-card p-6 rounded-3xl mb-6" style="height: 180px;" aria-hidden="true">

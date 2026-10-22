@@ -126,6 +126,29 @@ export class HapticService {
     this.warning();
   }
 
+  /**
+   * Feedback aptico "tiro di corda" / cricchetto di avviamento a strappo MotoGP.
+   * Scatta progressivamente durante il trascinamento del pull-to-refresh:
+   * ad ogni tacca aumenta frequenza e tensione meccanica.
+   */
+  ropePullTick(tensionStep: number): void {
+    const duration = Math.min(18, 6 + tensionStep * 2);
+    this.vibrate(duration);
+    this.triggerIosTaptic();
+    const freq = 130 + tensionStep * 28;
+    this.playTactileImpulse(freq, 0.009);
+  }
+
+  /**
+   * Scatto a strappo quando la corda viene tesa oltre la soglia e innesca l'avviamento.
+   */
+  ropeSnap(): void {
+    this.vibrate([16, 25, 20]);
+    this.triggerIosTaptic();
+    setTimeout(() => this.triggerIosTaptic(), 35);
+    this.playTactileImpulse(340, 0.02);
+  }
+
   private vibrate(pattern: number | number[]): void {
     try {
       if (typeof window !== 'undefined' && 'navigator' in window && typeof navigator.vibrate === 'function') {

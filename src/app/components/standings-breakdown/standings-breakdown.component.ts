@@ -12,6 +12,7 @@ import { MotoGPStoredResult } from '../../services/race-detail.service';
 import { MotoGPAssetService } from '../../services/motogp-asset.service';
 import { ThemeService } from '../../services/theme.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { PullToRefreshComponent } from '../pull-to-refresh/pull-to-refresh.component';
 
 export interface MotoGPRiderStanding {
   position: number;
@@ -55,7 +56,7 @@ interface PlotScale {
 @Component({
   selector: 'app-standings-breakdown',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatCardModule, MatIconModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatCardModule, MatIconModule, TranslatePipe, PullToRefreshComponent],
   templateUrl: './standings-breakdown.component.html',
   styleUrl: './standings-breakdown.component.scss'
 })
@@ -181,6 +182,25 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
     public theme: ThemeService
   ) {}
 
+  currentChampId = 0;
+
+  reload(done?: () => void): void {
+    if (!this.currentChampId) { done?.(); return; }
+    this.loadingStandings = true;
+    this.loadingMotoGP = true;
+    this.dashboardService.getClassification(this.currentChampId).subscribe({
+      next: (data) => {
+        this.classificationData = data;
+        this.loadingStandings = false;
+        done?.();
+      },
+      error: () => {
+        this.loadingStandings = false;
+        done?.();
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.loggedUserId = this.authService.getUserId() || '';
 
@@ -195,6 +215,7 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
     });
 
     this.championshipService.getChampIdObs().subscribe((champId: number) => {
+      this.currentChampId = champId;
       if (!champId) {
         this.loading = false;
         this.loadingStandings = false;
