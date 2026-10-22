@@ -55,9 +55,6 @@ interface TeamView {
   ],
   template: `
     <div class="page-container">
-      <header class="header">
-        <h1>{{ 'teams.title' | t }}</h1>
-      </header>
 
       <main class="main-content">
         <app-pull-to-refresh [isRefreshing]="loading" (refresh)="reload()"></app-pull-to-refresh>

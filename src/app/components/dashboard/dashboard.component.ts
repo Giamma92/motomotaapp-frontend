@@ -17,7 +17,6 @@ import { RaceDetails, LineupsResult, BetResult, MotoGPStoredResult } from '../..
 import { I18nService } from '../../services/i18n.service';
 import { ThemeService } from '../../services/theme.service';
 import { DateUtils } from '../../utils/date-utils';
-import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 import { AuthService, UserInfo } from '../../services/auth.service';
 import { MotoGPAssetService } from '../../services/motogp-asset.service';
 import { MoreMenuService } from '../../services/more-menu.service';
@@ -30,7 +29,7 @@ import { PullToRefreshComponent } from '../pull-to-refresh/pull-to-refresh.compo
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule, MatExpansionModule, TimeFormatPipe, TranslatePipe, NotificationBellComponent, PullToRefreshComponent],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule, MatExpansionModule, TimeFormatPipe, TranslatePipe, PullToRefreshComponent],
   animations: [
     trigger('cardAnimation', [
       transition(':enter', [

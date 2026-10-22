@@ -1,7 +1,4 @@
 <div class="page-container">
-  <header class="header">
-    <h1>{{ 'calendar.title' | t }}</h1>
-  </header>
 
   <main class="main-content">
     <app-pull-to-refresh [isRefreshing]="loading" (refresh)="reload($event)"></app-pull-to-refresh>

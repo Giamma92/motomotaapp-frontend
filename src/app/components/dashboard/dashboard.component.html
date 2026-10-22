@@ -1,57 +1,5 @@
 <div class="dashboard-container" @cardAnimation>
-  <!-- ══════════════════════════════════════════════════
-       HEADER COCKPIT
-  ══════════════════════════════════════════════════ -->
-  <header class="header dashboard-header">
-    <div class="header-brand">
-      <span class="brand-kicker">MOTO MOTA</span>
-      <h1>{{ 'nav.cockpit' | t }}</h1>
-    </div>
 
-    <div class="header-actions">
-      <!-- Gare -->
-      <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="goTo('calendar')" [attr.aria-label]="'nav.races' | t">
-        <i class="fa-solid fa-flag-checkered"></i>
-        <span>{{ 'nav.races' | t }}</span>
-      </button>
-
-      <!-- Teams -->
-      <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="goTo('teams')" [attr.aria-label]="'nav.teams' | t">
-        <i class="fa-solid fa-people-group"></i>
-        <span>{{ 'nav.teams' | t }}</span>
-      </button>
-
-      <!-- Classifica & Punteggi -->
-      <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="goTo('standings-breakdown')" [attr.aria-label]="'nav.scores' | t">
-        <i class="fa-solid fa-chart-column"></i>
-        <span>{{ 'nav.scores' | t }}</span>
-      </button>
-
-      <!-- Scorciatoia Admin (visibile solo ad Admin) -->
-      <button *ngIf="isAdmin()" type="button" class="header-quick-link app-nav-chip app-nav-chip--admin" (click)="goTo('admin')" [attr.aria-label]="'nav.admin' | t">
-        <i class="fa-solid fa-shield-halved"></i>
-        <span>{{ 'nav.admin' | t }}</span>
-      </button>
-
-      <!-- Menu Altro -->
-      <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="moreMenu.toggle()" [attr.aria-label]="'nav.more' | t">
-        <i class="fa-solid fa-ellipsis"></i>
-        <span>{{ 'nav.more' | t }}</span>
-      </button>
-
-      <app-notification-bell></app-notification-bell>
-
-      <button
-        type="button"
-        mat-icon-button
-        class="header-theme-btn app-nav-icon app-nav-icon--light"
-        (click)="theme.toggle()"
-        [attr.aria-label]="theme.mode() === 'dark' ? ('common.theme.toLight' | t) : ('common.theme.toDark' | t)"
-        [title]="theme.mode() === 'dark' ? ('common.theme.toLight' | t) : ('common.theme.toDark' | t)">
-        <i class="fa-solid" [class.fa-sun]="theme.mode() === 'dark'" [class.fa-moon]="theme.mode() === 'light'"></i>
-      </button>
-    </div>
-  </header>
 
   <!-- ══════════════════════════════════════════════════
        MAIN COCKPIT CONTENT

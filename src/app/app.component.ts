@@ -7,6 +7,7 @@ import { SessionTimerComponent } from './components/session-timer/session-timer.
 import { SplashScreenComponent } from './components/splash-screen/splash-screen.component';
 import { RedlineProgressBarComponent } from './components/redline-progress-bar/redline-progress-bar.component';
 import { NetworkBannerComponent } from './components/network-banner/network-banner.component';
+import { AppTopNavComponent } from './components/app-nav/app-top-nav.component';
 import { UpdateService } from './services/update.service';
 import { I18nService, ALLOWED_LANGUAGES } from './services/i18n.service';
 import { AuthService } from './services/auth.service';
@@ -22,6 +23,7 @@ import { switchMap } from 'rxjs/operators';
     InstallPromptComponent,
     UpdateNotificationComponent,
     AppBottomNavComponent,
+    AppTopNavComponent,
     SessionTimerComponent,
     SplashScreenComponent,
     RedlineProgressBarComponent,
@@ -30,6 +32,7 @@ import { switchMap } from 'rxjs/operators';
   template: `
     <app-redline-progress-bar></app-redline-progress-bar>
     <app-network-banner></app-network-banner>
+    <app-top-nav></app-top-nav>
     <app-splash-screen></app-splash-screen>
     <app-update-notification></app-update-notification>
     <app-session-timer></app-session-timer>

@@ -86,23 +86,23 @@ router-outlet + * {
    .header button[mat-icon-button] rule in _material-overrides.scss (0,3,1 > 0,2,1). */
 .header button.app-back-arrow[mat-icon-button] {
   flex: 0 0 auto;
-  width: 42px;
-  height: 42px;
-  min-width: 42px;
-  min-height: 42px;
-  border-radius: 14px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 12px;
 }
 
 @media (max-width: 820px) {
   .header button.app-back-arrow[mat-icon-button] {
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    min-height: 44px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
   }
 
   .header .app-back-arrow + h1 {
-    padding-right: 44px;
+    padding-right: 36px;
   }
 }
 
