@@ -132,9 +132,11 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
   metric: MetricId = 'total';
   cumulative = true;
   rounds: TrendRound[] = [];
+  containerW = 360;
   chartW = 360;
   chartH = 300;
   hoverIdx: number | null = null;
+  seriesFilterMode: 'focus' | 'all' = 'all';
 
   readonly PAD = { l: 46, r: 16, t: 16, b: 28 };
 
@@ -144,11 +146,23 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
   private resizeObserver?: ResizeObserver;
   private destroyed = false;
 
+  private _chartScrollWrap?: ElementRef<HTMLDivElement>;
+  @ViewChild('chartScrollWrap')
+  set chartScrollWrap(el: ElementRef<HTMLDivElement> | undefined) {
+    this._chartScrollWrap = el;
+    if (el) {
+      this.initChartObserver(el.nativeElement);
+    }
+  }
+  get chartScrollWrap(): ElementRef<HTMLDivElement> | undefined {
+    return this._chartScrollWrap;
+  }
+
   private _chartBox?: ElementRef<HTMLDivElement>;
   @ViewChild('chartBox')
   set chartBox(el: ElementRef<HTMLDivElement> | undefined) {
     this._chartBox = el;
-    if (el) {
+    if (el && !this._chartScrollWrap) {
       this.initChartObserver(el.nativeElement);
     }
   }
@@ -231,7 +245,9 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
           this.participantOptions = this.buildParticipantOptions(this.rows);
           this.selectedRaceId = this.rounds.length ? String(this.rounds[this.rounds.length - 1].id) : '';
           this.invalidate();
+          this.applyDefaultSeriesFilter();
           this.loading = false;
+          this.scrollToLatest();
         },
         error: (error) => {
           console.error('Error fetching standings breakdown:', error);
@@ -260,12 +276,17 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
     this.resizeObserver?.disconnect();
 
     const updateDimensions = (width: number) => {
-      const w = Math.max(280, Math.round(width));
-      const h = w >= 700 ? 340 : w >= 480 ? 300 : 250;
+      const containerWidth = Math.max(280, Math.round(width));
+      this.containerW = containerWidth;
+      const count = this.rounds.length;
+      // Guarantee at least 42px per round when multiple rounds exist to ensure readability
+      const minPerRound = 42;
+      const neededW = count > 1 ? count * minPerRound + this.PAD.l + this.PAD.r : containerWidth;
+      const w = Math.max(containerWidth, neededW);
+      const h = containerWidth >= 700 ? 340 : containerWidth >= 480 ? 300 : 260;
       if (w !== this.chartW || h !== this.chartH) {
         this.chartW = w;
         this.chartH = h;
-        this.hoverIdx = null;
       }
     };
 
@@ -594,6 +615,50 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
     return count <= 1 ? this.plotW : this.plotW / (count - 1);
   }
 
+  /* ── Chart: mobile scroll & filter helpers ── */
+
+  scrollToLatest(): void {
+    if (typeof window === 'undefined') return;
+    setTimeout(() => {
+      const el = this._chartScrollWrap?.nativeElement;
+      if (el) {
+        el.scrollLeft = el.scrollWidth;
+      }
+    }, 120);
+  }
+
+  selectRound(index: number): void {
+    this.hoverIdx = this.hoverIdx === index ? null : index;
+  }
+
+  setSeriesFilterMode(mode: 'focus' | 'all'): void {
+    this.seriesFilterMode = mode;
+    this.hiddenSeries.clear();
+
+    if (mode === 'focus') {
+      const all = this.series;
+      if (all.length > 2) {
+        const leader = all[0];
+        for (const s of all) {
+          const isLeader = s.id === leader?.id;
+          if (!s.isMe && !isLeader) {
+            this.hiddenSeries.add(s.id);
+          }
+        }
+      }
+    }
+    this.hoverIdx = null;
+    this.invalidate();
+  }
+
+  applyDefaultSeriesFilter(): void {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      this.setSeriesFilterMode('focus');
+    } else {
+      this.setSeriesFilterMode('all');
+    }
+  }
+
   /* ── Chart: tooltip ── */
 
   get tipLeft(): number {
@@ -772,8 +837,10 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
     });
     if (tab === 'breakdown') {
       setTimeout(() => {
-        if (this._chartBox) {
-          this.initChartObserver(this._chartBox.nativeElement);
+        const target = this._chartScrollWrap?.nativeElement || this._chartBox?.nativeElement;
+        if (target) {
+          this.initChartObserver(target);
+          this.scrollToLatest();
         }
       }, 50);
     }

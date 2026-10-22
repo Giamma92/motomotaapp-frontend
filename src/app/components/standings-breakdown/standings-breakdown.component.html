@@ -800,6 +800,18 @@
         </div>
       </div>
 
+      <!-- Quick series view filter: Io vs Leader / Tutti -->
+      <div class="series-mode-container" *ngIf="series.length > 2 && !selectedParticipantId">
+        <div class="series-mode-toggle" role="group" aria-label="Filtro visualizzazione partecipanti">
+          <button type="button" class="mode-btn" [class.active]="seriesFilterMode === 'focus'" (click)="setSeriesFilterMode('focus')">
+            <i class="fa-solid fa-user-check text-xs"></i> Io vs Leader
+          </button>
+          <button type="button" class="mode-btn" [class.active]="seriesFilterMode === 'all'" (click)="setSeriesFilterMode('all')">
+            Tutti ({{ series.length }})
+          </button>
+        </div>
+      </div>
+
       <div class="metric-tabs" role="tablist" aria-label="Categoria di punteggio">
         <button
           *ngFor="let m of metrics"
@@ -826,117 +838,147 @@
         </button>
       </div>
 
-      <div class="chart-box" #chartBox>
-        <div class="skeleton-content" *ngIf="loading">
-          <span class="sk sk-title"></span>
-          <span class="sk sk-pills"></span>
-          <span class="sk sk-chart"></span>
-        </div>
+      <!-- Swipe/Scroll Hint on Mobile -->
+      <div class="chart-scroll-hint" *ngIf="chartW > containerW">
+        <i class="fa-solid fa-arrows-left-right text-xs"></i>
+        <span>Scorri in orizzontale per vedere tutti i GP</span>
+      </div>
 
-        <ng-container *ngIf="!loading && chartW > 0 && rounds.length && activeSeries.length">
-          <svg
-            class="trend-svg"
-            [attr.viewBox]="'0 0 ' + chartW + ' ' + chartH"
-            role="img"
-            (mouseleave)="hoverIdx = null">
-            <title>Andamento dei punteggi gara per gara</title>
-
-            <!-- plot background -->
-            <rect class="plot-bg" [attr.x]="PAD.l" [attr.y]="PAD.t" [attr.width]="plotW" [attr.height]="plotH" rx="10" />
-
-            <!-- selected race focus band -->
-            <rect
-              *ngIf="focusIdx >= 0"
-              class="focus-band"
-              [attr.x]="focusX"
-              [attr.y]="PAD.t"
-              [attr.width]="focusW"
-              [attr.height]="plotH"
-              rx="8" />
-
-            <!-- y grid + labels -->
-            <line
-              *ngFor="let t of plot.ticks"
-              class="grid-line"
-              [attr.x1]="PAD.l"
-              [attr.x2]="PAD.l + plotW"
-              [attr.y1]="yFor(t)"
-              [attr.y2]="yFor(t)" />
-            <text
-              *ngFor="let t of plot.ticks"
-              class="axis-label"
-              [attr.x]="PAD.l - 8"
-              [attr.y]="yFor(t) + 3.5"
-              text-anchor="end">{{ fmtAxis(t) }}</text>
-
-            <!-- zero line -->
-            <line
-              *ngIf="plot.min < 0 && plot.max > 0"
-              class="zero-line"
-              [attr.x1]="PAD.l"
-              [attr.x2]="PAD.l + plotW"
-              [attr.y1]="yFor(0)"
-              [attr.y2]="yFor(0)" />
-
-            <!-- hover guide -->
-            <line
-              *ngIf="hoverIdx !== null"
-              class="guide-line"
-              [attr.x1]="xAt(hoverIdx)"
-              [attr.x2]="xAt(hoverIdx)"
-              [attr.y1]="PAD.t"
-              [attr.y2]="PAD.t + plotH" />
-
-            <!-- series -->
-            <g class="series" *ngFor="let s of activeSeries">
-              <polyline
-                class="trend-line"
-                [style.stroke]="s.color"
-                [attr.stroke-width]="s.isMe ? 3.2 : 2"
-                [attr.points]="linePoints(s)" />
-              <circle
-                *ngFor="let p of s.points; let i = index"
-                class="trend-dot"
-                [attr.cx]="xAt(i)"
-                [attr.cy]="yFor(p)"
-                [attr.r]="s.isMe ? 4 : 3"
-                [style.fill]="s.color" />
-            </g>
-
-            <!-- x labels -->
-            <ng-container *ngFor="let r of rounds; let i = index">
-              <text
-                *ngIf="showXLabel(i)"
-                class="axis-label"
-                [attr.x]="xAt(i)"
-                [attr.y]="chartH - 9"
-                text-anchor="middle">{{ r.short }}</text>
-            </ng-container>
-
-            <!-- hover targets (top layer) -->
-            <rect
-              *ngFor="let r of rounds; let i = index"
-              class="hover-col"
-              [attr.x]="hoverX(i)"
-              [attr.y]="PAD.t"
-              [attr.width]="hoverW(i)"
-              [attr.height]="plotH"
-              (mouseenter)="hoverIdx = i" />
-          </svg>
-
-          <div class="chart-tip" *ngIf="hoverIdx !== null" [style.left.px]="tipLeft" [style.transform]="tipTransform()">
-            <span class="tip-round">{{ tipRoundLabel() }}</span>
-            <div class="tip-row" *ngFor="let t of tipRows()">
-              <span class="tip-dot" [style.background]="t.color"></span>
-              <span class="tip-name">{{ t.shortName }}</span>
-              <span class="tip-val" [class.is-neg]="t.v < 0">{{ t.v | number: '1.0-0' }}</span>
-            </div>
+      <div class="chart-scroll-wrap" #chartScrollWrap [class.is-scrollable]="chartW > containerW">
+        <div class="chart-box" #chartBox [style.width.px]="chartW">
+          <div class="skeleton-content" *ngIf="loading">
+            <span class="sk sk-title"></span>
+            <span class="sk sk-pills"></span>
+            <span class="sk sk-chart"></span>
           </div>
-        </ng-container>
 
-        <div class="state-box" *ngIf="!loading && !rounds.length">Nessun dato disponibile per il grafico.</div>
-        <div class="state-box" *ngIf="!loading && rounds.length && !activeSeries.length">
-          Seleziona almeno un partecipante dalle etichette sopra.
+          <ng-container *ngIf="!loading && chartW > 0 && rounds.length && activeSeries.length">
+            <svg
+              class="trend-svg"
+              [attr.viewBox]="'0 0 ' + chartW + ' ' + chartH"
+              role="img"
+              (mouseleave)="hoverIdx = null">
+              <title>Andamento dei punteggi gara per gara</title>
+
+              <!-- plot background -->
+              <rect class="plot-bg" [attr.x]="PAD.l" [attr.y]="PAD.t" [attr.width]="plotW" [attr.height]="plotH" rx="10" />
+
+              <!-- selected race focus band -->
+              <rect
+                *ngIf="focusIdx >= 0"
+                class="focus-band"
+                [attr.x]="focusX"
+                [attr.y]="PAD.t"
+                [attr.width]="focusW"
+                [attr.height]="plotH"
+                rx="8" />
+
+              <!-- y grid + labels -->
+              <line
+                *ngFor="let t of plot.ticks"
+                class="grid-line"
+                [attr.x1]="PAD.l"
+                [attr.x2]="PAD.l + plotW"
+                [attr.y1]="yFor(t)"
+                [attr.y2]="yFor(t)" />
+              <text
+                *ngFor="let t of plot.ticks"
+                class="axis-label"
+                [attr.x]="PAD.l - 8"
+                [attr.y]="yFor(t) + 3.5"
+                text-anchor="end">{{ fmtAxis(t) }}</text>
+
+              <!-- zero line -->
+              <line
+                *ngIf="plot.min < 0 && plot.max > 0"
+                class="zero-line"
+                [attr.x1]="PAD.l"
+                [attr.x2]="PAD.l + plotW"
+                [attr.y1]="yFor(0)"
+                [attr.y2]="yFor(0)" />
+
+              <!-- hover guide -->
+              <line
+                *ngIf="hoverIdx !== null"
+                class="guide-line"
+                [attr.x1]="xAt(hoverIdx)"
+                [attr.x2]="xAt(hoverIdx)"
+                [attr.y1]="PAD.t"
+                [attr.y2]="PAD.t + plotH" />
+
+              <!-- series -->
+              <g class="series" *ngFor="let s of activeSeries">
+                <polyline
+                  class="trend-line"
+                  [style.stroke]="s.color"
+                  [attr.stroke-width]="s.isMe ? 3.2 : 2"
+                  [attr.points]="linePoints(s)" />
+                <circle
+                  *ngFor="let p of s.points; let i = index"
+                  class="trend-dot"
+                  [attr.cx]="xAt(i)"
+                  [attr.cy]="yFor(p)"
+                  [attr.r]="s.isMe ? 4 : 3"
+                  [style.fill]="s.color" />
+              </g>
+
+              <!-- x labels -->
+              <ng-container *ngFor="let r of rounds; let i = index">
+                <text
+                  *ngIf="showXLabel(i)"
+                  class="axis-label"
+                  [attr.x]="xAt(i)"
+                  [attr.y]="chartH - 9"
+                  text-anchor="middle">{{ r.short }}</text>
+              </ng-container>
+
+              <!-- hover & touch targets (top layer) -->
+              <rect
+                *ngFor="let r of rounds; let i = index"
+                class="hover-col"
+                [attr.x]="hoverX(i)"
+                [attr.y]="PAD.t"
+                [attr.width]="hoverW(i)"
+                [attr.height]="plotH"
+                (mouseenter)="hoverIdx = i"
+                (click)="selectRound(i)" />
+            </svg>
+
+            <!-- Tooltip (visible on desktop) -->
+            <div class="chart-tip" *ngIf="hoverIdx !== null" [style.left.px]="tipLeft" [style.transform]="tipTransform()">
+              <span class="tip-round">{{ tipRoundLabel() }}</span>
+              <div class="tip-row" *ngFor="let t of tipRows()">
+                <span class="tip-dot" [style.background]="t.color"></span>
+                <span class="tip-name">{{ t.shortName }}</span>
+                <span class="tip-val" [class.is-neg]="t.v < 0">{{ t.v | number: '1.0-0' }}</span>
+              </div>
+            </div>
+          </ng-container>
+
+          <div class="state-box" *ngIf="!loading && !rounds.length">Nessun dato disponibile per il grafico.</div>
+          <div class="state-box" *ngIf="!loading && rounds.length && !activeSeries.length">
+            Seleziona almeno un partecipante dalle etichette sopra.
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected GP details strip: mobile-friendly tap summary -->
+      <div class="selected-round-summary" *ngIf="hoverIdx !== null && rounds[hoverIdx]">
+        <div class="round-summary-head">
+          <div class="flex items-center gap-2">
+            <span class="round-badge">R{{ rounds[hoverIdx].order }}</span>
+            <strong class="text-sm">{{ rounds[hoverIdx].label }}</strong>
+          </div>
+          <button type="button" class="round-summary-close" (click)="hoverIdx = null" aria-label="Chiudi dettaglio GP">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="round-summary-pills">
+          <div class="round-summary-pill" *ngFor="let t of tipRows()">
+            <span class="pill-dot" [style.background]="t.color"></span>
+            <span class="pill-name">{{ t.shortName }}:</span>
+            <strong class="pill-val" [class.is-neg]="t.v < 0">{{ t.v | number: '1.0-0' }}</strong>
+          </div>
         </div>
       </div>
     </mat-card>
@@ -1049,16 +1091,16 @@
         <article class="mobile-row" *ngFor="let row of filteredRows" [class.current-user]="row.user_id.id === loggedUserId">
           <header class="mobile-row-head">
             <div class="mobile-race">
-              <span class="round-badge">R{{ row.calendar_id.race_order }}</span>
-              <div>
+              <span class="round-badge shrink-0">R{{ row.calendar_id.race_order }}</span>
+              <div class="min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap">
-                  <strong>{{ row.calendar_id.race_id.name }}</strong>
-                  <span *ngIf="getRaceStatusBadge(row) as badge" class="stage-badge stage-badge--sm" [ngClass]="badge.class">
+                  <strong class="truncate">{{ row.calendar_id.race_id.name }}</strong>
+                  <span *ngIf="getRaceStatusBadge(row) as badge" class="stage-badge stage-badge--sm shrink-0" [ngClass]="badge.class">
                     <mat-icon>{{ badge.icon }}</mat-icon>
                     <span>{{ badge.text }}</span>
                   </span>
                 </div>
-                <span>{{ fullName(row) }}</span>
+                <span class="truncate block">{{ fullName(row) }}</span>
               </div>
             </div>
             <div class="mobile-head-right">
