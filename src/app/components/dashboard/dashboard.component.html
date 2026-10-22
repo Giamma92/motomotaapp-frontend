@@ -409,18 +409,6 @@
           ? 'bg-white/95 border-black/[0.08] shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
           : 'bg-zinc-900/90 border-white/10 shadow-[0_12px_36px_rgba(0,0,0,0.5)]'">
 
-        <!-- Ambient Circuit Track Watermark -->
-        <div
-          *ngIf="assetService.getCircuitLayoutUrl(lastCompletedRaceEntry.calendar_id.race_id.country || '', lastCompletedRaceEntry.calendar_id.race_id.name) as trackUrl"
-          class="absolute -top-2 -right-2 w-36 h-24 sm:w-48 sm:h-32 pointer-events-none opacity-65 dark:opacity-70 flex items-center justify-end z-0 transition-opacity">
-          <img
-            [src]="trackUrl"
-            [alt]="lastCompletedRaceEntry.calendar_id.race_id.name"
-            class="w-full h-full object-contain"
-            [class.filter-invert]="theme.mode() === 'light'"
-            (error)="assetService.handleImageError($event, '/assets/images/circuit-placeholder.svg')">
-        </div>
-
         <!-- Header Row -->
         <div class="flex items-start justify-between gap-3 relative z-10">
           <div class="min-w-0">
@@ -448,22 +436,41 @@
             </div>
           </div>
 
-          <!-- Total GP Score & Round Rank -->
-          <div class="flex flex-col items-end flex-shrink-0">
-            <span class="text-[9px] font-extrabold uppercase tracking-wider text-zinc-400">Punti GP</span>
-            <span class="text-xl sm:text-2xl font-black leading-none mt-0.5"
-                  [ngClass]="lastCompletedRaceEntry.score > 0 ? 'text-emerald-400' : (lastCompletedRaceEntry.score < 0 ? 'text-rose-400' : 'text-zinc-300')">
-              {{ lastCompletedRaceEntry.score > 0 ? '+' : '' }}{{ lastCompletedRaceEntry.score }} <span class="text-xs font-bold text-zinc-400">PTS</span>
-            </span>
-            <span *ngIf="lastCompletedRaceRank"
-                  class="text-[10px] font-extrabold py-0.5 px-2 rounded-full mt-1 border"
-                  [ngClass]="lastCompletedRaceRank === 1
-                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                    : lastCompletedRaceRank <= 3
-                      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'
-                      : (theme.mode() === 'light' ? 'bg-zinc-100 text-zinc-600 border-zinc-200' : 'bg-white/5 text-zinc-400 border-white/5')">
-              {{ lastCompletedRaceRank }}° di tappa
-            </span>
+          <!-- Right: Dedicated Circuit Track Badge + GP Score (Side-by-side, no overlap) -->
+          <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <!-- Dedicated Circuit Track Thumbnail Badge -->
+            <div
+              *ngIf="assetService.getCircuitLayoutUrl(lastCompletedRaceEntry.calendar_id.race_id.country || '', lastCompletedRaceEntry.calendar_id.race_id.name) as trackUrl"
+              class="w-12 h-11 sm:w-16 sm:h-14 p-1 rounded-xl flex items-center justify-center flex-shrink-0 border transition-all"
+              [ngClass]="theme.mode() === 'light'
+                ? 'bg-zinc-100/90 border-black/[0.08]'
+                : 'bg-white/5 border-white/10'"
+              [title]="lastCompletedRaceEntry.calendar_id.race_id.name">
+              <img
+                [src]="trackUrl"
+                [alt]="lastCompletedRaceEntry.calendar_id.race_id.name"
+                class="w-full h-full object-contain"
+                [class.filter-invert]="theme.mode() === 'light'"
+                (error)="assetService.handleImageError($event, '/assets/images/circuit-placeholder.svg')">
+            </div>
+
+            <!-- Total GP Score & Round Rank -->
+            <div class="flex flex-col items-end flex-shrink-0">
+              <span class="text-[9px] font-extrabold uppercase tracking-wider text-zinc-400">Punti GP</span>
+              <span class="text-xl sm:text-2xl font-black leading-none mt-0.5"
+                    [ngClass]="lastCompletedRaceEntry.score > 0 ? 'text-emerald-400' : (lastCompletedRaceEntry.score < 0 ? 'text-rose-400' : 'text-zinc-300')">
+                {{ lastCompletedRaceEntry.score > 0 ? '+' : '' }}{{ lastCompletedRaceEntry.score }} <span class="text-xs font-bold text-zinc-400">PTS</span>
+              </span>
+              <span *ngIf="lastCompletedRaceRank"
+                    class="text-[10px] font-extrabold py-0.5 px-2 rounded-full mt-1 border whitespace-nowrap"
+                    [ngClass]="lastCompletedRaceRank === 1
+                      ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                      : lastCompletedRaceRank <= 3
+                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'
+                        : (theme.mode() === 'light' ? 'bg-zinc-100 text-zinc-600 border-zinc-200' : 'bg-white/5 text-zinc-400 border-white/5')">
+                {{ lastCompletedRaceRank }}° di tappa
+              </span>
+            </div>
           </div>
         </div>
 
