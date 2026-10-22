@@ -68,13 +68,25 @@
   --radius-xl: 20px;
   --radius-pill: 999px;
 
+  /* ─── Liquid Glass Tokens (Dark Mode) ─── */
+  --glass-surface: rgba(20, 23, 30, 0.78);
+  --glass-surface-elevated: rgba(26, 30, 40, 0.84);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-light: rgba(255, 255, 255, 0.22);
+  --glass-highlight: inset 0 1px 1px 0 rgba(255, 255, 255, 0.18), inset 0 -1px 0 0 rgba(0, 0, 0, 0.45);
+  --glass-specular: radial-gradient(120% 100% at 50% 0%, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.02) 60%, transparent 100%);
+  --glass-card-bg: linear-gradient(160deg, rgba(32, 36, 46, 0.94) 0%, rgba(22, 25, 33, 0.98) 100%);
+  --glass-blur: 16px;
+  --glass-shadow: 0 14px 38px -4px rgba(0, 0, 0, 0.65), 0 4px 12px rgba(0, 0, 0, 0.35);
+  --glass-glow-accent: 0 0 24px -4px rgba(200, 16, 46, 0.25);
+
   /* ─── Theme-dependent surfaces (overridden in light mode) ─── */
-  --header-bg: rgba(14, 16, 21, 0.92);
+  --header-bg: rgba(14, 16, 21, 0.82);
   --page-gradient: linear-gradient(160deg, #0b0c10 0%, #111318 46%, #1a1c22 100%);
   --page-shade: radial-gradient(circle at 100% -10%, rgba(0, 0, 0, 0.20), transparent 34%);
   --podium-gradient: linear-gradient(160deg, #1a1c22 0%, #16181d 58%, #111318 100%);
   --table-header-bg: #111318;
-  --bottomnav-bg: rgba(30, 33, 40, 0.96);
+  --bottomnav-bg: rgba(20, 23, 30, 0.85);
   --scrollbar-thumb: rgba(255, 255, 255, 0.15);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
 }
@@ -116,13 +128,25 @@
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.14);
   --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
 
+  /* ─── Liquid Glass Tokens (Light Theme) ─── */
+  --glass-surface: rgba(255, 255, 255, 0.84);
+  --glass-surface-elevated: rgba(255, 255, 255, 0.92);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-border-light: rgba(255, 255, 255, 0.95);
+  --glass-highlight: inset 0 1px 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 0 rgba(0, 0, 0, 0.04);
+  --glass-specular: radial-gradient(120% 100% at 50% 0%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 60%, transparent 100%);
+  --glass-card-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 248, 251, 0.98) 100%);
+  --glass-blur: 16px;
+  --glass-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --glass-glow-accent: 0 0 20px -4px rgba(200, 16, 46, 0.12);
+
   /* ─── Theme-dependent surfaces ─── */
-  --header-bg: rgba(255, 255, 255, 0.94);
+  --header-bg: rgba(255, 255, 255, 0.84);
   --page-gradient: linear-gradient(160deg, #eceef2 0%, #f4f5f7 46%, #fafbfc 100%);
   --page-shade: radial-gradient(circle at 100% -10%, rgba(0, 0, 0, 0.05), transparent 34%);
   --podium-gradient: linear-gradient(160deg, #ffffff 0%, #f4f5f7 58%, #eceef2 100%);
   --table-header-bg: #eceef2;
-  --bottomnav-bg: rgba(255, 255, 255, 0.96);
+  --bottomnav-bg: rgba(255, 255, 255, 0.88);
   --scrollbar-thumb: rgba(0, 0, 0, 0.18);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.32);
 }

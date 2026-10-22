@@ -11,6 +11,7 @@ import * as CryptoJS from 'crypto-js';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { I18nService } from '../../services/i18n.service';
+import { UserSettingsService } from '../../services/user-settings.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
@@ -39,7 +40,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 
           <div class="live-season-badge">
             <span class="live-pulse-dot"></span>
-            <span>Stagione 2026 Ufficiale</span>
+            <span>{{ 'login.seasonBadge' | t }}</span>
           </div>
 
           <div class="hero-brand">
@@ -86,13 +87,13 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 
           <p class="hero-subtitle">
             <mat-icon aria-hidden="true">sports_motorsports</mat-icon>
-            <span>Fantasy MotoGP, semplice e veloce.</span>
+            <span>{{ 'login.tagline' | t }}</span>
           </p>
 
           <ul class="hero-chips">
-            <li><mat-icon aria-hidden="true">leaderboard</mat-icon>Classifiche</li>
-            <li><mat-icon aria-hidden="true">groups</mat-icon>Schieramenti</li>
-            <li><mat-icon aria-hidden="true">flag</mat-icon>Risultati</li>
+            <li><mat-icon aria-hidden="true">leaderboard</mat-icon>{{ 'login.chips.standings' | t }}</li>
+            <li><mat-icon aria-hidden="true">groups</mat-icon>{{ 'login.chips.lineups' | t }}</li>
+            <li><mat-icon aria-hidden="true">flag</mat-icon>{{ 'login.chips.results' | t }}</li>
           </ul>
 
           <div class="hero-divider" aria-hidden="true">
@@ -104,19 +105,19 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
         <div class="login-panel">
           <header class="login-header">
             <div class="login-title-group">
-              <span class="login-kicker">Area piloti</span>
+              <span class="login-kicker">{{ 'login.kicker' | t }}</span>
               <h2 class="app-title">{{ 'login.signIn' | t }}</h2>
             </div>
 
             <div class="login-header-actions">
               <!-- Compact language picker pill -->
-              <div class="login-lang-pill" title="Seleziona lingua">
+              <div class="login-lang-pill" [title]="'login.selectLanguage' | t">
                 <i class="fa-solid fa-globe lang-icon" aria-hidden="true"></i>
                 <select
                   [value]="currentLang"
                   (change)="onLanguageChange($any($event.target).value)"
                   class="login-lang-select"
-                  aria-label="Lingua">
+                  [attr.aria-label]="'login.language' | t">
                   <option *ngFor="let l of languages" [value]="l.code">{{ l.code.toUpperCase() }}</option>
                 </select>
               </div>
@@ -125,8 +126,8 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               <button type="button"
                       class="login-theme-btn"
                       (click)="theme.toggle()"
-                      [title]="theme.mode() === 'dark' ? 'Passa al tema chiaro' : 'Passa al tema scuro'"
-                      aria-label="Cambia tema">
+                      [title]="theme.mode() === 'dark' ? ('common.theme.toLight' | t) : ('common.theme.toDark' | t)"
+                      [attr.aria-label]="theme.mode() === 'dark' ? ('common.theme.toLight' | t) : ('common.theme.toDark' | t)">
                 <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
               </button>
             </div>
@@ -156,8 +157,8 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                 type="button"
                 (click)="toggleShowPassword()"
                 class="password-eye-btn"
-                [attr.aria-label]="showPassword ? 'Nascondi password' : 'Mostra password'"
-                [title]="showPassword ? 'Nascondi password' : 'Mostra password'">
+                [attr.aria-label]="showPassword ? ('login.hidePassword' | t) : ('login.showPassword' | t)"
+                [title]="showPassword ? ('login.hidePassword' | t) : ('login.showPassword' | t)">
                 <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
             </mat-form-field>
@@ -166,7 +167,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
             <div class="login-options-row">
               <label class="remember-me-toggle">
                 <input type="checkbox" [(ngModel)]="rememberMe" [ngModelOptions]="{standalone: true}">
-                <span class="remember-label">Ricorda username</span>
+                <span class="remember-label">{{ 'login.rememberUsername' | t }}</span>
               </label>
             </div>
 
@@ -206,8 +207,15 @@ export class LoginComponent {
     { code: 'fr', label: 'Français' }
   ];
   currentLang: string = 'en';
+  langManuallyChanged: boolean = false;
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router, private i18n: I18nService) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private i18n: I18nService,
+    private userSettingsService: UserSettingsService
+  ) {
     const savedUser = localStorage.getItem('motomota_remembered_user') || '';
     this.loginForm = this.fb.group({
       username: [savedUser, Validators.required],
@@ -238,6 +246,22 @@ export class LoginComponent {
       this.authService.login(username, hashedPassword).subscribe({
         next: (res) => {
           this.authService.setToken(res.token);
+
+          // If language was explicitly selected on the login page, save it to user_settings
+          if (this.langManuallyChanged) {
+            this.userSettingsService.updateUserLanguage(undefined, this.currentLang).subscribe({ error: () => {} });
+          } else {
+            // Otherwise, fetch user preference from user_settings and apply it if present
+            this.userSettingsService.getUserSettings().subscribe({
+              next: (settings) => {
+                if (settings?.language && settings.language !== this.i18n.currentLanguage) {
+                  this.i18n.setLanguage(settings.language).subscribe();
+                }
+              },
+              error: () => {}
+            });
+          }
+
           this.authService.getUserInfo().subscribe({
             next: (user) => {
               this.loading = false;
@@ -264,6 +288,7 @@ export class LoginComponent {
 
   onLanguageChange(code: string) {
     this.currentLang = code;
+    this.langManuallyChanged = true;
     this.i18n.setLanguage(code).subscribe();
   }
 }

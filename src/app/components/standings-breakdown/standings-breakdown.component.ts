@@ -687,11 +687,13 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
       if (!id || seen.has(id)) continue;
       const order = Number(row.calendar_id?.race_order || 0);
       const name = row.calendar_id?.race_id?.name || 'Gara';
+      const status = row.calendar_id?.status || row.status;
+      const suffix = status === 'partial_qualifying' ? ' (⏱️ Qualifiche)' : status === 'partial_sprint' ? ' (⚡ Sprint)' : '';
       seen.set(id, {
         id,
         order,
         short: `R${order || '?'}`,
-        label: `R${order || '?'} · ${name}`
+        label: `R${order || '?'} · ${name}${suffix}`
       });
     }
 

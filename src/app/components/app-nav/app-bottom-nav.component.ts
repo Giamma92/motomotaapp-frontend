@@ -39,7 +39,7 @@ import { MoreSheetComponent } from './more-sheet.component';
               [class.text-red-600]="rla.isActive && theme.mode() === 'light'"
               [class.text-zinc-400]="!rla.isActive && theme.mode() === 'dark'"
               [class.text-zinc-500]="!rla.isActive && theme.mode() === 'light'"
-              [attr.aria-label]="item.label">
+              [attr.aria-label]="item.labelKey | t">
 
               <!-- Icona con micro-animazione e glow sportivo -->
               <div
@@ -61,7 +61,7 @@ import { MoreSheetComponent } from './more-sheet.component';
                 [class.text-red-600]="rla.isActive && theme.mode() === 'light'"
                 [class.text-zinc-400]="!rla.isActive && theme.mode() === 'dark'"
                 [class.text-zinc-500]="!rla.isActive && theme.mode() === 'light'">
-                {{ item.label }}
+                {{ item.labelKey | t }}
               </span>
             </a>
           }
@@ -77,7 +77,7 @@ import { MoreSheetComponent } from './more-sheet.component';
             [class.text-red-600]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
             [class.text-zinc-400]="!(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
             [class.text-zinc-500]="!(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
-            aria-label="Altre sezioni">
+            [attr.aria-label]="'nav.more' | t">
 
             <div
               class="relative h-6 flex items-center justify-center text-[16px] transition-transform duration-200 group-hover:scale-110"
@@ -97,7 +97,7 @@ import { MoreSheetComponent } from './more-sheet.component';
               [class.text-red-600]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
               [class.text-zinc-400]="!(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
               [class.text-zinc-500]="!(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'">
-              Altro
+              {{ 'nav.more' | t }}
             </span>
           </button>
         </div>
@@ -118,10 +118,10 @@ export class AppBottomNavComponent {
   currentUrl = '/';
 
   mainNavItems = [
-    { path: '/', label: 'Home', icon: 'fa-solid fa-house' },
-    { path: '/calendar', label: 'Gare', icon: 'fa-solid fa-flag-checkered' },
-    { path: '/teams', label: 'Teams', icon: 'fa-solid fa-people-group' },
-    { path: '/standings-breakdown', label: 'Punteggi', icon: 'fa-solid fa-chart-column' },
+    { path: '/', labelKey: 'nav.home', icon: 'fa-solid fa-house' },
+    { path: '/calendar', labelKey: 'nav.races', icon: 'fa-solid fa-flag-checkered' },
+    { path: '/teams', labelKey: 'nav.teams', icon: 'fa-solid fa-people-group' },
+    { path: '/standings-breakdown', labelKey: 'nav.scores', icon: 'fa-solid fa-chart-column' },
   ];
 
   constructor() {

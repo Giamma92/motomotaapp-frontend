@@ -7,11 +7,12 @@ import { HapticService } from '../../services/haptic.service';
 import { DashboardService, CalendarRace } from '../../services/dashboard.service';
 import { ChampionshipService, ChampionshipConfig } from '../../services/championship.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-more-sheet',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, TranslatePipe],
   template: `
     @if (isOpen) {
       <!-- Backdrop sfocato -->
@@ -36,7 +37,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
           : 'bg-[#141720]/95 backdrop-blur-2xl text-white border-white/10'"
         role="dialog"
         aria-modal="true"
-        aria-label="Menu Altro">
+        [attr.aria-label]="'more.title' | t">
 
         <!-- Maniglia per trascinamento / swipe (visibile solo su mobile) -->
         <div
@@ -88,7 +89,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
             [ngClass]="theme.mode() === 'light'
               ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-200 shadow-sm'
               : 'bg-white/10 hover:bg-white/15 text-zinc-300 hover:text-white border-white/10 shadow-sm'"
-            aria-label="Chiudi menu">
+            [attr.aria-label]="'more.close' | t">
             <i class="fa-solid fa-xmark text-base"></i>
           </button>
         </div>
@@ -105,11 +106,11 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
             </div>
             <div class="min-w-0">
               <div class="font-bold text-[11px] leading-tight flex items-center gap-1.5">
-                <span>Sessione attiva</span>
-                <span *ngIf="sessionRenewSuccess" class="text-emerald-500 text-[10px] font-black">✓ Rinnovata!</span>
+                <span>{{ 'more.session.active' | t }}</span>
+                <span *ngIf="sessionRenewSuccess" class="text-emerald-500 text-[10px] font-black">{{ 'more.session.renewed' | t }}</span>
               </div>
               <div class="text-[10px] text-zinc-400">
-                Scade tra: <strong class="font-mono text-amber-400 font-bold">{{ sessionRemainingText }}</strong>
+                {{ 'more.session.expiresIn' | t }} <strong class="font-mono text-amber-400 font-bold">{{ sessionRemainingText }}</strong>
               </div>
             </div>
           </div>
@@ -121,7 +122,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
             [ngClass]="theme.mode() === 'light'
               ? 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
               : 'bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/20'">
-            {{ sessionRenewing ? 'Rinnovo...' : 'Rinnova' }}
+            {{ sessionRenewing ? ('more.session.renewing' | t) : ('more.session.renew' | t) }}
           </button>
         </div>
 
@@ -134,7 +135,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
           <div class="flex items-center justify-between mb-2">
             <span class="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5"
                   [ngClass]="theme.mode() === 'light' ? 'text-zinc-600' : 'text-zinc-400'">
-              <i class="fa-solid fa-bolt text-red-500"></i> Scorciatoie GP
+              <i class="fa-solid fa-bolt text-red-500"></i> {{ 'more.shortcuts.title' | t }}
             </span>
             <span *ngIf="nextRace" class="text-[10px] font-bold text-zinc-500 truncate max-w-[190px]">
               Round {{ nextRace.race_order }} • {{ nextRace.race_id.name }}
@@ -149,9 +150,9 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                    : 'bg-emerald-500/15 border-emerald-500/25 text-emerald-400'">
               <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-[11px] font-bold">Finestre pronostici aperte ora!</span>
+                <span class="text-[11px] font-bold">{{ 'more.shortcuts.windowOpen' | t }}</span>
               </div>
-              <span class="text-[10px] font-semibold opacity-85">Tocca sotto per inviare</span>
+              <span class="text-[10px] font-semibold opacity-85">{{ 'more.shortcuts.tapToSubmit' | t }}</span>
             </div>
           }
 
@@ -175,17 +176,17 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                         [ngClass]="theme.mode() === 'light'
                           ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
                           : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'">
-                    Aperto
+                    {{ 'more.shortcuts.open' | t }}
                   </span>
                 </div>
                 <div>
                   <div class="text-xs font-black leading-tight"
                        [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
-                    Schieramento
+                    {{ 'more.shortcuts.lineup' | t }}
                   </div>
                   <div class="text-[9.5px] mt-0.5 font-medium"
                        [class.text-zinc-400]="theme.mode() === 'dark'" [class.text-red-700]="theme.mode() === 'light'">
-                    Invia piloti
+                    {{ 'more.shortcuts.sendRiders' | t }}
                   </div>
                 </div>
               </a>
@@ -200,12 +201,12 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                   </div>
                   <span class="py-0.5 px-1.5 rounded-md text-[8.5px] font-bold uppercase tracking-tight"
                         [ngClass]="theme.mode() === 'light' ? 'bg-zinc-200 text-zinc-600' : 'bg-zinc-800 text-zinc-500'">
-                    Chiuso
+                    {{ 'more.shortcuts.closed' | t }}
                   </span>
                 </div>
                 <div>
-                  <div class="text-xs font-bold leading-tight" [class.text-zinc-300]="theme.mode() === 'dark'" [class.text-zinc-700]="theme.mode() === 'light'">Schieramento</div>
-                  <div class="text-[9.5px] text-zinc-500 mt-0.5">Apre Giovedì</div>
+                  <div class="text-xs font-bold leading-tight" [class.text-zinc-300]="theme.mode() === 'dark'" [class.text-zinc-700]="theme.mode() === 'light'">{{ 'more.shortcuts.lineup' | t }}</div>
+                  <div class="text-[9.5px] text-zinc-500 mt-0.5">{{ 'more.shortcuts.opensThursday' | t }}</div>
                 </div>
               </div>
             }
@@ -227,7 +228,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                         [ngClass]="theme.mode() === 'light'
                           ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
                           : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'">
-                    Aperto
+                    {{ 'more.shortcuts.open' | t }}
                   </span>
                 </div>
                 <div>
@@ -237,7 +238,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                   </div>
                   <div class="text-[9.5px] mt-0.5 font-medium"
                        [class.text-zinc-400]="theme.mode() === 'dark'" [class.text-amber-800]="theme.mode() === 'light'">
-                    Pronostico
+                    {{ 'more.shortcuts.prediction' | t }}
                   </div>
                 </div>
               </a>
@@ -252,12 +253,12 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                   </div>
                   <span class="py-0.5 px-1.5 rounded-md text-[8.5px] font-bold uppercase tracking-tight"
                         [ngClass]="theme.mode() === 'light' ? 'bg-zinc-200 text-zinc-600' : 'bg-zinc-800 text-zinc-500'">
-                    Chiuso
+                    {{ 'more.shortcuts.closed' | t }}
                   </span>
                 </div>
                 <div>
                   <div class="text-xs font-bold leading-tight" [class.text-zinc-300]="theme.mode() === 'dark'" [class.text-zinc-700]="theme.mode() === 'light'">Sprint Bet</div>
-                  <div class="text-[9.5px] text-zinc-500 mt-0.5">Apre Sabato</div>
+                  <div class="text-[9.5px] text-zinc-500 mt-0.5">{{ 'more.shortcuts.opensSaturday' | t }}</div>
                 </div>
               </div>
             }
@@ -279,7 +280,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                         [ngClass]="theme.mode() === 'light'
                           ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
                           : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'">
-                    Aperto
+                    {{ 'more.shortcuts.open' | t }}
                   </span>
                 </div>
                 <div>
@@ -289,7 +290,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                   </div>
                   <div class="text-[9.5px] mt-0.5 font-medium"
                        [class.text-zinc-400]="theme.mode() === 'dark'" [class.text-purple-800]="theme.mode() === 'light'">
-                    Pronostico
+                    {{ 'more.shortcuts.prediction' | t }}
                   </div>
                 </div>
               </a>
@@ -304,12 +305,12 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                   </div>
                   <span class="py-0.5 px-1.5 rounded-md text-[8.5px] font-bold uppercase tracking-tight"
                         [ngClass]="theme.mode() === 'light' ? 'bg-zinc-200 text-zinc-600' : 'bg-zinc-800 text-zinc-500'">
-                    Chiuso
+                    {{ 'more.shortcuts.closed' | t }}
                   </span>
                 </div>
                 <div>
                   <div class="text-xs font-bold leading-tight" [class.text-zinc-300]="theme.mode() === 'dark'" [class.text-zinc-700]="theme.mode() === 'light'">Race Bet</div>
-                  <div class="text-[9.5px] text-zinc-500 mt-0.5">Apre Sabato</div>
+                  <div class="text-[9.5px] text-zinc-500 mt-0.5">{{ 'more.shortcuts.opensSaturday' | t }}</div>
                 </div>
               </div>
             }
@@ -326,7 +327,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
               : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
             <div class="flex items-center gap-2">
               <i class="fa-regular fa-calendar-days text-red-500"></i>
-              <span>Vedi scheda completa e orari del GP</span>
+              <span>{{ 'more.shortcuts.viewRaceHub' | t }}</span>
             </div>
             <i class="fa-solid fa-arrow-right text-[10px] opacity-70"></i>
           </a>
@@ -338,7 +339,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
         <div class="mb-4">
           <span class="text-[10px] font-black uppercase tracking-wider block mb-2"
                 [ngClass]="theme.mode() === 'light' ? 'text-zinc-600' : 'text-zinc-400'">
-            Applicazione & Account
+            {{ 'more.nav.appAndAccount' | t }}
           </span>
 
           <div class="grid grid-cols-2 gap-2.5">
@@ -355,8 +356,8 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                 <i class="fa-solid fa-user"></i>
               </div>
               <div>
-                <div class="text-[13px] font-black leading-tight">Profilo</div>
-                <div class="text-[10.5px] opacity-60 mt-0.5">Dati personali</div>
+                <div class="text-[13px] font-black leading-tight">{{ 'more.nav.profile' | t }}</div>
+                <div class="text-[10.5px] opacity-60 mt-0.5">{{ 'more.nav.profileDesc' | t }}</div>
               </div>
             </a>
 
@@ -373,8 +374,8 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                 <i class="fa-solid fa-gear"></i>
               </div>
               <div>
-                <div class="text-[13px] font-black leading-tight">Impostazioni</div>
-                <div class="text-[10.5px] opacity-60 mt-0.5">Notifiche e lingua</div>
+                <div class="text-[13px] font-black leading-tight">{{ 'more.nav.settings' | t }}</div>
+                <div class="text-[10.5px] opacity-60 mt-0.5">{{ 'more.nav.settingsDesc' | t }}</div>
               </div>
             </a>
 
@@ -391,8 +392,8 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                 <i class="fa-solid fa-chart-line"></i>
               </div>
               <div>
-                <div class="text-[13px] font-black leading-tight">Analisi Punteggi</div>
-                <div class="text-[10.5px] opacity-60 mt-0.5">Trend & scomposizione</div>
+                <div class="text-[13px] font-black leading-tight">{{ 'more.nav.breakdown' | t }}</div>
+                <div class="text-[10.5px] opacity-60 mt-0.5">{{ 'more.nav.breakdownDesc' | t }}</div>
               </div>
             </a>
 
@@ -409,8 +410,8 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                 <i class="fa-solid fa-flag-checkered"></i>
               </div>
               <div>
-                <div class="text-[13px] font-black leading-tight">Risultati MotoGP</div>
-                <div class="text-[10.5px] opacity-60 mt-0.5">Sessioni & gare reali</div>
+                <div class="text-[13px] font-black leading-tight">{{ 'more.nav.motogp' | t }}</div>
+                <div class="text-[10.5px] opacity-60 mt-0.5">{{ 'more.nav.motogpDesc' | t }}</div>
               </div>
             </a>
 
@@ -429,9 +430,9 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                 </div>
                 <div>
                   <div class="text-[13px] font-black leading-tight">
-                    Tema {{ theme.mode() === 'light' ? 'Chiaro' : 'Scuro' }}
+                    {{ 'more.nav.theme' | t }} {{ theme.mode() === 'light' ? ('more.nav.themeLight' | t) : ('more.nav.themeDark' | t) }}
                   </div>
-                  <div class="text-[10.5px] opacity-60 mt-0.5">Tocca per cambiare modalità visiva</div>
+                  <div class="text-[10.5px] opacity-60 mt-0.5">{{ 'more.nav.themeDesc' | t }}</div>
                 </div>
               </div>
             </button>
@@ -444,7 +445,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
         @if (isAdmin) {
           <div class="mb-4">
             <span class="text-[10px] font-black uppercase tracking-wider text-purple-400 block mb-2">
-              Gestione Campionato
+              {{ 'more.admin.title' | t }}
             </span>
 
             <div class="grid grid-cols-2 gap-2.5">
@@ -461,8 +462,8 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                   <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <div>
-                  <div class="text-[13px] font-black leading-tight">Pannello Admin</div>
-                  <div class="text-[10.5px] opacity-60 mt-0.5">Gare e punteggi</div>
+                  <div class="text-[13px] font-black leading-tight">{{ 'more.admin.panel' | t }}</div>
+                  <div class="text-[10.5px] opacity-60 mt-0.5">{{ 'more.admin.panelDesc' | t }}</div>
                 </div>
               </a>
 
@@ -479,8 +480,8 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
                   <i class="fa-solid fa-language"></i>
                 </div>
                 <div>
-                  <div class="text-[13px] font-black leading-tight">Traduzioni</div>
-                  <div class="text-[10.5px] opacity-60 mt-0.5">Dizionario app</div>
+                  <div class="text-[13px] font-black leading-tight">{{ 'more.admin.translations' | t }}</div>
+                  <div class="text-[10.5px] opacity-60 mt-0.5">{{ 'more.admin.translationsDesc' | t }}</div>
                 </div>
               </a>
             </div>
@@ -498,7 +499,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
             ? 'border-red-200 bg-red-50 text-red-600 hover:bg-red-100/70'
             : 'border-red-500/20 bg-red-600/10 text-red-500 hover:bg-red-600/15'">
           <i class="fa-solid fa-right-from-bracket"></i>
-          <span>Disconnetti Account</span>
+          <span>{{ 'more.logout' | t }}</span>
         </button>
         </div>
       </div>
@@ -530,7 +531,7 @@ import { RaceScheduleService } from '../../services/race-schedule.service';
     }
   `]
 })
-export class MoreSheetComponent implements OnInit, OnChanges, OnDestroy {
+export class MoreSheetComponent implements OnInit, OnChanges, OnDestroy {
   ngOnDestroy(): void { if (this.sessionTimerInterval) clearInterval(this.sessionTimerInterval); }
   isDragging = false;
   dragTranslateY = 0;
@@ -633,7 +634,7 @@ export class MoreSheetComponent implements OnInit, OnChanges, OnDestroy {
   canRace = false;
   loadingRace = false;
 
-  ngOnInit(): void {
+  ngOnInit(): void {
     this.startSessionTimer();
     this.authService.getUserInfo().subscribe({
       next: (info) => { this.userInfo = info; },

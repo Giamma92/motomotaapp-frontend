@@ -21,6 +21,7 @@ export interface StandingsBreakdownRow {
     race_order: number;
     event_date: string;
     cancelled?: boolean;
+    status?: string;
     race_id: {
       name: string;
       location: string;
@@ -36,6 +37,7 @@ export interface StandingsBreakdownRow {
   race_bet_delta: number;
   score: number;
   calculated_at?: string;
+  status?: string;
 }
 
 export interface Race {

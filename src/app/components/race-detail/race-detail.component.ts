@@ -190,144 +190,215 @@ export interface ParticipantCard {
 
             <div class="personal-hub-grid">
               <!-- 1. Schieramento Rosa -->
-              <div class="hub-slot-card" [class.slot-done]="!!myLineup" [class.slot-missing]="!myLineup">
+              <div class="hub-slot-card slot-lineup" [class.slot-done]="!!myLineup" [class.slot-missing]="!myLineup">
                 <div class="slot-head">
                   <div class="slot-badge">
-                    <span class="slot-num">1</span>
+                    <div class="slot-icon-box slot-icon--lineup">
+                      <i class="fa-solid fa-flag-checkered"></i>
+                    </div>
                     <span class="slot-name">Schieramento Rosa</span>
                   </div>
-                  <span class="slot-status-pill" [class.status-ok]="!!myLineup" [class.status-ko]="!myLineup">
-                    <i class="fa-solid" [class.fa-circle-check]="!!myLineup" [class.fa-circle-xmark]="!myLineup"></i>
-                    {{ myLineup ? 'Salvato' : 'Manca' }}
-                  </span>
+
+                  <div class="slot-head-actions">
+                    <span class="slot-score-pill" *ngIf="getLineupTotalScore() !== null"
+                          [class.score--pos]="getLineupTotalScore()! > 0"
+                          [class.score--neg]="getLineupTotalScore()! < 0">
+                      {{ formatSignedPoints(getLineupTotalScore()!) }}
+                    </span>
+                    <span class="slot-status-pill" *ngIf="getLineupTotalScore() === null"
+                          [class.status-ok]="!!myLineup" [class.status-ko]="!myLineup">
+                      <i class="fa-solid" [class.fa-circle-check]="!!myLineup" [class.fa-clock]="!myLineup"></i>
+                      {{ myLineup ? 'Salvato' : 'Manca' }}
+                    </span>
+                    <span *ngIf="!canEditLineup()" class="slot-lock-indicator" title="Finestra modifiche chiusa">
+                      <i class="fa-solid fa-lock"></i>
+                    </span>
+                  </div>
                 </div>
 
                 <div class="slot-content" *ngIf="myLineup; else myLineupMissing">
                   <div class="slot-riders-row">
-                    <div class="slot-rider-chip">
-                      <span class="chip-type">Qualifica</span>
+                    <div class="slot-rider-chip chip--quali">
+                      <div class="chip-header">
+                        <span class="chip-type"><i class="fa-solid fa-stopwatch text-sky-400"></i> Qualifica</span>
+                        <span class="chip-pts" *ngIf="getLineupQualifyingScore() !== null"
+                              [class.pts--pos]="getLineupQualifyingScore()! > 0">
+                          {{ formatSignedPoints(getLineupQualifyingScore()!) }}
+                        </span>
+                      </div>
                       <strong class="chip-name truncate">{{ getRiderDisplay(myLineup.qualifying_rider_id) }}</strong>
                     </div>
-                    <div class="slot-rider-chip">
-                      <span class="chip-type">Gara</span>
+
+                    <div class="slot-rider-chip chip--race">
+                      <div class="chip-header">
+                        <span class="chip-type"><i class="fa-solid fa-flag-checkered text-red-500"></i> Gara</span>
+                        <span class="chip-pts" *ngIf="getLineupRaceScore() !== null"
+                              [class.pts--pos]="getLineupRaceScore()! > 0">
+                          {{ formatSignedPoints(getLineupRaceScore()!) }}
+                        </span>
+                      </div>
                       <strong class="chip-name truncate">{{ getRiderDisplay(myLineup.race_rider_id) }}</strong>
                     </div>
                   </div>
-                  <div class="slot-score-row" *ngIf="getLineupTotalScore() !== null">
-                    <span class="slot-score-tag">
-                      Punti Schieramento: <strong>{{ formatSignedPoints(getLineupTotalScore()!) }}</strong>
-                    </span>
-                  </div>
                 </div>
                 <ng-template #myLineupMissing>
-                  <p class="slot-empty-text">Non hai ancora schierato i piloti per questa gara.</p>
+                  <div class="slot-empty-notice">
+                    <i class="fa-regular fa-calendar-xmark text-zinc-500"></i>
+                    <span>Non hai ancora schierato i piloti per questa gara.</span>
+                  </div>
                 </ng-template>
 
-                <div class="slot-actions">
+                <div class="slot-actions" *ngIf="canEditLineup()">
                   <button
                     mat-button
                     class="slot-action-btn"
-                    [class.slot-action-btn--primary]="!myLineup"
-                    (click)="goToContextAction('lineups')"
-                    [disabled]="!canEditLineup()">
-                    <mat-icon>{{ canEditLineup() ? 'edit' : 'lock' }}</mat-icon>
-                    <span>{{ canEditLineup() ? (myLineup ? 'Modifica schieramento' : 'Schiera ora') : 'Finestra chiusa' }}</span>
+                    (click)="goToContextAction('lineups')">
+                    <mat-icon>edit</mat-icon>
+                    <span>{{ myLineup ? 'Modifica schieramento' : 'Schiera ora' }}</span>
                   </button>
                 </div>
               </div>
 
               <!-- 2. Sprint Bet -->
-              <div class="hub-slot-card" [class.slot-done]="!!mySprintBet" [class.slot-missing]="!mySprintBet">
+              <div class="hub-slot-card slot-sprint" [class.slot-done]="!!mySprintBet" [class.slot-missing]="!mySprintBet">
                 <div class="slot-head">
                   <div class="slot-badge">
-                    <span class="slot-num">2</span>
+                    <div class="slot-icon-box slot-icon--sprint">
+                      <i class="fa-solid fa-bolt"></i>
+                    </div>
                     <span class="slot-name">Sprint Bet</span>
                   </div>
-                  <span class="slot-status-pill" *ngIf="mySprintBet" [class.status-ok]="isBetSuccessful(mySprintBet)" [class.status-ko]="hasBetOutcome(mySprintBet) && !isBetSuccessful(mySprintBet)" [class.status-pending]="!hasBetOutcome(mySprintBet)">
-                    <i [class]="getBetStatusIcon(mySprintBet)"></i>
-                    {{ getBetStatusLabel(mySprintBet) }}
-                  </span>
-                  <span class="slot-status-pill status-ko" *ngIf="!mySprintBet">
-                    <i class="fa-solid fa-circle-xmark"></i> Manca
-                  </span>
+
+                  <div class="slot-head-actions">
+                    <span class="slot-status-pill" *ngIf="mySprintBet"
+                          [class.status-ok]="isBetSuccessful(mySprintBet)"
+                          [class.status-ko]="hasBetOutcome(mySprintBet) && !isBetSuccessful(mySprintBet)"
+                          [class.status-pending]="!hasBetOutcome(mySprintBet)">
+                      <i [class]="getBetStatusIcon(mySprintBet)"></i>
+                      {{ getBetStatusLabel(mySprintBet) }}
+                    </span>
+                    <span class="slot-status-pill status-ko" *ngIf="!mySprintBet">
+                      <i class="fa-solid fa-circle-xmark"></i> Manca
+                    </span>
+                    <span *ngIf="!canEditSprintBet()" class="slot-lock-indicator" title="Finestra scommesse chiusa">
+                      <i class="fa-solid fa-lock"></i>
+                    </span>
+                  </div>
                 </div>
 
                 <div class="slot-content" *ngIf="mySprintBet; else mySprintMissing">
                   <div class="slot-bet-detail">
-                    <div class="bet-pick-inline">
-                      <i class="fa-solid fa-bolt text-amber-500"></i>
-                      <strong class="truncate">{{ displayRiderName(mySprintBet.rider_id) }}</strong>
-                      <span class="bet-pos-tag">{{ getPositionDisplay(mySprintBet.position) }}</span>
+                    <div class="bet-pick-row">
+                      <div class="bet-rider-info min-w-0">
+                        <strong class="bet-rider-name truncate">{{ displayRiderName(mySprintBet.rider_id) }}</strong>
+                      </div>
+                      <span class="bet-target-badge">
+                        <i class="fa-solid fa-bullseye text-amber-500"></i>
+                        {{ getPositionDisplay(mySprintBet.position) }}
+                      </span>
                     </div>
-                    <div class="bet-outcome-line">
-                      <span class="bet-stake-tag">{{ mySprintBet.points }} pt posta</span>
-                      <span class="bet-points-tag" *ngIf="hasBetOutcome(mySprintBet)" [class.text-emerald-500]="isBetSuccessful(mySprintBet)" [class.text-red-500]="!isBetSuccessful(mySprintBet)">
-                        {{ formatSignedPoints(getBetDelta(mySprintBet)!) }}
+
+                    <div class="bet-stats-row">
+                      <span class="bet-stake-pill">
+                        Posta: <strong>{{ mySprintBet.points }} pt</strong>
+                      </span>
+                      <span class="bet-outcome-pill" *ngIf="hasBetOutcome(mySprintBet)"
+                            [class.outcome--won]="isBetSuccessful(mySprintBet)"
+                            [class.outcome--lost]="!isBetSuccessful(mySprintBet)">
+                        Esito: <strong>{{ formatSignedPoints(getBetDelta(mySprintBet)!) }}</strong>
+                      </span>
+                      <span class="bet-outcome-pill outcome--pending" *ngIf="!hasBetOutcome(mySprintBet)">
+                        <i class="fa-regular fa-clock"></i> In attesa
                       </span>
                     </div>
                   </div>
                 </div>
                 <ng-template #mySprintMissing>
-                  <p class="slot-empty-text">Nessun pronostico inserito per la Sprint.</p>
+                  <div class="slot-empty-notice">
+                    <i class="fa-solid fa-bolt text-zinc-500"></i>
+                    <span>Nessun pronostico inserito per la Sprint.</span>
+                  </div>
                 </ng-template>
 
-                <div class="slot-actions">
+                <div class="slot-actions" *ngIf="canEditSprintBet()">
                   <button
                     mat-button
                     class="slot-action-btn"
-                    [class.slot-action-btn--primary]="!mySprintBet"
-                    (click)="goToContextAction('sprint')"
-                    [disabled]="!canEditSprintBet()">
-                    <mat-icon>{{ canEditSprintBet() ? 'edit' : 'lock' }}</mat-icon>
-                    <span>{{ canEditSprintBet() ? (mySprintBet ? 'Modifica sprint bet' : 'Gioca sprint') : 'Finestra chiusa' }}</span>
+                    (click)="goToContextAction('sprint')">
+                    <mat-icon>edit</mat-icon>
+                    <span>{{ mySprintBet ? 'Modifica sprint bet' : 'Gioca sprint' }}</span>
                   </button>
                 </div>
               </div>
 
               <!-- 3. Race Bet -->
-              <div class="hub-slot-card" [class.slot-done]="!!myRaceBet" [class.slot-missing]="!myRaceBet">
+              <div class="hub-slot-card slot-race" [class.slot-done]="!!myRaceBet" [class.slot-missing]="!myRaceBet">
                 <div class="slot-head">
                   <div class="slot-badge">
-                    <span class="slot-num">3</span>
+                    <div class="slot-icon-box slot-icon--race">
+                      <i class="fa-solid fa-motorcycle"></i>
+                    </div>
                     <span class="slot-name">Race Bet</span>
                   </div>
-                  <span class="slot-status-pill" *ngIf="myRaceBet" [class.status-ok]="isBetSuccessful(myRaceBet)" [class.status-ko]="hasBetOutcome(myRaceBet) && !isBetSuccessful(myRaceBet)" [class.status-pending]="!hasBetOutcome(myRaceBet)">
-                    <i [class]="getBetStatusIcon(myRaceBet)"></i>
-                    {{ getBetStatusLabel(myRaceBet) }}
-                  </span>
-                  <span class="slot-status-pill status-ko" *ngIf="!myRaceBet">
-                    <i class="fa-solid fa-circle-xmark"></i> Manca
-                  </span>
+
+                  <div class="slot-head-actions">
+                    <span class="slot-status-pill" *ngIf="myRaceBet"
+                          [class.status-ok]="isBetSuccessful(myRaceBet)"
+                          [class.status-ko]="hasBetOutcome(myRaceBet) && !isBetSuccessful(myRaceBet)"
+                          [class.status-pending]="!hasBetOutcome(myRaceBet)">
+                      <i [class]="getBetStatusIcon(myRaceBet)"></i>
+                      {{ getBetStatusLabel(myRaceBet) }}
+                    </span>
+                    <span class="slot-status-pill status-ko" *ngIf="!myRaceBet">
+                      <i class="fa-solid fa-circle-xmark"></i> Manca
+                    </span>
+                    <span *ngIf="!canEditRaceBet()" class="slot-lock-indicator" title="Finestra scommesse chiusa">
+                      <i class="fa-solid fa-lock"></i>
+                    </span>
+                  </div>
                 </div>
 
                 <div class="slot-content" *ngIf="myRaceBet; else myRaceMissing">
                   <div class="slot-bet-detail">
-                    <div class="bet-pick-inline">
-                      <i class="fa-solid fa-motorcycle text-red-500"></i>
-                      <strong class="truncate">{{ displayRiderName(myRaceBet.rider_id) }}</strong>
-                      <span class="bet-pos-tag">{{ getPositionDisplay(myRaceBet.position) }}</span>
+                    <div class="bet-pick-row">
+                      <div class="bet-rider-info min-w-0">
+                        <strong class="bet-rider-name truncate">{{ displayRiderName(myRaceBet.rider_id) }}</strong>
+                      </div>
+                      <span class="bet-target-badge">
+                        <i class="fa-solid fa-bullseye text-rose-500"></i>
+                        {{ getPositionDisplay(myRaceBet.position) }}
+                      </span>
                     </div>
-                    <div class="bet-outcome-line">
-                      <span class="bet-stake-tag">{{ myRaceBet.points }} pt posta</span>
-                      <span class="bet-points-tag" *ngIf="hasBetOutcome(myRaceBet)" [class.text-emerald-500]="isBetSuccessful(myRaceBet)" [class.text-red-500]="!isBetSuccessful(myRaceBet)">
-                        {{ formatSignedPoints(getBetDelta(myRaceBet)!) }}
+
+                    <div class="bet-stats-row">
+                      <span class="bet-stake-pill">
+                        Posta: <strong>{{ myRaceBet.points }} pt</strong>
+                      </span>
+                      <span class="bet-outcome-pill" *ngIf="hasBetOutcome(myRaceBet)"
+                            [class.outcome--won]="isBetSuccessful(myRaceBet)"
+                            [class.outcome--lost]="!isBetSuccessful(myRaceBet)">
+                        Esito: <strong>{{ formatSignedPoints(getBetDelta(myRaceBet)!) }}</strong>
+                      </span>
+                      <span class="bet-outcome-pill outcome--pending" *ngIf="!hasBetOutcome(myRaceBet)">
+                        <i class="fa-regular fa-clock"></i> In attesa
                       </span>
                     </div>
                   </div>
                 </div>
                 <ng-template #myRaceMissing>
-                  <p class="slot-empty-text">Nessun pronostico inserito per il Gran Premio.</p>
+                  <div class="slot-empty-notice">
+                    <i class="fa-solid fa-motorcycle text-zinc-500"></i>
+                    <span>Nessun pronostico inserito per il Gran Premio.</span>
+                  </div>
                 </ng-template>
 
-                <div class="slot-actions">
+                <div class="slot-actions" *ngIf="canEditRaceBet()">
                   <button
                     mat-button
                     class="slot-action-btn"
-                    [class.slot-action-btn--primary]="!myRaceBet"
-                    (click)="goToContextAction('race')"
-                    [disabled]="!canEditRaceBet()">
-                    <mat-icon>{{ canEditRaceBet() ? 'edit' : 'lock' }}</mat-icon>
-                    <span>{{ canEditRaceBet() ? (myRaceBet ? 'Modifica race bet' : 'Gioca gara') : 'Finestra chiusa' }}</span>
+                    (click)="goToContextAction('race')">
+                    <mat-icon>edit</mat-icon>
+                    <span>{{ myRaceBet ? 'Modifica race bet' : 'Gioca gara' }}</span>
                   </button>
                 </div>
               </div>
@@ -993,7 +1064,7 @@ export class RaceDetailComponent implements OnInit {
   private checkScreen() { this.isMobile = window.innerWidth <= 820; }
 
   @HostListener('window:scroll') onWindowScroll() {
-    this.showScrollTop = window.scrollY > 240;
+    this.showScrollTop = window.scrollY > 480;
     this.cdr.markForCheck();
   }
 
@@ -1679,7 +1750,7 @@ export class RaceDetailComponent implements OnInit {
   }
   getPositionDisplay(position: number | undefined | null): string {
     if (typeof position !== 'number' || isNaN(position)) return '—';
-    return `${position} / ${position + 1}`;
+    return `Pos. ${position}°-${position + 1}°`;
   }
   resultIconClass(outcome: any, points?: number): string {
     const ok = this.isResultPositive(outcome, points);

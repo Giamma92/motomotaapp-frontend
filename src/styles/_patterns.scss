@@ -358,3 +358,67 @@
     border-radius: var(--radius-md);
   }
 }
+
+
+/* ═══════════════════════════════════════════════
+   Liquid Glass & High-Performance Motion System
+   ═══════════════════════════════════════════════ */
+
+/* Structural Liquid Glass (true backdrop blur for fixed/floating bars) */
+.liquid-glass {
+  background: var(--glass-surface);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--glass-shadow);
+}
+
+.liquid-glass--elevated {
+  background: var(--glass-surface-elevated);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border-light);
+  box-shadow: var(--glass-highlight), var(--glass-shadow), var(--glass-glow-accent);
+}
+
+/* Performant Liquid Glass Cards (Uses specular radial reflections without per-item blur) */
+.liquid-glass-card {
+  position: relative;
+  background:
+    var(--glass-specular),
+    var(--glass-card-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-highlight), var(--shadow-card);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.22s ease;
+}
+
+.liquid-glass-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--glass-border-light);
+  box-shadow: var(--glass-highlight), var(--shadow-md), var(--glass-glow-accent);
+}
+
+.liquid-glass-card:active {
+  transform: scale(0.985);
+}
+
+/* Touch Spring micro-feedback */
+.touch-spring {
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+.touch-spring:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-glass-card,
+  .touch-spring {
+    transition: none !important;
+    transform: none !important;
+  }
+}

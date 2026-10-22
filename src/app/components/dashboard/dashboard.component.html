@@ -5,38 +5,38 @@
   <header class="header dashboard-header">
     <div class="header-brand">
       <span class="brand-kicker">MOTO MOTA</span>
-      <h1>Cockpit</h1>
+      <h1>{{ 'nav.cockpit' | t }}</h1>
     </div>
 
     <div class="header-actions">
       <!-- Gare -->
-      <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="goTo('calendar')" aria-label="Gare">
+      <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="goTo('calendar')" [attr.aria-label]="'nav.races' | t">
         <i class="fa-solid fa-flag-checkered"></i>
-        <span>Gare</span>
+        <span>{{ 'nav.races' | t }}</span>
       </button>
 
       <!-- Teams -->
-      <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="goTo('teams')" aria-label="Teams">
+      <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="goTo('teams')" [attr.aria-label]="'nav.teams' | t">
         <i class="fa-solid fa-people-group"></i>
-        <span>Teams</span>
+        <span>{{ 'nav.teams' | t }}</span>
       </button>
 
       <!-- Classifica & Punteggi -->
-      <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="goTo('standings-breakdown')" aria-label="Classifica e Punteggi">
+      <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="goTo('standings-breakdown')" [attr.aria-label]="'nav.scores' | t">
         <i class="fa-solid fa-chart-column"></i>
-        <span>Punteggi</span>
+        <span>{{ 'nav.scores' | t }}</span>
       </button>
 
       <!-- Scorciatoia Admin (visibile solo ad Admin) -->
-      <button *ngIf="isAdmin()" type="button" class="header-quick-link app-nav-chip app-nav-chip--admin" (click)="goTo('admin')" aria-label="Pannello Amministratore">
+      <button *ngIf="isAdmin()" type="button" class="header-quick-link app-nav-chip app-nav-chip--admin" (click)="goTo('admin')" [attr.aria-label]="'nav.admin' | t">
         <i class="fa-solid fa-shield-halved"></i>
-        <span>Admin</span>
+        <span>{{ 'nav.admin' | t }}</span>
       </button>
 
       <!-- Menu Altro -->
-      <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="moreMenu.toggle()" aria-label="Menu Altro">
+      <button type="button" class="header-quick-link app-nav-chip app-nav-chip--light" (click)="moreMenu.toggle()" [attr.aria-label]="'nav.more' | t">
         <i class="fa-solid fa-ellipsis"></i>
-        <span>Altro</span>
+        <span>{{ 'nav.more' | t }}</span>
       </button>
 
       <app-notification-bell></app-notification-bell>
@@ -88,9 +88,9 @@
                 class="w-full h-full object-cover">
             </div>
             <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-red-500">Fanta-Manager</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-red-500">{{ 'dashboard.hero.role' | t }}</span>
               <h2 class="text-base sm:text-lg font-black tracking-tight leading-tight m-0" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
-                Ciao, {{ loggedUserName }}
+                {{ 'dashboard.hero.greeting' | t: { name: loggedUserName } }}
               </h2>
             </div>
           </div>
@@ -107,7 +107,7 @@
                   : (theme.mode() === 'light' ? 'bg-zinc-100 border-zinc-200 text-zinc-600' : 'bg-zinc-800/40 border-white/10 text-zinc-400')">
             <i class="fa-solid text-xs sm:text-sm" [class.fa-crown]="currentUserPosition === 1" [class.fa-medal]="currentUserPosition && currentUserPosition > 1"></i>
             <span class="text-sm sm:text-base font-black">#{{ currentUserPosition ?? '-' }}</span>
-            <span class="text-[9px] uppercase font-semibold tracking-wider opacity-75">posto</span>
+            <span class="text-[9px] uppercase font-semibold tracking-wider opacity-75">{{ 'dashboard.hero.rankLabel' | t }}</span>
           </div>
         </div>
 
@@ -117,7 +117,7 @@
           <div
             class="p-2.5 rounded-2xl border flex flex-col justify-between"
             [ngClass]="theme.mode() === 'light' ? 'bg-zinc-50 border-black/[0.06]' : 'bg-zinc-950/60 border-white/5'">
-            <span class="text-[9px] font-bold uppercase tracking-wider text-zinc-400">Punti Totali</span>
+            <span class="text-[9px] font-bold uppercase tracking-wider text-zinc-400">{{ 'common.totalPoints' | t }}</span>
             <div class="flex items-baseline gap-1 mt-1">
               <span class="text-xl sm:text-2xl font-black text-red-500">{{ currentUserPoints | number:'1.0-0' }}</span>
               <span class="text-[9px] font-bold text-zinc-400">PTS</span>
@@ -128,16 +128,16 @@
           <div
             class="p-2.5 rounded-2xl border flex flex-col justify-between"
             [ngClass]="theme.mode() === 'light' ? 'bg-zinc-50 border-black/[0.06]' : 'bg-zinc-950/60 border-white/5'">
-            <span class="text-[9px] font-bold uppercase tracking-wider text-zinc-400">Distacco Vetta</span>
+            <span class="text-[9px] font-bold uppercase tracking-wider text-zinc-400">{{ 'dashboard.hero.gapLeader' | t }}</span>
             <div class="mt-1">
               @if (currentUserPosition === 1) {
-                <span class="text-xs sm:text-sm font-black text-emerald-400">👑 In Vetta</span>
+                <span class="text-xs sm:text-sm font-black text-emerald-400">{{ 'dashboard.hero.inLead' | t }}</span>
                 <span class="block text-[8px] text-zinc-400 truncate" *ngIf="classificationData && classificationData[1]">
                   +{{ (currentUserPoints - classificationData[1].score) | number:'1.0-0' }} pts
                 </span>
               } @else {
                 <span class="text-base sm:text-lg font-black text-amber-400">-{{ gapToLeader | number:'1.0-0' }} <span class="text-[9px] font-bold">pts</span></span>
-                <span class="block text-[8px] text-zinc-400 truncate" *ngIf="leaderName">da {{ leaderName }}</span>
+                <span class="block text-[8px] text-zinc-400 truncate" *ngIf="leaderName">{{ 'dashboard.hero.fromLeader' | t: { name: leaderName } }}</span>
               }
             </div>
           </div>
@@ -146,13 +146,13 @@
           <div
             class="p-2.5 rounded-2xl border flex flex-col justify-between"
             [ngClass]="theme.mode() === 'light' ? 'bg-zinc-50 border-black/[0.06]' : 'bg-zinc-950/60 border-white/5'">
-            <span class="text-[9px] font-bold uppercase tracking-wider text-zinc-400">Margine</span>
+            <span class="text-[9px] font-bold uppercase tracking-wider text-zinc-400">{{ 'dashboard.hero.margin' | t }}</span>
             <div class="mt-1">
               @if (advantageOverNext !== null) {
                 <span class="text-base sm:text-lg font-black text-sky-400">+{{ advantageOverNext | number:'1.0-0' }} <span class="text-[9px] font-bold">pts</span></span>
-                <span class="block text-[8px] text-zinc-400 truncate" *ngIf="nextRiderName">su {{ nextRiderName }}</span>
+                <span class="block text-[8px] text-zinc-400 truncate" *ngIf="nextRiderName">{{ 'dashboard.hero.overNext' | t: { name: nextRiderName } }}</span>
               } @else {
-                <span class="text-xs font-bold text-zinc-400">Nessuno</span>
+                <span class="text-xs font-bold text-zinc-400">{{ 'dashboard.hero.nobody' | t }}</span>
               }
             </div>
           </div>
@@ -168,7 +168,7 @@
             : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
           <div class="flex items-center gap-2">
             <i class="fa-solid fa-trophy text-amber-400 text-xs"></i>
-            <span>Vedi Classifica Generale e Podio</span>
+            <span>{{ 'dashboard.hero.viewStandings' | t }}</span>
           </div>
           <i class="fa-solid fa-arrow-right text-[10px] opacity-70"></i>
         </button>
@@ -187,15 +187,15 @@
       <!-- Error State -->
       <div *ngIf="!loadingNext && errorNext" class="cockpit-card next-gp-card p-5 rounded-3xl border border-red-500/30 bg-red-500/10 text-center">
         <i class="fa-solid fa-triangle-exclamation text-2xl text-red-500 mb-2"></i>
-        <p class="text-sm font-bold text-red-400">Impossibile caricare il prossimo Gran Premio</p>
-        <button mat-stroked-button color="warn" (click)="reload()" class="mt-2">Riprova</button>
+        <p class="text-sm font-bold text-red-400">{{ 'dashboard.nextRace.error' | t }}</p>
+        <button mat-stroked-button color="warn" (click)="reload()" class="mt-2">{{ 'common.error.retry' | t }}</button>
       </div>
 
       <!-- Season Over / Empty State -->
       <div *ngIf="!loadingNext && !errorNext && !nextCalendarRace" class="cockpit-card next-gp-card p-6 rounded-3xl border border-white/10 bg-zinc-900/60 text-center">
         <i class="fa-solid fa-flag-checkered text-3xl text-zinc-500 mb-2"></i>
-        <h3 class="text-base font-bold text-zinc-200">Stagione Conclusa</h3>
-        <p class="text-xs text-zinc-400 mt-1">Non ci sono ulteriori gare programmate per questo campionato.</p>
+        <h3 class="text-base font-bold text-zinc-200">{{ 'dashboard.nextRace.seasonOver' | t }}</h3>
+        <p class="text-xs text-zinc-400 mt-1">{{ 'dashboard.nextRace.seasonOverDesc' | t }}</p>
       </div>
 
       <!-- Active Next Race Card -->
@@ -225,7 +225,7 @@
               <span class="inline-flex items-center gap-1 py-0.5 px-2 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-red-600/15 text-red-500 border border-red-500/20">
                 <i class="fa-solid fa-flag-checkered"></i> Round {{ nextCalendarRace.race_order }}<ng-container *ngIf="totalRaces"> / {{ totalRaces }}</ng-container>
               </span>
-              <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Prossimo GP</span>
+              <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{{ 'dashboard.nextRace.next' | t }}</span>
             </div>
 
             <h3 class="text-lg sm:text-xl font-black tracking-tight mt-1 mb-0" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
@@ -253,21 +253,21 @@
           [ngClass]="theme.mode() === 'light' ? 'bg-zinc-50 border-black/[0.06]' : 'bg-zinc-950/70 border-white/5'">
           <div class="flex items-center gap-2 text-zinc-400 text-xs font-bold">
             <i class="fa-regular fa-clock text-red-500 animate-pulse"></i>
-            <span>Semafori tra</span>
+            <span>{{ 'dashboard.nextRace.startsIn' | t }}</span>
           </div>
 
           <div class="flex items-center gap-1.5 sm:gap-2">
             <div *ngIf="cd.d > 0" class="flex flex-col items-center py-1 px-2.5 rounded-xl bg-red-600/15 border border-red-600/20">
               <span class="text-base font-black text-red-500 leading-tight">{{ cd.d }}</span>
-              <span class="text-[9px] uppercase font-bold text-zinc-400">giorni</span>
+              <span class="text-[9px] uppercase font-bold text-zinc-400">{{ 'dashboard.nextRace.days' | t }}</span>
             </div>
             <div class="flex flex-col items-center py-1 px-2.5 rounded-xl bg-red-600/15 border border-red-600/20">
               <span class="text-base font-black text-red-500 leading-tight">{{ cd.h }}</span>
-              <span class="text-[9px] uppercase font-bold text-zinc-400">ore</span>
+              <span class="text-[9px] uppercase font-bold text-zinc-400">{{ 'dashboard.nextRace.hours' | t }}</span>
             </div>
             <div class="flex flex-col items-center py-1 px-2.5 rounded-xl bg-red-600/15 border border-red-600/20">
               <span class="text-base font-black text-red-500 leading-tight">{{ cd.m }}</span>
-              <span class="text-[9px] uppercase font-bold text-zinc-400">min</span>
+              <span class="text-[9px] uppercase font-bold text-zinc-400">{{ 'dashboard.nextRace.minutes' | t }}</span>
             </div>
           </div>
         </div>
@@ -275,9 +275,9 @@
         <!-- Action Status Checklist -->
         <div class="mt-3 flex flex-col gap-1.5">
           <div class="flex items-center justify-between text-xs font-bold text-zinc-400 px-0.5">
-            <span>Stato pronostici weekend:</span>
+            <span>{{ 'dashboard.nextRace.weekendStatus' | t }}</span>
             <span *ngIf="openDeadline as dl" class="text-[10px] text-amber-400 font-semibold flex items-center gap-1">
-              <i class="fa-regular fa-hourglass-half"></i> Chiusura: {{ formatDeadline(dl) }}
+              <i class="fa-regular fa-hourglass-half"></i> {{ 'dashboard.nextRace.closing' | t }} {{ formatDeadline(dl) }}
             </span>
           </div>
 
@@ -289,11 +289,11 @@
               : 'bg-amber-500/10 border-amber-500/25 text-amber-400'">
             <div class="flex items-center gap-2">
               <i class="fa-solid" [class.fa-circle-check]="hasCompletedLineup(nextCalendarRace.id)" [class.fa-circle-exclamation]="!hasCompletedLineup(nextCalendarRace.id)"></i>
-              <span class="font-bold">Schieramento Qualifiche</span>
+              <span class="font-bold">{{ 'dashboard.nextRace.lineupQualifying' | t }}</span>
             </div>
             <span class="py-0.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider"
                   [ngClass]="hasCompletedLineup(nextCalendarRace.id) ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'">
-              {{ hasCompletedLineup(nextCalendarRace.id) ? 'Inviato' : 'Da inviare' }}
+              {{ (hasCompletedLineup(nextCalendarRace.id) ? 'dashboard.nextRace.submitted' : 'dashboard.nextRace.toSubmit') | t }}
             </span>
           </div>
 
@@ -310,7 +310,7 @@
             </div>
             <span class="py-0.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider"
                   [ngClass]="hasCompletedSprintBet(nextCalendarRace.id) ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'">
-              {{ hasCompletedSprintBet(nextCalendarRace.id) ? 'Inviato' : 'Da inviare' }}
+              {{ (hasCompletedSprintBet(nextCalendarRace.id) ? 'dashboard.nextRace.submitted' : 'dashboard.nextRace.toSubmit') | t }}
             </span>
           </div>
 
@@ -323,11 +323,11 @@
               : 'bg-amber-500/10 border-amber-500/25 text-amber-400'">
             <div class="flex items-center gap-2">
               <i class="fa-solid" [class.fa-circle-check]="hasCompletedRaceBet(nextCalendarRace.id)" [class.fa-circle-exclamation]="!hasCompletedRaceBet(nextCalendarRace.id)"></i>
-              <span class="font-bold">Gara Bet</span>
+              <span class="font-bold">{{ 'dashboard.nextRace.raceBet' | t }}</span>
             </div>
             <span class="py-0.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider"
                   [ngClass]="hasCompletedRaceBet(nextCalendarRace.id) ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'">
-              {{ hasCompletedRaceBet(nextCalendarRace.id) ? 'Inviato' : 'Da inviare' }}
+              {{ (hasCompletedRaceBet(nextCalendarRace.id) ? 'dashboard.nextRace.submitted' : 'dashboard.nextRace.toSubmit') | t }}
             </span>
           </div>
         </div>
@@ -352,8 +352,8 @@
             <i class="fa-solid fa-bell text-xs"></i>
           </div>
           <div class="text-[11px] leading-tight">
-            <strong class="font-bold">Promemoria Gara:</strong>
-            <span class="opacity-80 ml-1">Notifica prima della chiusura formazioni.</span>
+            <strong class="font-bold">{{ 'dashboard.nextRace.reminderTitle' | t }}</strong>
+            <span class="opacity-80 ml-1">{{ 'dashboard.nextRace.reminderDesc' | t }}</span>
           </div>
         </div>
 
@@ -362,7 +362,7 @@
           <summary class="p-2.5 text-xs font-bold text-zinc-400 flex items-center justify-between cursor-pointer list-none select-none">
             <div class="flex items-center gap-2">
               <i class="fa-regular fa-calendar-days text-red-500"></i>
-              <span>Orari del Weekend</span>
+              <span>{{ 'dashboard.nextRace.weekendSchedule' | t }}</span>
             </div>
             <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200 group-open:rotate-180"></i>
           </summary>
@@ -370,7 +370,7 @@
           <div class="px-3 pb-2.5 pt-1 flex flex-col gap-1 text-xs border-t border-white/5">
             <div class="flex items-center justify-between py-1">
               <span class="flex items-center gap-1.5 text-zinc-400">
-                <i class="fa-solid fa-stopwatch text-sky-400 text-[11px]"></i> Qualifiche
+                <i class="fa-solid fa-stopwatch text-sky-400 text-[11px]"></i> {{ 'common.qualifying' | t }}
               </span>
               <span class="font-bold text-zinc-300">
                 {{ getQualifyingDay(nextCalendarRace.event_date) }} • {{ nextCalendarRace.qualifications_time ?? '10:00:00' | timeFormat }}
@@ -379,7 +379,7 @@
 
             <div class="flex items-center justify-between py-1">
               <span class="flex items-center gap-1.5 text-zinc-400">
-                <i class="fa-solid fa-bolt text-amber-400 text-[11px]"></i> Sprint Race
+                <i class="fa-solid fa-bolt text-amber-400 text-[11px]"></i> {{ 'common.sprint' | t }}
               </span>
               <span class="font-bold text-zinc-300">
                 {{ getSprintDay(nextCalendarRace.event_date) }} • {{ nextCalendarRace.sprint_time ?? '15:00:00' | timeFormat }}
@@ -388,7 +388,7 @@
 
             <div class="flex items-center justify-between py-1">
               <span class="flex items-center gap-1.5 text-zinc-400">
-                <i class="fa-solid fa-flag-checkered text-red-500 text-[11px]"></i> Gran Premio
+                <i class="fa-solid fa-flag-checkered text-red-500 text-[11px]"></i> {{ 'common.race' | t }}
               </span>
               <span class="font-bold text-zinc-300">
                 {{ getRaceDay(nextCalendarRace.event_date) }} • {{ nextCalendarRace.event_time ?? '14:00:00' | timeFormat }}
@@ -414,9 +414,9 @@
           <div class="min-w-0">
             <div class="flex items-center gap-2">
               <span class="inline-flex items-center gap-1 py-0.5 px-2 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-                <i class="fa-solid fa-flag-checkered"></i> Round {{ lastCompletedRaceEntry.calendar_id.race_order }} Concluso
+                <i class="fa-solid fa-flag-checkered"></i> {{ 'dashboard.lastRace.roundCompleted' | t: { round: lastCompletedRaceEntry.calendar_id.race_order } }}
               </span>
-              <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Ultimo GP</span>
+              <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{{ 'dashboard.lastRace.badge' | t }}</span>
             </div>
 
             <h3 class="text-base sm:text-lg font-black tracking-tight leading-tight mt-1 mb-0 truncate" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
@@ -456,7 +456,7 @@
 
             <!-- Total GP Score & Round Rank -->
             <div class="flex flex-col items-end flex-shrink-0">
-              <span class="text-[9px] font-extrabold uppercase tracking-wider text-zinc-400">Punti GP</span>
+              <span class="text-[9px] font-extrabold uppercase tracking-wider text-zinc-400">{{ 'dashboard.lastRace.gpPoints' | t }}</span>
               <span class="text-xl sm:text-2xl font-black leading-none mt-0.5"
                     [ngClass]="lastCompletedRaceEntry.score > 0 ? 'text-emerald-400' : (lastCompletedRaceEntry.score < 0 ? 'text-rose-400' : 'text-zinc-300')">
                 {{ lastCompletedRaceEntry.score > 0 ? '+' : '' }}{{ lastCompletedRaceEntry.score }} <span class="text-xs font-bold text-zinc-400">PTS</span>
@@ -468,7 +468,7 @@
                       : lastCompletedRaceRank <= 3
                         ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'
                         : (theme.mode() === 'light' ? 'bg-zinc-100 text-zinc-600 border-zinc-200' : 'bg-white/5 text-zinc-400 border-white/5')">
-                {{ lastCompletedRaceRank }}° di tappa
+                {{ 'dashboard.lastRace.stageRank' | t: { rank: lastCompletedRaceRank } }}
               </span>
             </div>
           </div>
@@ -482,7 +482,7 @@
                [ngClass]="theme.mode() === 'light' ? 'bg-zinc-50 border-black/[0.06]' : 'bg-zinc-950/60 border-white/5'">
             <div class="flex items-center gap-1 text-[10px] font-bold text-zinc-400">
               <i class="fa-solid fa-stopwatch text-sky-400 text-[10px]"></i>
-              <span class="hidden sm:inline">Qualifiche</span>
+              <span class="hidden sm:inline">{{ 'common.qualifying' | t }}</span>
               <span class="sm:hidden">Qual.</span>
             </div>
             <span class="text-xs sm:text-sm font-black mt-0.5"
@@ -496,7 +496,7 @@
                [ngClass]="theme.mode() === 'light' ? 'bg-zinc-50 border-black/[0.06]' : 'bg-zinc-950/60 border-white/5'">
             <div class="flex items-center gap-1 text-[10px] font-bold text-zinc-400">
               <i class="fa-solid fa-flag-checkered text-red-500 text-[10px]"></i>
-              <span>Gara</span>
+              <span>{{ 'common.race' | t }}</span>
             </div>
             <span class="text-xs sm:text-sm font-black mt-0.5"
                   [ngClass]="lastCompletedRaceEntry.race_score > 0 ? 'text-red-400' : 'text-zinc-400'">
@@ -549,7 +549,7 @@
             </div>
             <div class="flex flex-col min-w-0">
               <div class="flex items-center gap-1.5">
-                <span class="text-[9px] font-black uppercase tracking-wider text-amber-500">Vincitore MotoGP™</span>
+                <span class="text-[9px] font-black uppercase tracking-wider text-amber-500">{{ 'dashboard.lastRace.motogpWinner' | t }}</span>
                 <span class="text-[10px] font-bold font-mono text-zinc-400">#{{ winner.rider_id.number }}</span>
               </div>
               <strong class="text-xs font-bold truncate">
@@ -570,7 +570,7 @@
           <summary class="text-[11px] font-bold text-zinc-400 flex items-center justify-between cursor-pointer list-none select-none hover:text-zinc-200 transition-colors py-0.5">
             <div class="flex items-center gap-2">
               <i class="fa-solid fa-list-check text-red-500 text-[11px]"></i>
-              <span>Dettaglio Piloti e Scommesse</span>
+              <span>{{ 'dashboard.lastRace.detailsToggle' | t }}</span>
             </div>
             <i class="fa-solid fa-chevron-down text-[9px] group-open:rotate-180 transition-transform"></i>
           </summary>
@@ -579,25 +579,25 @@
             <!-- Lineup Riders Row -->
             <div class="grid grid-cols-2 gap-2 text-[11px]">
               <div class="p-2 rounded-xl border" [ngClass]="theme.mode() === 'light' ? 'bg-zinc-100/70 border-black/[0.05]' : 'bg-zinc-950/40 border-white/5'">
-                <span class="text-[9px] font-bold uppercase text-zinc-400 block">Pilota Qualifica</span>
+                <span class="text-[9px] font-bold uppercase text-zinc-400 block">{{ 'dashboard.lastRace.qualifyingRider' | t }}</span>
                 <div class="flex items-center gap-1.5 mt-0.5 font-bold" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
                   <span *ngIf="lastCompletedRaceLineup?.qualifying_rider_id as qr" class="truncate">
                     #{{ qr.number }} {{ qr.first_name }} {{ qr.last_name }}
                   </span>
                   <span *ngIf="!lastCompletedRaceLineup?.qualifying_rider_id" class="text-zinc-500 font-normal italic">
-                    Non schierato
+                    {{ 'dashboard.lastRace.notPicked' | t }}
                   </span>
                 </div>
               </div>
 
               <div class="p-2 rounded-xl border" [ngClass]="theme.mode() === 'light' ? 'bg-zinc-100/70 border-black/[0.05]' : 'bg-zinc-950/40 border-white/5'">
-                <span class="text-[9px] font-bold uppercase text-zinc-400 block">Pilota Gara</span>
+                <span class="text-[9px] font-bold uppercase text-zinc-400 block">{{ 'dashboard.lastRace.raceRider' | t }}</span>
                 <div class="flex items-center gap-1.5 mt-0.5 font-bold" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
                   <span *ngIf="lastCompletedRaceLineup?.race_rider_id as rr" class="truncate">
                     #{{ rr.number }} {{ rr.first_name }} {{ rr.last_name }}
                   </span>
                   <span *ngIf="!lastCompletedRaceLineup?.race_rider_id" class="text-zinc-500 font-normal italic">
-                    Non schierato
+                    {{ 'dashboard.lastRace.notPicked' | t }}
                   </span>
                 </div>
               </div>
@@ -606,25 +606,25 @@
             <!-- Bets Row -->
             <div class="grid grid-cols-2 gap-2 text-[11px]">
               <div class="p-2 rounded-xl border" [ngClass]="theme.mode() === 'light' ? 'bg-zinc-100/70 border-black/[0.05]' : 'bg-zinc-950/40 border-white/5'">
-                <span class="text-[9px] font-bold uppercase text-zinc-400 block">Pronostico Sprint</span>
+                <span class="text-[9px] font-bold uppercase text-zinc-400 block">{{ 'dashboard.lastRace.sprintBet' | t }}</span>
                 <div class="flex items-center justify-between gap-1 mt-0.5 font-bold" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
                   <span *ngIf="lastCompletedRaceSprintBet as sb" class="truncate">
                     #{{ sb.rider_id.number }} {{ sb.rider_id.last_name }} (P{{ sb.position }})
                   </span>
                   <span *ngIf="!lastCompletedRaceSprintBet" class="text-zinc-500 font-normal italic">
-                    Nessun pronostico
+                    {{ 'dashboard.lastRace.noBet' | t }}
                   </span>
                 </div>
               </div>
 
               <div class="p-2 rounded-xl border" [ngClass]="theme.mode() === 'light' ? 'bg-zinc-100/70 border-black/[0.05]' : 'bg-zinc-950/40 border-white/5'">
-                <span class="text-[9px] font-bold uppercase text-zinc-400 block">Pronostico Gara</span>
+                <span class="text-[9px] font-bold uppercase text-zinc-400 block">{{ 'dashboard.lastRace.raceBet' | t }}</span>
                 <div class="flex items-center justify-between gap-1 mt-0.5 font-bold" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
                   <span *ngIf="lastCompletedRaceBet as rb" class="truncate">
                     #{{ rb.rider_id.number }} {{ rb.rider_id.last_name }} (P{{ rb.position }})
                   </span>
                   <span *ngIf="!lastCompletedRaceBet" class="text-zinc-500 font-normal italic">
-                    Nessun pronostico
+                    {{ 'dashboard.lastRace.noBet' | t }}
                   </span>
                 </div>
               </div>
@@ -634,9 +634,9 @@
             <div *ngIf="lastCompletedRaceMotoGPPodium.length" class="flex flex-col gap-1.5 pt-1">
               <div class="flex items-center justify-between">
                 <span class="text-[10px] font-black uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                  <i class="fa-solid fa-trophy text-amber-400"></i> Podio Reale MotoGP™
+                  <i class="fa-solid fa-trophy text-amber-400"></i> {{ 'dashboard.lastRace.officialPodium' | t }}
                 </span>
-                <span class="text-[10px] text-zinc-500 font-semibold">Gara Ufficiale</span>
+                <span class="text-[10px] text-zinc-500 font-semibold">{{ 'dashboard.lastRace.officialRace' | t }}</span>
               </div>
               <div class="grid grid-cols-3 gap-1.5 text-center">
                 <div *ngFor="let p of lastCompletedRaceMotoGPPodium"
@@ -678,7 +678,7 @@
                   : 'bg-red-950/30 hover:bg-red-950/50 text-red-400 border-red-500/20'">
                 <div class="flex items-center gap-2">
                   <i class="fa-solid fa-motorcycle text-red-500"></i>
-                  <span>Risultati Ufficiali MotoGP™</span>
+                  <span>{{ 'dashboard.lastRace.officialResultsBtn' | t }}</span>
                 </div>
                 <i class="fa-solid fa-arrow-right text-[11px] opacity-70"></i>
               </button>
@@ -692,7 +692,7 @@
                   : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
                 <div class="flex items-center gap-2">
                   <i class="fa-solid fa-chart-line text-emerald-400"></i>
-                  <span>Classifica Tappa Fanta</span>
+                  <span>{{ 'dashboard.lastRace.stageStandingsBtn' | t }}</span>
                 </div>
                 <i class="fa-solid fa-arrow-right text-[11px] opacity-70"></i>
               </button>
@@ -729,7 +729,7 @@
               <i *ngIf="!fantasyTeam.team_image" class="fa-solid fa-people-group"></i>
             </div>
             <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-red-500">La tua Rosa</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-red-500">{{ 'dashboard.team.title' | t }}</span>
               <h3 class="text-base font-black tracking-tight leading-tight m-0" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
                 {{ fantasyTeam.name }}
               </h3>
@@ -739,7 +739,7 @@
           <span
             class="text-[10px] font-semibold py-1 px-2.5 rounded-full border"
             [ngClass]="theme.mode() === 'light' ? 'border-black/10 text-zinc-500 bg-black/[0.03]' : 'border-white/10 text-zinc-400 bg-transparent'">
-            Max {{ maxLineups }} presenze/pilota
+            {{ 'dashboard.team.maxLineups' | t: { count: maxLineups } }}
           </span>
         </div>
 
@@ -772,7 +772,7 @@
                 </div>
 
                 <div class="truncate">
-                  <span class="text-[9px] font-black uppercase tracking-wider text-red-500 block leading-tight">1° Pilota</span>
+                  <span class="text-[9px] font-black uppercase tracking-wider text-red-500 block leading-tight">{{ 'dashboard.team.rider1' | t }}</span>
                   <span class="text-xs sm:text-sm font-black leading-tight block truncate mt-0.5" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
                     {{ r1.first_name }} {{ r1.last_name }}
                   </span>
@@ -787,7 +787,7 @@
                   : getRemainingUses(r1.id) <= 2
                     ? 'bg-amber-500/20 text-amber-400'
                     : 'bg-emerald-500/15 text-emerald-400'">
-                {{ getRemainingUses(r1.id) === 0 ? 'Esaurito' : (getRemainingUses(r1.id) + ' rimasti') }}
+                {{ getRemainingUses(r1.id) === 0 ? ('dashboard.team.exhausted' | t) : ('dashboard.team.remaining' | t: { count: getRemainingUses(r1.id) }) }}
               </span>
             </div>
 
@@ -807,7 +807,7 @@
             <!-- Meta details -->
             <div class="flex items-center justify-between text-[11px] font-bold mt-1 text-zinc-400">
               <span>
-                <strong [class.text-zinc-900]="theme.mode() === 'light'" [class.text-zinc-200]="theme.mode() === 'dark'">{{ getRiderLineupsCount(r1.id) }}</strong> di {{ maxLineups }} presenze usate
+                <strong [class.text-zinc-900]="theme.mode() === 'light'" [class.text-zinc-200]="theme.mode() === 'dark'">{{ getRiderLineupsCount(r1.id) }}</strong> {{ 'dashboard.team.usedCount' | t: { used: '', total: maxLineups } }}
               </span>
               <span class="text-[10px] font-semibold text-zinc-400">
                 {{ (getRiderQuotaPct(r1.id) | number:'1.0-0') }}%
@@ -841,7 +841,7 @@
                 </div>
 
                 <div class="truncate">
-                  <span class="text-[9px] font-black uppercase tracking-wider text-red-500 block leading-tight">2° Pilota</span>
+                  <span class="text-[9px] font-black uppercase tracking-wider text-red-500 block leading-tight">{{ 'dashboard.team.rider2' | t }}</span>
                   <span class="text-xs sm:text-sm font-black leading-tight block truncate mt-0.5" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
                     {{ r2.first_name }} {{ r2.last_name }}
                   </span>
@@ -856,7 +856,7 @@
                   : getRemainingUses(r2.id) <= 2
                     ? 'bg-amber-500/20 text-amber-400'
                     : 'bg-emerald-500/15 text-emerald-400'">
-                {{ getRemainingUses(r2.id) === 0 ? 'Esaurito' : (getRemainingUses(r2.id) + ' rimasti') }}
+                {{ getRemainingUses(r2.id) === 0 ? ('dashboard.team.exhausted' | t) : ('dashboard.team.remaining' | t: { count: getRemainingUses(r2.id) }) }}
               </span>
             </div>
 
@@ -876,7 +876,7 @@
             <!-- Meta details -->
             <div class="flex items-center justify-between text-[11px] font-bold mt-1 text-zinc-400">
               <span>
-                <strong [class.text-zinc-900]="theme.mode() === 'light'" [class.text-zinc-200]="theme.mode() === 'dark'">{{ getRiderLineupsCount(r2.id) }}</strong> di {{ maxLineups }} presenze usate
+                <strong [class.text-zinc-900]="theme.mode() === 'light'" [class.text-zinc-200]="theme.mode() === 'dark'">{{ getRiderLineupsCount(r2.id) }}</strong> {{ 'dashboard.team.usedCount' | t: { used: '', total: maxLineups } }}
               </span>
               <span class="text-[10px] font-semibold text-zinc-400">
                 {{ (getRiderQuotaPct(r2.id) | number:'1.0-0') }}%
@@ -910,7 +910,7 @@
                 </div>
 
                 <div class="truncate">
-                  <span class="text-[9px] font-black uppercase tracking-wider text-amber-400 block leading-tight">Riserva</span>
+                  <span class="text-[9px] font-black uppercase tracking-wider text-amber-400 block leading-tight">{{ 'dashboard.team.reserve' | t }}</span>
                   <span class="text-xs sm:text-sm font-black leading-tight block truncate mt-0.5" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
                     {{ rr.first_name }} {{ rr.last_name }}
                   </span>
@@ -925,7 +925,7 @@
                   : getRemainingUses(rr.id) <= 2
                     ? 'bg-amber-500/20 text-amber-400'
                     : 'bg-emerald-500/15 text-emerald-400'">
-                {{ getRemainingUses(rr.id) === 0 ? 'Esaurito' : (getRemainingUses(rr.id) + ' rimasti') }}
+                {{ getRemainingUses(rr.id) === 0 ? ('dashboard.team.exhausted' | t) : ('dashboard.team.remaining' | t: { count: getRemainingUses(rr.id) }) }}
               </span>
             </div>
 
@@ -945,7 +945,7 @@
             <!-- Meta details -->
             <div class="flex items-center justify-between text-[11px] font-bold mt-1 text-zinc-400">
               <span>
-                <strong [class.text-zinc-900]="theme.mode() === 'light'" [class.text-zinc-200]="theme.mode() === 'dark'">{{ getRiderLineupsCount(rr.id) }}</strong> di {{ maxLineups }} presenze usate
+                <strong [class.text-zinc-900]="theme.mode() === 'light'" [class.text-zinc-200]="theme.mode() === 'dark'">{{ getRiderLineupsCount(rr.id) }}</strong> {{ 'dashboard.team.usedCount' | t: { used: '', total: maxLineups } }}
               </span>
               <span class="text-[10px] font-semibold text-zinc-400">
                 {{ (getRiderQuotaPct(rr.id) | number:'1.0-0') }}%
@@ -964,7 +964,7 @@
             : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
           <div class="flex items-center gap-2">
             <i class="fa-solid fa-people-group text-red-500"></i>
-            <span>Vedi tutte le squadre e rose avversarie</span>
+            <span>{{ 'dashboard.actions.viewAllTeams' | t }}</span>
           </div>
           <i class="fa-solid fa-arrow-right text-[11px] opacity-70"></i>
         </button>
@@ -982,7 +982,7 @@
         <summary class="p-4 text-xs font-bold text-zinc-400 flex items-center justify-between cursor-pointer list-none select-none">
           <div class="flex items-center gap-2.5">
             <i class="fa-solid fa-gear text-red-500"></i>
-            <span>{{ championshipConfig.name }} • Regolamento e Punteggi</span>
+            <span>{{ championshipConfig.name }} • {{ 'dashboard.championship.rulesTitle' | t }}</span>
           </div>
           <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200 group-open:rotate-180"></i>
         </summary>
@@ -990,20 +990,20 @@
         <div class="p-4 pt-1 flex flex-col gap-2.5 text-xs border-t border-white/5">
           <div class="grid grid-cols-2 gap-2 text-[11px]">
             <div class="p-2.5 rounded-xl border border-white/5 bg-zinc-950/40">
-              <span class="text-zinc-500 block">Stagione</span>
+              <span class="text-zinc-500 block">{{ 'dashboard.championship.season' | t }}</span>
               <strong class="text-zinc-200">{{ championshipConfig.season }}</strong>
             </div>
             <div class="p-2.5 rounded-xl border border-white/5 bg-zinc-950/40">
-              <span class="text-zinc-500 block">Fuso Orario</span>
+              <span class="text-zinc-500 block">{{ 'common.timezone' | t }}</span>
               <strong class="text-zinc-200">{{ championshipConfig.timezone || 'Europe/Rome' }}</strong>
             </div>
             <div class="p-2.5 rounded-xl border border-white/5 bg-zinc-950/40">
-              <span class="text-zinc-500 block">Limite Formazioni</span>
-              <strong class="text-zinc-200">{{ maxLineups }} presenze</strong>
+              <span class="text-zinc-500 block">{{ 'dashboard.championship.lineupLimit' | t }}</span>
+              <strong class="text-zinc-200">{{ maxLineups }} {{ 'dashboard.championship.presences' | t }}</strong>
             </div>
             <div class="p-2.5 rounded-xl border border-white/5 bg-zinc-950/40">
-              <span class="text-zinc-500 block">Stato Lega</span>
-              <strong class="text-emerald-400">Attiva</strong>
+              <span class="text-zinc-500 block">{{ 'dashboard.championship.status' | t }}</span>
+              <strong class="text-emerald-400">{{ 'dashboard.championship.active' | t }}</strong>
             </div>
           </div>
         </div>

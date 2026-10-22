@@ -406,7 +406,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (route === 'lineups') return 'dashboard.actions.placeLineups';
     if (route === 'sprint-bet') return 'dashboard.actions.placeSprintBet';
     if (route === 'race-bet') return 'dashboard.actions.placeRaceBet';
-    if (this.countdownParts) return 'Dettagli GP';
+    if (this.countdownParts) return 'dashboard.actions.viewRaceDetail';
     return 'dashboard.actions.viewRaceResults';
   }
 

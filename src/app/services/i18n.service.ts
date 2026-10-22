@@ -4,6 +4,8 @@ import { HttpService } from './http.service';
 import { AuthService } from './auth.service';
 import { UserSettingsService } from './user-settings.service';
 
+const I18N_CACHE_VERSION = 'v2026.1';
+
 export type TranslationsMap = Record<string, string>;
 
 export interface Translation {
@@ -33,6 +35,11 @@ export class I18nService {
   ) {}
 
   init(): void {
+    const cachedVersion = localStorage.getItem('i18n_cache_version');
+    if (cachedVersion !== I18N_CACHE_VERSION) {
+      this.clearCache();
+      localStorage.setItem('i18n_cache_version', I18N_CACHE_VERSION);
+    }
     const saved = localStorage.getItem('lang');
     const browser = navigator.language?.split('-')[0] ?? 'en';
     const initial = (saved || browser || 'en').toLowerCase();
