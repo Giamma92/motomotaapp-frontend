@@ -153,7 +153,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       next: (data: StandingsRow[]) => {
         this.classificationData = data;
         this.loadingStandings = false;
-        checkAllLoaded();
+        this.checkAllLoaded();
         this.cdr.markForCheck();
       },
       error: (error: any) => {
@@ -168,7 +168,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.nextCalendarRace = race;
         this.loadingNext = false;
         this.computeButtonVisibility();
-        checkAllLoaded();
+        this.checkAllLoaded();
         this.cdr.markForCheck();
       },
       error: (error: any) => {
@@ -193,7 +193,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       next: (team: FantasyTeam) => {
         this.fantasyTeam = team;
         this.loadingTeam = false;
-        checkAllLoaded();
+        this.checkAllLoaded();
         this.cdr.markForCheck();
       },
       error: (error: any) => {
@@ -207,16 +207,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
-    const checkAllLoaded = () => {
-      if (!this.loadingStandings && !this.loadingNext && !this.loadingTeam) {
-        this.loadingService.markInitialAppLoaded();
-        if (this.isRefreshing) {
-          this.isRefreshing = false;
-                    this.haptic.success();
-        }
-        this.cdr.markForCheck();
-      }
-    };
     this.loadingLastRace = true;
     this.dashboardService.getStandingsBreakdown(champId).subscribe({
       next: (rows: StandingsBreakdownRow[]) => {
@@ -246,10 +236,34 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   }
 
-  /** Retry handler used by the card error states. */
-  reload(): void {
+  private reloadCallback?: () => void;
+
+  private checkAllLoaded(): void {
+    if (!this.loadingStandings && !this.loadingNext && !this.loadingTeam) {
+      this.loadingService.markInitialAppLoaded();
+      if (this.isRefreshing) {
+        this.isRefreshing = false;
+        this.haptic.success();
+      }
+      if (this.reloadCallback) {
+        this.reloadCallback();
+        this.reloadCallback = undefined;
+      }
+      this.cdr.markForCheck();
+    }
+  }
+
+  /** Retry handler used by the card error states and pull-to-refresh. */
+  reload(done?: () => void): void {
+    this.reloadCallback = done;
+    this.isRefreshing = true;
+    this.cdr.markForCheck();
     if (this.championshipId > 0) {
       this.loadDashboardData(this.championshipId);
+    } else {
+      this.isRefreshing = false;
+      done?.();
+      this.cdr.markForCheck();
     }
   }
 

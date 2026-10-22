@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Input, Output, inject, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, Output, inject, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HapticService } from '../../services/haptic.service';
 
@@ -117,6 +117,7 @@ import { HapticService } from '../../services/haptic.service';
 })
 export class PullToRefreshComponent implements OnChanges {
   private haptic = inject(HapticService);
+  private cdr = inject(ChangeDetectorRef);
 
   @Input() isRefreshing = false;
   @Output() refresh = new EventEmitter<() => void>();
@@ -135,8 +136,13 @@ export class PullToRefreshComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['isRefreshing'] && !changes['isRefreshing'].currentValue) {
-      this.complete();
+    if (changes['isRefreshing']) {
+      if (!changes['isRefreshing'].currentValue) {
+        this.complete();
+      } else {
+        this.isRefreshing = true;
+        this.cdr.markForCheck();
+      }
     }
   }
 
@@ -174,6 +180,8 @@ export class PullToRefreshComponent implements OnChanges {
         } else if (this.pullDistance < this.threshold && this.hasSnapped) {
           this.hasSnapped = false;
         }
+
+        this.cdr.markForCheck();
       }
     }
   }
@@ -186,26 +194,29 @@ export class PullToRefreshComponent implements OnChanges {
     if (this.pullDistance >= this.threshold && !this.isRefreshing) {
       this.isRefreshing = true;
       this.pullDistance = 50;
+      this.cdr.markForCheck();
       this.refresh.emit(() => this.complete());
 
-      // Auto-reset fallback after 6s in case network hangs
+      // Auto-reset fallback after 2.8s in case network hangs or completes asynchronously
       clearTimeout(this.fallbackTimeout);
       this.fallbackTimeout = setTimeout(() => {
         if (this.isRefreshing) {
           this.complete();
         }
-      }, 6000);
+      }, 2800);
     } else {
       this.pullDistance = 0;
+      this.cdr.markForCheck();
     }
   }
 
   complete(): void {
     clearTimeout(this.fallbackTimeout);
-    if (this.isRefreshing || this.pullDistance > 0) {
-      this.isRefreshing = false;
-      this.pullDistance = 0;
-      this.haptic.success();
-    }
+    this.isRefreshing = false;
+    this.pullDistance = 0;
+    this.hasSnapped = false;
+    this.lastTensionStep = 0;
+    this.haptic.success();
+    this.cdr.markForCheck();
   }
 }

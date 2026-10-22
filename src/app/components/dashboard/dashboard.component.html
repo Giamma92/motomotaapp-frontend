@@ -6,7 +6,7 @@
   ══════════════════════════════════════════════════ -->
   <main class="grid-content">
     <!-- ── Mobile Pull to Refresh Indicator with Starter Rope Feedback ── -->
-    <app-pull-to-refresh [isRefreshing]="isRefreshing" (refresh)="reload()"></app-pull-to-refresh>
+    <app-pull-to-refresh [isRefreshing]="isRefreshing" (refresh)="reload($event)"></app-pull-to-refresh>
 
     <div class="cockpit-stack">
 
