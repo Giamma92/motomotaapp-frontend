@@ -13,7 +13,6 @@ import { I18nService } from '../../services/i18n.service';
 import { DateUtils } from '../../utils/date-utils';
 import { RaceDetails } from '../../services/race-detail.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
-import { NavigationService } from '../../services/navigation.service';
 import { ThemeService } from '../../services/theme.service';
 import { MotoGPAssetService } from '../../services/motogp-asset.service';
 
@@ -50,7 +49,6 @@ export class CalendarComponent implements OnInit, OnDestroy {
     private i18nService: I18nService,
     private notificationService: NotificationServiceService,
     private raceSchedule: RaceScheduleService,
-    private navService: NavigationService,
     public theme: ThemeService,
     public assetService: MotoGPAssetService,
     private cdr: ChangeDetectorRef
@@ -212,9 +210,6 @@ export class CalendarComponent implements OnInit, OnDestroy {
     };
   }
 
-  goBack(): void {
-    this.navService.back('/');
-  }
 
   goToRaceDetail(race: CalendarRace): void {
     // Assumes that race.race_id has an 'id' property.

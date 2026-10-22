@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationServiceService } from '../../../services/notification.service';
 import { AdminService, AdminChampionship } from '../../../services/admin.service';
 import { ThemeService } from '../../../services/theme.service';
 
@@ -223,7 +224,8 @@ export class ChampionshipAdminComponent implements OnInit {
     private fb: FormBuilder,
     private adminService: AdminService,
     public theme: ThemeService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private notificationService: NotificationServiceService
   ) {
     this.form = this.fb.group({
       description: ['', Validators.required],
@@ -246,7 +248,7 @@ export class ChampionshipAdminComponent implements OnInit {
       error: (err) => {
         this.loading = false;
         console.error('Error fetching championships', err);
-        this.snackBar.open('Errore caricamento campionati', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage('Errore caricamento campionati');
       }
     });
   }
@@ -288,28 +290,28 @@ export class ChampionshipAdminComponent implements OnInit {
       this.adminService.createChampionship(payload).subscribe({
         next: () => {
           this.saving = false;
-          this.snackBar.open('Campionato creato!', 'OK', { duration: 3000 });
+          this.notificationService.showSuccessMessage('Campionato creato!');
           this.loadChampionships();
           this.resetForm();
         },
         error: (err) => {
           this.saving = false;
           console.error('Error creating championship', err);
-          this.snackBar.open(err?.error?.message || 'Errore creazione campionato', 'Chiudi', { duration: 4000 });
+          this.notificationService.showErrorMessage(err?.error?.message || 'Errore creazione campionato');
         }
       });
     } else {
       this.adminService.updateChampionship(this.editingId, payload).subscribe({
         next: () => {
           this.saving = false;
-          this.snackBar.open('Campionato aggiornato!', 'OK', { duration: 3000 });
+          this.notificationService.showSuccessMessage('Campionato aggiornato!');
           this.loadChampionships();
           this.resetForm();
         },
         error: (err) => {
           this.saving = false;
           console.error('Error updating championship', err);
-          this.snackBar.open(err?.error?.message || 'Errore aggiornamento campionato', 'Chiudi', { duration: 4000 });
+          this.notificationService.showErrorMessage(err?.error?.message || 'Errore aggiornamento campionato');
         }
       });
     }
@@ -321,12 +323,12 @@ export class ChampionshipAdminComponent implements OnInit {
 
     this.adminService.deleteChampionship(c.id!).subscribe({
       next: () => {
-        this.snackBar.open('Campionato eliminato!', 'OK', { duration: 3000 });
+        this.notificationService.showSuccessMessage('Campionato eliminato!');
         this.loadChampionships();
       },
       error: (err) => {
         console.error('Error deleting championship', err);
-        this.snackBar.open(err?.error?.message || 'Errore eliminazione (contiene gare o team associati)', 'Chiudi', { duration: 5000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore eliminazione (contiene gare o team associati)');
       }
     });
   }

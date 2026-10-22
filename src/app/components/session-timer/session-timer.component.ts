@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
@@ -54,6 +54,7 @@ export class SessionTimerComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
   theme = inject(ThemeService);
   haptic = inject(HapticService);
+  private ngZone = inject(NgZone);
 
   remainingSeconds = signal<number>(0);
   formattedRemaining = signal<string>('');
@@ -64,7 +65,11 @@ export class SessionTimerComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.checkTimer();
-    this.intervalId = setInterval(() => this.checkTimer(), 1000);
+    this.ngZone.runOutsideAngular(() => {
+      this.intervalId = setInterval(() => {
+        this.ngZone.run(() => this.checkTimer());
+      }, 1000);
+    });
   }
 
   ngOnDestroy(): void {

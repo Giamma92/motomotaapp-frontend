@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationServiceService } from '../../../services/notification.service';
 import { AdminService, AdminCalendarRace, AdminRaceMaster } from '../../../services/admin.service';
 import { ThemeService } from '../../../services/theme.service';
 
@@ -482,7 +483,8 @@ export class CalendarAdminComponent implements OnInit, OnChanges {
   constructor(
     private adminService: AdminService,
     public theme: ThemeService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private notificationService: NotificationServiceService
   ) {}
 
   ngOnInit(): void {
@@ -561,13 +563,13 @@ export class CalendarAdminComponent implements OnInit, OnChanges {
         next: () => {
           this.savingCalendar = false;
           this.cancelCalendarEdit();
-          this.snackBar.open('Round aggiornato con successo!', 'OK', { duration: 3000 });
+          this.notificationService.showSuccessMessage('Round aggiornato con successo!');
           this.loadData();
         },
         error: (err) => {
           this.savingCalendar = false;
           console.error('Error updating calendar race:', err);
-          this.snackBar.open(err?.error?.message || 'Errore aggiornamento round', 'Chiudi', { duration: 4000 });
+          this.notificationService.showErrorMessage(err?.error?.message || 'Errore aggiornamento round');
         }
       });
     } else {
@@ -575,13 +577,13 @@ export class CalendarAdminComponent implements OnInit, OnChanges {
         next: () => {
           this.savingCalendar = false;
           this.cancelCalendarEdit();
-          this.snackBar.open('Round inserito in calendario!', 'OK', { duration: 3000 });
+          this.notificationService.showSuccessMessage('Round inserito in calendario!');
           this.loadData();
         },
         error: (err) => {
           this.savingCalendar = false;
           console.error('Error creating calendar race:', err);
-          this.snackBar.open(err?.error?.message || 'Errore creazione round', 'Chiudi', { duration: 4000 });
+          this.notificationService.showErrorMessage(err?.error?.message || 'Errore creazione round');
         }
       });
     }
@@ -594,12 +596,12 @@ export class CalendarAdminComponent implements OnInit, OnChanges {
 
     this.adminService.toggleCancelRace(this.championshipId, r.id!, nextState).subscribe({
       next: () => {
-        this.snackBar.open(`Round ${nextState ? 'annullato' : 'ripristinato'} con successo!`, 'OK', { duration: 3000 });
+        this.notificationService.showSuccessMessage(`Round ${nextState ? 'annullato' : 'ripristinato'} con successo!`);
         this.loadData();
       },
       error: (err) => {
         console.error('Error toggling cancel race:', err);
-        this.snackBar.open(err?.error?.message || 'Errore operazione', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore operazione');
       }
     });
   }
@@ -610,12 +612,12 @@ export class CalendarAdminComponent implements OnInit, OnChanges {
 
     this.adminService.deleteCalendarRace(this.championshipId, r.id!).subscribe({
       next: () => {
-        this.snackBar.open('Round eliminato dal calendario!', 'OK', { duration: 3000 });
+        this.notificationService.showSuccessMessage('Round eliminato dal calendario!');
         this.loadData();
       },
       error: (err) => {
         console.error('Error deleting calendar race:', err);
-        this.snackBar.open(err?.error?.message || 'Errore eliminazione round', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore eliminazione round');
       }
     });
   }
@@ -650,13 +652,13 @@ export class CalendarAdminComponent implements OnInit, OnChanges {
         next: () => {
           this.savingMasterRace = false;
           this.cancelMasterRaceEdit();
-          this.snackBar.open('Circuito master aggiornato!', 'OK', { duration: 3000 });
+          this.notificationService.showSuccessMessage('Circuito master aggiornato!');
           this.loadData();
         },
         error: (err) => {
           this.savingMasterRace = false;
           console.error('Error updating master race:', err);
-          this.snackBar.open(err?.error?.message || 'Errore aggiornamento circuito', 'Chiudi', { duration: 4000 });
+          this.notificationService.showErrorMessage(err?.error?.message || 'Errore aggiornamento circuito');
         }
       });
     } else {
@@ -664,13 +666,13 @@ export class CalendarAdminComponent implements OnInit, OnChanges {
         next: () => {
           this.savingMasterRace = false;
           this.cancelMasterRaceEdit();
-          this.snackBar.open('Circuito master creato!', 'OK', { duration: 3000 });
+          this.notificationService.showSuccessMessage('Circuito master creato!');
           this.loadData();
         },
         error: (err) => {
           this.savingMasterRace = false;
           console.error('Error creating master race:', err);
-          this.snackBar.open(err?.error?.message || 'Errore creazione circuito', 'Chiudi', { duration: 4000 });
+          this.notificationService.showErrorMessage(err?.error?.message || 'Errore creazione circuito');
         }
       });
     }
@@ -682,12 +684,12 @@ export class CalendarAdminComponent implements OnInit, OnChanges {
 
     this.adminService.deleteRace(mr.id!).subscribe({
       next: () => {
-        this.snackBar.open('Circuito master eliminato!', 'OK', { duration: 3000 });
+        this.notificationService.showSuccessMessage('Circuito master eliminato!');
         this.loadData();
       },
       error: (err) => {
         console.error('Error deleting master race:', err);
-        this.snackBar.open(err?.error?.message || 'Errore eliminazione circuito (potrebbe essere in uso nei calendari)', 'Chiudi', { duration: 5000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore eliminazione circuito (potrebbe essere in uso nei calendari)');
       }
     });
   }

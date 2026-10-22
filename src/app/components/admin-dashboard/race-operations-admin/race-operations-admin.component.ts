@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationServiceService } from '../../../services/notification.service';
 import { AdminService, AdminCalendarRace, RaceSubmissionStatusResponse, ManagerSubmissionStatus } from '../../../services/admin.service';
 import { ThemeService } from '../../../services/theme.service';
 
@@ -441,7 +442,8 @@ export class RaceOperationsAdminComponent implements OnInit, OnChanges {
   constructor(
     private adminService: AdminService,
     public theme: ThemeService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private notificationService: NotificationServiceService
   ) {}
 
   ngOnInit(): void {
@@ -474,7 +476,7 @@ export class RaceOperationsAdminComponent implements OnInit, OnChanges {
       error: (err) => {
         this.loadingCalendar = false;
         console.error('Error fetching calendar races:', err);
-        this.snackBar.open('Errore nel caricamento del calendario', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage('Errore nel caricamento del calendario');
       }
     });
   }
@@ -496,7 +498,7 @@ export class RaceOperationsAdminComponent implements OnInit, OnChanges {
       error: (err) => {
         this.loadingStatus = false;
         console.error('Error fetching submission status:', err);
-        this.snackBar.open('Errore nel caricamento sottomissioni', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage('Errore nel caricamento sottomissioni');
       }
     });
   }
@@ -512,14 +514,14 @@ export class RaceOperationsAdminComponent implements OnInit, OnChanges {
       next: (res: any) => {
         this.actionLoading = false;
         this.activeAction = null;
-        this.snackBar.open(res?.message || 'Formazioni mancanti inserite con successo!', 'OK', { duration: 4000 });
+        this.notificationService.showSuccessMessage(res?.message || 'Formazioni mancanti inserite con successo!');
         this.loadSubmissionStatus();
       },
       error: (err) => {
         this.actionLoading = false;
         this.activeAction = null;
         console.error('Error filling lineups:', err);
-        this.snackBar.open(err?.error?.message || 'Errore forzatura formazioni', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore forzatura formazioni');
       }
     });
   }
@@ -535,14 +537,14 @@ export class RaceOperationsAdminComponent implements OnInit, OnChanges {
       next: (res: any) => {
         this.actionLoading = false;
         this.activeAction = null;
-        this.snackBar.open(res?.message || 'Scommesse mancanti inserite con successo!', 'OK', { duration: 4000 });
+        this.notificationService.showSuccessMessage(res?.message || 'Scommesse mancanti inserite con successo!');
         this.loadSubmissionStatus();
       },
       error: (err) => {
         this.actionLoading = false;
         this.activeAction = null;
         console.error('Error filling bets:', err);
-        this.snackBar.open(err?.error?.message || 'Errore forzatura scommesse', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore forzatura scommesse');
       }
     });
   }
@@ -555,13 +557,13 @@ export class RaceOperationsAdminComponent implements OnInit, OnChanges {
       next: (res: any) => {
         this.actionLoading = false;
         this.activeAction = null;
-        this.snackBar.open('Risultati ufficiali MotoGP sincronizzati con successo!', 'OK', { duration: 4000 });
+        this.notificationService.showSuccessMessage('Risultati ufficiali MotoGP sincronizzati con successo!');
       },
       error: (err) => {
         this.actionLoading = false;
         this.activeAction = null;
         console.error('Error syncing MotoGP results:', err);
-        this.snackBar.open(err?.error?.message || 'Errore sincronizzazione risultati MotoGP', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore sincronizzazione risultati MotoGP');
       }
     });
   }
@@ -574,13 +576,13 @@ export class RaceOperationsAdminComponent implements OnInit, OnChanges {
       next: (res: any) => {
         this.actionLoading = false;
         this.activeAction = null;
-        this.snackBar.open('Punteggi del round calcolati con successo!', 'OK', { duration: 4000 });
+        this.notificationService.showSuccessMessage('Punteggi del round calcolati con successo!');
       },
       error: (err) => {
         this.actionLoading = false;
         this.activeAction = null;
         console.error('Error calculating scores:', err);
-        this.snackBar.open(err?.error?.message || 'Errore calcolo punteggi', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore calcolo punteggi');
       }
     });
   }
@@ -596,13 +598,13 @@ export class RaceOperationsAdminComponent implements OnInit, OnChanges {
       next: (res: any) => {
         this.actionLoading = false;
         this.activeAction = null;
-        this.snackBar.open('Punteggi del round ricalcolati con successo!', 'OK', { duration: 4000 });
+        this.notificationService.showSuccessMessage('Punteggi del round ricalcolati con successo!');
       },
       error: (err) => {
         this.actionLoading = false;
         this.activeAction = null;
         console.error('Error recalculating scores:', err);
-        this.snackBar.open(err?.error?.message || 'Errore ricalcolo punteggi', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore ricalcolo punteggi');
       }
     });
   }
@@ -617,13 +619,13 @@ export class RaceOperationsAdminComponent implements OnInit, OnChanges {
       next: (res: any) => {
         this.actionLoading = false;
         this.activeAction = null;
-        this.snackBar.open(res?.message || 'Intero campionato ricalcolato con successo!', 'OK', { duration: 5000 });
+        this.notificationService.showSuccessMessage(res?.message || 'Intero campionato ricalcolato con successo!');
       },
       error: (err) => {
         this.actionLoading = false;
         this.activeAction = null;
         console.error('Error recalculating all:', err);
-        this.snackBar.open(err?.error?.message || 'Errore ricalcolo intero campionato', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore ricalcolo intero campionato');
       }
     });
   }
@@ -654,7 +656,7 @@ export class RaceOperationsAdminComponent implements OnInit, OnChanges {
         this.activeAction = null;
         const count = res?.result?.processedCount ?? 0;
         const msg = res?.result?.message || res?.message || (count > 0 ? `Trigger completato: ${count} gara/e aggiornata/e con successo!` : 'Verifica completata: nessuna gara in attesa al momento.');
-        this.snackBar.open(msg, 'OK', { duration: 5000 });
+        this.notificationService.showSuccessMessage(msg);
         this.loadAutoScoreStatus();
         if (this.selectedCalendarId) {
           this.loadSubmissionStatus();
@@ -664,7 +666,7 @@ export class RaceOperationsAdminComponent implements OnInit, OnChanges {
         this.actionLoading = false;
         this.activeAction = null;
         console.error('Error triggering auto score:', err);
-        this.snackBar.open(err?.error?.message || 'Errore esecuzione trigger automatico', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore esecuzione trigger automatico');
       }
     });
   }

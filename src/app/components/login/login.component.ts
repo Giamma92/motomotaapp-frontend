@@ -134,14 +134,14 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 
           <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
             <!-- Username Input -->
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
               <mat-label>{{ 'login.username' | t }}</mat-label>
               <input matInput formControlName="username" autocomplete="username" required>
               <mat-icon matPrefix>person</mat-icon>
             </mat-form-field>
 
             <!-- Password Input with Show/Hide Toggle -->
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
               <mat-label>{{ 'login.password' | t }}</mat-label>
               <input
                 matInput

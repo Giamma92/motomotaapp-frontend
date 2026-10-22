@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationServiceService } from '../../services/notification.service';
 import { AuthService, UserInfo } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 import { NavigationService } from '../../services/navigation.service';
@@ -437,6 +438,7 @@ export class UserInfoComponent implements OnInit {
   private navService = inject(NavigationService);
   public theme = inject(ThemeService);
   private snackBar = inject(MatSnackBar);
+  private notificationService = inject(NotificationServiceService);
 
   userInfo: UserInfo | null = null;
   loading = true;
@@ -495,7 +497,7 @@ export class UserInfoComponent implements OnInit {
       error: (err) => {
         this.loading = false;
         console.error('Error fetching user info:', err);
-        this.snackBar.open('Errore caricamento profilo', 'Chiudi', { duration: 3000 });
+        this.notificationService.showErrorMessage('Errore caricamento profilo');
       }
     });
   }
@@ -506,7 +508,7 @@ export class UserInfoComponent implements OnInit {
 
     const file = input.files[0];
     if (!file.type.startsWith('image/')) {
-      this.snackBar.open('Seleziona un file immagine valido (JPG, PNG, WebP)', 'Chiudi', { duration: 3000 });
+      this.notificationService.showWarningMessage('Seleziona un file immagine valido (JPG, PNG, WebP)');
       return;
     }
 
@@ -620,7 +622,7 @@ export class UserInfoComponent implements OnInit {
 
     this.avatarDraft = canvas.toDataURL('image/jpeg', 0.88);
     this.showCropper = false;
-    this.snackBar.open('Ritaglio completato! Premi "Salva Modifiche" per confermare.', 'OK', { duration: 3500 });
+    this.notificationService.showSuccessMessage('Ritaglio completato! Premi "Salva Modifiche" per confermare.');
   }
 
   selectPresetAvatar(url: string): void {
@@ -645,12 +647,12 @@ export class UserInfoComponent implements OnInit {
         this.saving = false;
         this.userInfo = res;
         this.aliasDraft = res.alias || '';
-        this.snackBar.open('Profilo aggiornato con successo!', 'OK', { duration: 4000 });
+        this.notificationService.showSuccessMessage('Profilo aggiornato con successo!');
       },
       error: (err) => {
         this.saving = false;
         console.error('Error updating profile:', err);
-        this.snackBar.open(err?.error?.error || 'Errore nel salvataggio del profilo', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.error || 'Errore nel salvataggio del profilo');
       }
     });
   }

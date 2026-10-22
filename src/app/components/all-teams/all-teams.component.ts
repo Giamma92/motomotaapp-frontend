@@ -12,7 +12,6 @@ import { ChampionshipService } from '../../services/championship.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { RaceDetailService, RaceDetails, LineupsResult } from '../../services/race-detail.service';
 import { LineupModalComponent } from '../bets/lineup-modal/lineup-modal.component';
-import { NavigationService } from '../../services/navigation.service';
 import { MotoGPAssetService } from '../../services/motogp-asset.service';
 
 interface StatTile {
@@ -55,9 +54,6 @@ interface TeamView {
   template: `
     <div class="page-container">
       <header class="header">
-        <button mat-icon-button class="app-back-arrow" (click)="goBack()" aria-label="Back">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
         <h1>{{ 'teams.title' | t }}</h1>
       </header>
 
@@ -250,7 +246,6 @@ export class AllTeamsComponent implements OnInit {
     private raceDetailService: RaceDetailService,
     private dialog: MatDialog,
     private router: Router,
-    private navService: NavigationService,
     public assetService: MotoGPAssetService
   ) {}
 
@@ -614,7 +609,4 @@ export class AllTeamsComponent implements OnInit {
     return this.ridersRaceCount.get(this.getTeamRiderKey(team, riderId)) ?? 0;
   }
 
-  goBack(): void {
-    this.navService.back('/');
-  }
 }

@@ -11,7 +11,6 @@ import { DashboardService, StandingsBreakdownRow, StandingsRow, ChampionshipRide
 import { MotoGPStoredResult } from '../../services/race-detail.service';
 import { MotoGPAssetService } from '../../services/motogp-asset.service';
 import { ThemeService } from '../../services/theme.service';
-import { NavigationService } from '../../services/navigation.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
 export interface MotoGPRiderStanding {
@@ -163,7 +162,6 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
     private authService: AuthService,
     private championshipService: ChampionshipService,
     private dashboardService: DashboardService,
-    private navService: NavigationService,
     private ngZone: NgZone,
     public assetService: MotoGPAssetService,
     public theme: ThemeService
@@ -320,9 +318,6 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
     this.invalidate();
   }
 
-  goBack(): void {
-    this.navService.back('/');
-  }
 
   progressPct(score: number, leaderScore: number): number {
     if (!Number.isFinite(score) || !Number.isFinite(leaderScore) || score <= 0 || leaderScore <= 0) {

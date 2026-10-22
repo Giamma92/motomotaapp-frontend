@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationServiceService } from '../../../services/notification.service';
 import { AdminService, AdminRider, AdminConstructor, AdminChampionshipRider } from '../../../services/admin.service';
 import { ThemeService } from '../../../services/theme.service';
 
@@ -498,7 +499,8 @@ export class RidersAdminComponent implements OnInit, OnChanges {
   constructor(
     private adminService: AdminService,
     public theme: ThemeService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private notificationService: NotificationServiceService
   ) {}
 
   ngOnInit(): void {
@@ -563,13 +565,13 @@ export class RidersAdminComponent implements OnInit, OnChanges {
         this.savingGrid = false;
         this.newGridRiderId = null;
         this.newGridConstructorId = null;
-        this.snackBar.open('Pilota aggiunto alla griglia del campionato!', 'OK', { duration: 3000 });
+        this.notificationService.showSuccessMessage('Pilota aggiunto alla griglia del campionato!');
         this.loadData();
       },
       error: (err) => {
         this.savingGrid = false;
         console.error('Error assigning rider:', err);
-        this.snackBar.open(err?.error?.message || 'Errore associazione pilota', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore associazione pilota');
       }
     });
   }
@@ -580,12 +582,12 @@ export class RidersAdminComponent implements OnInit, OnChanges {
 
     this.adminService.removeRiderFromChampionship(this.championshipId, g.id).subscribe({
       next: () => {
-        this.snackBar.open('Pilota rimosso dalla griglia!', 'OK', { duration: 3000 });
+        this.notificationService.showSuccessMessage('Pilota rimosso dalla griglia!');
         this.loadData();
       },
       error: (err) => {
         console.error('Error removing rider from grid:', err);
-        this.snackBar.open(err?.error?.message || 'Errore rimozione', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore rimozione');
       }
     });
   }
@@ -618,13 +620,13 @@ export class RidersAdminComponent implements OnInit, OnChanges {
         next: () => {
           this.savingRider = false;
           this.cancelRiderEdit();
-          this.snackBar.open('Pilota aggiornato!', 'OK', { duration: 3000 });
+          this.notificationService.showSuccessMessage('Pilota aggiornato!');
           this.loadData();
         },
         error: (err) => {
           this.savingRider = false;
           console.error('Error updating rider:', err);
-          this.snackBar.open(err?.error?.message || 'Errore aggiornamento pilota', 'Chiudi', { duration: 4000 });
+          this.notificationService.showErrorMessage(err?.error?.message || 'Errore aggiornamento pilota');
         }
       });
     } else {
@@ -636,13 +638,13 @@ export class RidersAdminComponent implements OnInit, OnChanges {
         next: () => {
           this.savingRider = false;
           this.cancelRiderEdit();
-          this.snackBar.open('Pilota creato con successo!', 'OK', { duration: 3000 });
+          this.notificationService.showSuccessMessage('Pilota creato con successo!');
           this.loadData();
         },
         error: (err) => {
           this.savingRider = false;
           console.error('Error creating rider:', err);
-          this.snackBar.open(err?.error?.message || 'Errore creazione pilota', 'Chiudi', { duration: 4000 });
+          this.notificationService.showErrorMessage(err?.error?.message || 'Errore creazione pilota');
         }
       });
     }
@@ -654,12 +656,12 @@ export class RidersAdminComponent implements OnInit, OnChanges {
 
     this.adminService.deleteRider(r.id!).subscribe({
       next: () => {
-        this.snackBar.open('Pilota eliminato!', 'OK', { duration: 3000 });
+        this.notificationService.showSuccessMessage('Pilota eliminato!');
         this.loadData();
       },
       error: (err) => {
         console.error('Error deleting rider:', err);
-        this.snackBar.open(err?.error?.message || 'Errore eliminazione pilota (potrebbe essere assegnato a gare o rose)', 'Chiudi', { duration: 5000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore eliminazione pilota (potrebbe essere assegnato a gare o rose)');
       }
     });
   }
@@ -690,13 +692,13 @@ export class RidersAdminComponent implements OnInit, OnChanges {
         next: () => {
           this.savingConstructor = false;
           this.cancelConstructorEdit();
-          this.snackBar.open('Scuderia aggiornata!', 'OK', { duration: 3000 });
+          this.notificationService.showSuccessMessage('Scuderia aggiornata!');
           this.loadData();
         },
         error: (err) => {
           this.savingConstructor = false;
           console.error('Error updating constructor:', err);
-          this.snackBar.open(err?.error?.message || 'Errore aggiornamento scuderia', 'Chiudi', { duration: 4000 });
+          this.notificationService.showErrorMessage(err?.error?.message || 'Errore aggiornamento scuderia');
         }
       });
     } else {
@@ -707,13 +709,13 @@ export class RidersAdminComponent implements OnInit, OnChanges {
         next: () => {
           this.savingConstructor = false;
           this.cancelConstructorEdit();
-          this.snackBar.open('Scuderia creata!', 'OK', { duration: 3000 });
+          this.notificationService.showSuccessMessage('Scuderia creata!');
           this.loadData();
         },
         error: (err) => {
           this.savingConstructor = false;
           console.error('Error creating constructor:', err);
-          this.snackBar.open(err?.error?.message || 'Errore creazione scuderia', 'Chiudi', { duration: 4000 });
+          this.notificationService.showErrorMessage(err?.error?.message || 'Errore creazione scuderia');
         }
       });
     }
@@ -725,12 +727,12 @@ export class RidersAdminComponent implements OnInit, OnChanges {
 
     this.adminService.deleteConstructor(c.id!).subscribe({
       next: () => {
-        this.snackBar.open('Scuderia eliminata!', 'OK', { duration: 3000 });
+        this.notificationService.showSuccessMessage('Scuderia eliminata!');
         this.loadData();
       },
       error: (err) => {
         console.error('Error deleting constructor:', err);
-        this.snackBar.open(err?.error?.message || 'Errore eliminazione scuderia', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore eliminazione scuderia');
       }
     });
   }

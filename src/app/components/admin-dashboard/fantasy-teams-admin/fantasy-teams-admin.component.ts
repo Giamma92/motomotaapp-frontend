@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationServiceService } from '../../../services/notification.service';
 import { AdminService, AdminFantasyTeam, AdminUser, AdminChampionshipRider } from '../../../services/admin.service';
 import { ThemeService } from '../../../services/theme.service';
 
@@ -307,7 +308,8 @@ export class FantasyTeamsAdminComponent implements OnInit, OnChanges {
   constructor(
     private adminService: AdminService,
     public theme: ThemeService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private notificationService: NotificationServiceService
   ) {}
 
   ngOnInit(): void {
@@ -332,7 +334,7 @@ export class FantasyTeamsAdminComponent implements OnInit, OnChanges {
       error: (err) => {
         this.loading = false;
         console.error('Error fetching fantasy teams:', err);
-        this.snackBar.open('Errore nel caricamento delle squadre', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage('Errore nel caricamento delle squadre');
       }
     });
 
@@ -423,13 +425,13 @@ export class FantasyTeamsAdminComponent implements OnInit, OnChanges {
         next: () => {
           this.saving = false;
           this.showForm = false;
-          this.snackBar.open('Squadra aggiornata con successo!', 'OK', { duration: 3000 });
+          this.notificationService.showSuccessMessage('Squadra aggiornata con successo!');
           this.loadData();
         },
         error: (err) => {
           this.saving = false;
           console.error('Error updating team:', err);
-          this.snackBar.open(err?.error?.message || 'Errore aggiornamento squadra', 'Chiudi', { duration: 4000 });
+          this.notificationService.showErrorMessage(err?.error?.message || 'Errore aggiornamento squadra');
         }
       });
     } else {
@@ -437,13 +439,13 @@ export class FantasyTeamsAdminComponent implements OnInit, OnChanges {
         next: () => {
           this.saving = false;
           this.showForm = false;
-          this.snackBar.open('Squadra creata con successo!', 'OK', { duration: 3000 });
+          this.notificationService.showSuccessMessage('Squadra creata con successo!');
           this.loadData();
         },
         error: (err) => {
           this.saving = false;
           console.error('Error creating team:', err);
-          this.snackBar.open(err?.error?.message || 'Errore creazione squadra', 'Chiudi', { duration: 4000 });
+          this.notificationService.showErrorMessage(err?.error?.message || 'Errore creazione squadra');
         }
       });
     }
@@ -455,12 +457,12 @@ export class FantasyTeamsAdminComponent implements OnInit, OnChanges {
 
     this.adminService.deleteFantasyTeam(this.championshipId, team.id!).subscribe({
       next: () => {
-        this.snackBar.open('Squadra eliminata con successo!', 'OK', { duration: 3000 });
+        this.notificationService.showSuccessMessage('Squadra eliminata con successo!');
         this.loadData();
       },
       error: (err) => {
         console.error('Error deleting team:', err);
-        this.snackBar.open(err?.error?.message || 'Errore eliminazione squadra', 'Chiudi', { duration: 4000 });
+        this.notificationService.showErrorMessage(err?.error?.message || 'Errore eliminazione squadra');
       }
     });
   }
