@@ -3,7 +3,7 @@
   min-height: 100vh;
   background: var(--background-dark);
   color: var(--text-primary);
-  padding: var(--content-offset-top) clamp(12px, 2.8vw, 28px) clamp(18px, 4vw, 36px);
+  padding: var(--content-offset-top) clamp(12px, 2.8vw, 28px) calc(var(--app-bottom-nav-height, 68px) + 36px);
 }
 
 /* ─── Header (canonical — shared by every page) ───
@@ -116,10 +116,8 @@
 @media (max-width: 820px) {
   .page-container,
   .dashboard-container,
-  .page-shell,
-  .main-content,
-  .content {
-    padding-bottom: calc(var(--app-bottom-nav-height, 64px) + env(safe-area-inset-bottom, 24px) + 36px) !important;
+  .page-shell {
+    padding-bottom: calc(var(--app-bottom-nav-height, 68px) + env(safe-area-inset-bottom, 24px) + 36px) !important;
   }
 
   /* Light theme floating navigation pill */

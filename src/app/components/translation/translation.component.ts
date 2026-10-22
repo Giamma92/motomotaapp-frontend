@@ -189,7 +189,26 @@ interface TranslationValue {
       background:
         radial-gradient(circle at 8% -20%, rgba(200, 16, 46, 0.16), transparent 42%),
         var(--background-dark, #0e1015);
-      padding: var(--content-offset-top) 20px 20px;
+      padding: var(--content-offset-top) 20px calc(var(--app-bottom-nav-height, 68px) + 36px);
+    }
+
+    @media (max-width: 820px) {
+      .translation-container {
+        padding-left: 12px;
+        padding-right: 12px;
+        padding-bottom: calc(var(--app-bottom-nav-height, 68px) + env(safe-area-inset-bottom, 24px) + 36px);
+      }
+      .form-row,
+      .translations-row {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+      }
+      .actions {
+        flex-direction: column-reverse;
+      }
+      .actions button {
+        width: 100%;
+      }
     }
 
     /* Header: canonical styles live in styles/_layout.scss */

@@ -8,7 +8,13 @@
 .settings-main {
   width: min(100%, 760px);
   margin: 0 auto;
-  padding: var(--content-offset-top) 16px 24px;
+  padding: var(--content-offset-top) 16px calc(var(--app-bottom-nav-height, 68px) + 36px);
+}
+
+@media (max-width: 820px) {
+  .settings-main {
+    padding-bottom: calc(var(--app-bottom-nav-height, 68px) + env(safe-area-inset-bottom, 24px) + 36px);
+  }
 }
 
 .settings-panel {

@@ -56,8 +56,13 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
     </mat-dialog-actions>
   `,
   styles: `
+    mat-dialog-content {
+      overflow-x: auto;
+      max-width: 100%;
+    }
     table {
       width: 100%;
+      min-width: 320px;
       margin: 0.5rem 0;
     }
     .close-button {

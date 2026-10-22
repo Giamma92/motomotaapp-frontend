@@ -28,7 +28,7 @@
   width: 100%;
   max-width: 1240px;
   margin: 0 auto;
-  padding: var(--content-offset-top) clamp(10px, 2.5vw, 22px) 18px;
+  padding: var(--content-offset-top) clamp(10px, 2.5vw, 22px) calc(var(--app-bottom-nav-height, 68px) + 36px);
   display: grid;
   /* minmax(0, 1fr): implicit `auto` tracks can be inflated by intrinsic
      widths (long names, SVG, tables) and push the page past the viewport */
@@ -1120,7 +1120,7 @@ button:focus-visible {
 
 @media (max-width: 820px) {
   .main-content {
-    padding: var(--content-offset-top) 10px calc(var(--app-bottom-nav-height, 64px) + 28px);
+    padding: var(--content-offset-top) 10px calc(var(--app-bottom-nav-height, 68px) + env(safe-area-inset-bottom, 24px) + 36px);
     gap: 12px;
   }
 

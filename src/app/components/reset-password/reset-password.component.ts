@@ -80,7 +80,7 @@ import { NavigationService } from '../../services/navigation.service';
     .reset-main {
       width: min(100%, 560px);
       margin: 0 auto;
-      padding: var(--content-offset-top) 10px 12px;
+      padding: var(--content-offset-top) 10px calc(var(--app-bottom-nav-height, 68px) + env(safe-area-inset-bottom, 24px) + 36px);
     }
 
     .reset-panel {

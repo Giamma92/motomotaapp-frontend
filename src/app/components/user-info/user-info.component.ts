@@ -24,7 +24,7 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
     LocalizedDatePipe
   ],
   template: `
-    <div class="min-h-screen pb-24 font-sans select-none transition-colors duration-200"
+    <div class="min-h-screen pb-36 sm:pb-32 font-sans select-none transition-colors duration-200"
          [ngClass]="theme.mode() === 'light' ? 'bg-[#f4f5f8] text-zinc-900' : 'bg-[#0a0c13] text-white'">
 
       <!-- Header Superiore -->
