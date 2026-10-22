@@ -138,7 +138,7 @@
                     </div>
                     <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-300 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-white">#2</span>
                   </div>
-                  <strong class="text-xs sm:text-sm font-black truncate max-w-full text-zinc-200" [class.text-zinc-800]="theme.mode() === 'light'">
+                  <strong class="text-xs sm:text-sm font-black line-clamp-2 leading-tight text-center px-0.5 break-words max-w-full text-zinc-200" [class.text-zinc-800]="theme.mode() === 'light'">
                     {{ getUserDisplayName(r2) }}
                   </strong>
                   <span class="text-[10px] text-zinc-400 truncate max-w-full font-medium" [class.text-zinc-500]="theme.mode() === 'light'">2° Posto</span>
@@ -164,7 +164,7 @@
                     </div>
                     <span class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full shadow-lg border border-amber-200">#1</span>
                   </div>
-                  <strong class="text-sm sm:text-base font-black truncate max-w-full text-amber-400" [class.text-amber-600]="theme.mode() === 'light'">
+                  <strong class="text-sm sm:text-base font-black line-clamp-2 leading-tight text-center px-0.5 break-words max-w-full text-amber-400" [class.text-amber-600]="theme.mode() === 'light'">
                     {{ getUserDisplayName(r1) }}
                   </strong>
                   <span class="text-[11px] text-zinc-400 truncate max-w-full font-medium" [class.text-zinc-500]="theme.mode() === 'light'">Leader Campionato</span>
@@ -187,7 +187,7 @@
                     </div>
                     <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-600 text-amber-100 text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-amber-400">#3</span>
                   </div>
-                  <strong class="text-xs sm:text-sm font-black truncate max-w-full text-zinc-200" [class.text-zinc-800]="theme.mode() === 'light'">
+                  <strong class="text-xs sm:text-sm font-black line-clamp-2 leading-tight text-center px-0.5 break-words max-w-full text-zinc-200" [class.text-zinc-800]="theme.mode() === 'light'">
                     {{ getUserDisplayName(r3) }}
                   </strong>
                   <span class="text-[10px] text-zinc-400 truncate max-w-full font-medium" [class.text-zinc-500]="theme.mode() === 'light'">3° Posto</span>
@@ -204,24 +204,23 @@
 
             <!-- Full Standings Table -->
             <div class="table-container rounded-2xl border overflow-hidden shadow-sm">
-              <table class="standings-table">
+              <table class="standings-table w-full">
                 <thead>
                   <tr>
-                    <th class="rank-col text-center" [attr.aria-label]="'dashboard.standings.rank' | t">
-                      <span class="th-full">{{ 'dashboard.standings.rank' | t }}</span>
-                      <span class="th-short">#</span>
+                    <th class="rank-col text-center" aria-label="Posizione">
+                      <span class="hidden sm:inline">POS</span>
+                      <span class="sm:hidden">#</span>
                     </th>
-                    <th class="user-col text-left" [attr.aria-label]="'dashboard.standings.user' | t">
-                      <span class="th-full">{{ 'dashboard.standings.user' | t }}</span>
-                      <span class="th-short">{{ 'dashboard.standings.userShort' | t }}</span>
+                    <th class="user-col text-left" aria-label="Utente">
+                      <span>UTENTE</span>
                     </th>
-                    <th class="score-col text-right" [attr.aria-label]="'dashboard.standings.score' | t">
-                      <span class="th-full">{{ 'dashboard.standings.score' | t }}</span>
-                      <span class="th-short">PT</span>
+                    <th class="score-col text-right" aria-label="Punti">
+                      <span class="hidden sm:inline">PUNTI</span>
+                      <span class="sm:hidden">PT</span>
                     </th>
-                    <th class="gap-col text-right" [attr.aria-label]="'dashboard.standings.gap' | t">
-                      <span class="th-full">{{ 'dashboard.standings.gap' | t }}</span>
-                      <span class="th-short">GAP</span>
+                    <th class="gap-col text-right" aria-label="Distacco">
+                      <span class="hidden sm:inline">DISTACCO</span>
+                      <span class="sm:hidden">GAP</span>
                     </th>
                   </tr>
                 </thead>
@@ -243,13 +242,13 @@
                       </div>
                     </td>
                     <td class="user-col">
-                      <div class="user-info flex items-center gap-2.5 min-w-0">
-                        <div class="user-avatar-wrap relative flex-shrink-0">
-                          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl overflow-hidden flex items-center justify-center border shadow-sm"
+                      <div class="user-info flex items-center gap-2 min-w-0 w-full overflow-hidden">
+                        <div class="user-avatar-wrap flex-shrink-0">
+                          <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden flex items-center justify-center border shadow-sm"
                                [ngClass]="{
-                                 'border-amber-400/80 ring-2 ring-amber-400/20': i === 0,
-                                 'border-slate-300/80 ring-1 ring-slate-300/20': i === 1,
-                                 'border-amber-700/80 ring-1 ring-amber-700/20': i === 2,
+                                 'border-amber-400 ring-2 ring-amber-400/20': i === 0,
+                                 'border-slate-300 ring-1 ring-slate-300/20': i === 1,
+                                 'border-amber-700 ring-1 ring-amber-700/20': i === 2,
                                  'border-zinc-700/60 bg-zinc-800/80': i > 2 && theme.mode() === 'dark',
                                  'border-zinc-300 bg-zinc-100': i > 2 && theme.mode() === 'light'
                                }">
@@ -259,23 +258,24 @@
                                  class="w-full h-full object-cover">
                           </div>
                         </div>
-                        <div class="user-details flex items-center gap-1.5 min-w-0 flex-1">
-                          <span class="username font-bold text-xs sm:text-sm truncate text-zinc-100"
-                                [class.text-zinc-900]="theme.mode() === 'light'"
+                        <div class="user-details min-w-0 flex-1 flex items-center gap-1 overflow-hidden">
+                          <span class="username font-bold text-xs sm:text-sm truncate block"
+                                [class.text-zinc-100]="theme.mode() === 'dark' && i > 0"
+                                [class.text-zinc-900]="theme.mode() === 'light' && i > 0"
                                 [class.text-amber-400]="i === 0 && theme.mode() === 'dark'"
                                 [class.text-amber-600]="i === 0 && theme.mode() === 'light'">
                             {{ getUserDisplayName(row) }}
                           </span>
                           <span *ngIf="row.user_id.id === loggedUserId"
-                                class="badge-you text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 border border-red-500/30 flex-shrink-0 leading-none">
+                                class="badge-you text-[9px] font-black uppercase px-1 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 flex-shrink-0 leading-none">
                             TU
                           </span>
                         </div>
                       </div>
                     </td>
                     <td class="score-col text-right">
-                      <div class="score-display inline-flex items-baseline justify-end gap-1">
-                        <span class="score-value font-black text-sm sm:text-base tracking-tight"
+                      <div class="score-display inline-flex items-baseline justify-end gap-0.5">
+                        <span class="score-value font-black text-xs sm:text-sm tracking-tight"
                               [ngClass]="{
                                 'text-red-500': row.score < 0,
                                 'text-zinc-100': row.score >= 0 && theme.mode() === 'dark',
@@ -283,7 +283,7 @@
                               }">
                           {{ row.score | number:'1.0-0' }}
                         </span>
-                        <span class="score-unit text-[10px] font-bold uppercase text-zinc-400"
+                        <span class="score-unit text-[9px] font-bold uppercase text-zinc-400"
                               [class.text-zinc-500]="theme.mode() === 'light'">
                           pt
                         </span>
@@ -291,17 +291,17 @@
                     </td>
                     <td class="gap-col text-right">
                       <ng-container *ngIf="i === 0 || (classificationData[0] && row.score === classificationData[0].score)">
-                        <span class="gap-leader-badge inline-flex items-center justify-center text-[10px] sm:text-xs font-black uppercase px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-400 border border-amber-400/30 tracking-wide">
-                          {{ 'dashboard.standings.leader' | t }}
+                        <span class="gap-leader-badge inline-flex items-center justify-center text-[9px] sm:text-xs font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-400 border border-amber-400/30 whitespace-nowrap">
+                          LEADER
                         </span>
                       </ng-container>
                       <ng-container *ngIf="i > 0 && classificationData[0] && row.score < classificationData[0].score">
-                        <div class="gap-display inline-flex items-baseline justify-end gap-0.5">
+                        <div class="gap-display inline-flex items-baseline justify-end gap-0.5 whitespace-nowrap">
                           <span class="gap-value text-xs sm:text-sm font-bold text-zinc-400"
                                 [class.text-zinc-500]="theme.mode() === 'light'">
                             -{{ (classificationData[0].score - row.score) | number:'1.0-0' }}
                           </span>
-                          <span class="gap-unit text-[10px] text-zinc-500 font-medium">pt</span>
+                          <span class="gap-unit text-[9px] text-zinc-500 font-medium">pt</span>
                         </div>
                       </ng-container>
                     </td>

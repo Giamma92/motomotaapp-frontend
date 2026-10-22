@@ -4,6 +4,7 @@ import { InstallPromptComponent } from "./components/intall-prompt/install-promp
 import { UpdateNotificationComponent } from './components/update-notification/update-notification.component';
 import { AppBottomNavComponent } from './components/app-nav/app-bottom-nav.component';
 import { SessionTimerComponent } from './components/session-timer/session-timer.component';
+import { SplashScreenComponent } from './components/splash-screen/splash-screen.component';
 import { UpdateService } from './services/update.service';
 import { I18nService } from './services/i18n.service';
 import { timer } from 'rxjs';
@@ -12,8 +13,9 @@ import { switchMap } from 'rxjs/operators';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, InstallPromptComponent, UpdateNotificationComponent, AppBottomNavComponent, SessionTimerComponent],
+  imports: [RouterOutlet, InstallPromptComponent, UpdateNotificationComponent, AppBottomNavComponent, SessionTimerComponent, SplashScreenComponent],
   template: `
+    <app-splash-screen></app-splash-screen>
     <app-update-notification></app-update-notification>
     <app-session-timer></app-session-timer>
     <app-install-prompt></app-install-prompt>

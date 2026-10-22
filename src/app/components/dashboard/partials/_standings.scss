@@ -135,6 +135,8 @@
   /* ---- User column ---- */
   .user-col {
     width: auto;
+    overflow: hidden;
+    max-width: 0;
 
     .user-info {
       display: flex;
@@ -874,97 +876,115 @@ button i {
 
 /* ---- Responsive: max-width 768px ---- */
 @media (max-width: 768px) {
+  .standings-card mat-card-content {
+    padding: 0 !important;
+  }
+
   .standings-card .table-container,
   .table-container {
     overflow-x: hidden !important;
-  }
-
-  .standings-table th .th-full {
-    display: none !important;
-  }
-  .standings-table th .th-short {
-    display: inline-block !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   .standings-card .standings-table,
   .standings-table {
     table-layout: fixed !important;
     width: 100% !important;
+    max-width: 100% !important;
 
     .rank-col {
-      width: 40px !important;
-      padding: 8px 2px !important;
+      width: 36px !important;
+      padding: 7px 2px !important;
       text-align: center !important;
     }
 
     .user-col {
       width: auto !important;
-      padding: 8px 4px !important;
+      padding: 7px 4px !important;
       text-align: left !important;
+      overflow: hidden !important;
+      max-width: 0 !important;
 
       .user-info {
-        gap: 0.4rem;
+        gap: 0.35rem;
+        width: 100%;
+        overflow: hidden;
 
         .user-avatar-wrap {
-          width: 28px;
-          height: 28px;
+          width: 26px;
+          height: 26px;
+          flex-shrink: 0;
         }
 
-        .user-details .username {
-          font-size: 0.8rem;
+        .user-details {
+          min-width: 0 !important;
+          overflow: hidden !important;
+
+          .username {
+            font-size: 0.78rem;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+          }
         }
       }
     }
 
     .score-col {
-      width: 66px !important;
-      padding: 8px 3px !important;
+      width: 58px !important;
+      padding: 7px 2px !important;
       text-align: right !important;
+      white-space: nowrap !important;
 
       .score-display .score-value {
-        font-size: 0.92rem;
+        font-size: 0.88rem;
       }
 
       .score-display .score-unit {
-        font-size: 0.65rem;
+        font-size: 0.62rem;
       }
     }
 
     .gap-col {
-      width: 76px !important;
-      padding: 8px 6px 8px 2px !important;
+      width: 66px !important;
+      padding: 7px 6px 7px 2px !important;
       text-align: right !important;
+      white-space: nowrap !important;
 
       .gap-display .gap-value {
-        font-size: 0.82rem;
+        font-size: 0.78rem;
       }
 
       .gap-display .gap-unit {
-        font-size: 0.65rem;
+        font-size: 0.62rem;
       }
 
       .gap-leader-badge {
-        font-size: 0.62rem;
-        padding: 0.15rem 0.35rem;
+        font-size: 0.58rem;
+        padding: 0.12rem 0.35rem;
         letter-spacing: 0.3px;
+        white-space: nowrap;
       }
     }
 
     th {
-      padding: 8px 4px !important;
-      font-size: 0.7rem !important;
-      letter-spacing: 0.5px !important;
+      padding: 7px 3px !important;
+      font-size: 0.68rem !important;
+      letter-spacing: 0.4px !important;
     }
 
     td {
-      padding: 8px 4px !important;
+      padding: 7px 3px !important;
     }
 
     .pos-badge {
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       border-radius: 6px;
-      font-size: 0.68rem;
+      font-size: 0.65rem;
     }
   }
 
