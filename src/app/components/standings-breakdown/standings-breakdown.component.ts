@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -74,7 +74,7 @@ interface PlotScale {
 @Component({
   selector: 'app-standings-breakdown',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatCardModule, MatIconModule, TranslatePipe, PullToRefreshComponent],
+  imports: [CommonModule, FormsModule, RouterLink, MatButtonModule, MatCardModule, MatIconModule, TranslatePipe, PullToRefreshComponent],
   templateUrl: './standings-breakdown.component.html',
   styleUrl: './standings-breakdown.component.scss'
 })

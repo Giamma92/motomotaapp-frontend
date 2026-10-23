@@ -114,31 +114,44 @@
                  [class.border-zinc-800]="theme.mode() === 'dark'"
                  [class.bg-white]="theme.mode() === 'light'"
                  [class.border-zinc-200]="theme.mode() === 'light'">
-              <div class="flex items-center justify-between mb-4 px-1">
-                <div class="flex items-center gap-2">
-                  <i class="fa-solid fa-crown text-amber-400 text-sm"></i>
-                  <h3 class="text-sm font-black uppercase tracking-wider text-zinc-400 m-0"
+              <div class="flex items-center justify-between mb-4 px-1 gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <i class="fa-solid fa-crown text-amber-400 text-sm shrink-0"></i>
+                  <h3 class="text-sm font-black uppercase tracking-wider text-zinc-400 m-0 truncate"
                       [class.text-zinc-500]="theme.mode() === 'light'">Podio Campionato</h3>
                 </div>
-                <span class="text-xs text-zinc-500 font-medium">Top 3 Fanta</span>
+                <a
+                  routerLink="/trophies"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black no-underline transition active:scale-95 border cursor-pointer shrink-0 shadow-sm"
+                  [ngClass]="theme.mode() === 'light'
+                    ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 border-amber-500/30'
+                    : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border-amber-500/30'">
+                  <i class="fa-solid fa-trophy text-[11px]"></i>
+                  <span>Albo d'Oro</span>
+                  <i class="fa-solid fa-arrow-right text-[9px] opacity-70"></i>
+                </a>
               </div>
 
               <div class="motogp-podium-grid grid grid-cols-3 gap-2 sm:gap-4 items-end pt-2 pb-1">
 
                 <!-- 2nd Place (Silver) -->
                 <div class="podium-step step-p2 flex flex-col items-center text-center order-1" *ngIf="classificationData[1] as r2">
-                  <div class="relative mb-2">
-                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-b from-slate-200/20 to-slate-400/10 border-2 border-slate-300 shadow-md flex items-center justify-center">
-                      <img [src]="getUserAvatar(r2)"
-                           [alt]="getUserDisplayName(r2)"
-                           (error)="assetService.handleManagerError($event)"
-                           class="w-full h-full object-cover">
+                  <a [routerLink]="['/achievements', r2.user_id.id]"
+                     class="group flex flex-col items-center text-center no-underline cursor-pointer transition active:scale-95"
+                     title="Vedi bacheca manager">
+                    <div class="relative mb-2">
+                      <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-b from-slate-200/20 to-slate-400/10 border-2 border-slate-300 shadow-md flex items-center justify-center group-hover:ring-2 group-hover:ring-slate-300 transition-all">
+                        <img [src]="getUserAvatar(r2)"
+                             [alt]="getUserDisplayName(r2)"
+                             (error)="assetService.handleManagerError($event)"
+                             class="w-full h-full object-cover">
+                      </div>
+                      <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-300 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-white">#2</span>
                     </div>
-                    <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-300 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-white">#2</span>
-                  </div>
-                  <strong class="text-xs sm:text-sm font-black line-clamp-2 leading-tight text-center px-0.5 break-words max-w-full text-zinc-200" [class.text-zinc-800]="theme.mode() === 'light'">
-                    {{ getUserDisplayName(r2) }}
-                  </strong>
+                    <strong class="text-xs sm:text-sm font-black line-clamp-2 leading-tight text-center px-0.5 break-words max-w-full text-zinc-200 group-hover:underline" [class.text-zinc-800]="theme.mode() === 'light'">
+                      {{ getUserDisplayName(r2) }}
+                    </strong>
+                  </a>
                   <span class="text-[10px] text-zinc-400 truncate max-w-full font-medium" [class.text-zinc-500]="theme.mode() === 'light'">2° Posto</span>
                   <div class="mt-1.5 px-2 py-0.5 rounded-lg bg-slate-500/10 text-slate-300 text-xs font-black border border-slate-500/20"
                        [class.bg-slate-100]="theme.mode() === 'light'"
@@ -153,18 +166,22 @@
                   <div class="text-amber-400 text-base mb-1 animate-bounce">
                     <i class="fa-solid fa-crown"></i>
                   </div>
-                  <div class="relative mb-2">
-                    <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-b from-amber-300/30 to-amber-500/10 border-2 border-amber-400 shadow-xl flex items-center justify-center ring-4 ring-amber-400/20">
-                      <img [src]="getUserAvatar(r1)"
-                           [alt]="getUserDisplayName(r1)"
-                           (error)="assetService.handleManagerError($event)"
-                           class="w-full h-full object-cover">
+                  <a [routerLink]="['/achievements', r1.user_id.id]"
+                     class="group flex flex-col items-center text-center no-underline cursor-pointer transition active:scale-95"
+                     title="Vedi bacheca manager">
+                    <div class="relative mb-2">
+                      <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-b from-amber-300/30 to-amber-500/10 border-2 border-amber-400 shadow-xl flex items-center justify-center ring-4 ring-amber-400/20 group-hover:ring-amber-400/50 transition-all">
+                        <img [src]="getUserAvatar(r1)"
+                             [alt]="getUserDisplayName(r1)"
+                             (error)="assetService.handleManagerError($event)"
+                             class="w-full h-full object-cover">
+                      </div>
+                      <span class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full shadow-lg border border-amber-200">#1</span>
                     </div>
-                    <span class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full shadow-lg border border-amber-200">#1</span>
-                  </div>
-                  <strong class="text-sm sm:text-base font-black line-clamp-2 leading-tight text-center px-0.5 break-words max-w-full text-amber-400" [class.text-amber-600]="theme.mode() === 'light'">
-                    {{ getUserDisplayName(r1) }}
-                  </strong>
+                    <strong class="text-sm sm:text-base font-black line-clamp-2 leading-tight text-center px-0.5 break-words max-w-full text-amber-400 group-hover:underline" [class.text-amber-600]="theme.mode() === 'light'">
+                      {{ getUserDisplayName(r1) }}
+                    </strong>
+                  </a>
                   <span class="text-[11px] text-zinc-400 truncate max-w-full font-medium" [class.text-zinc-500]="theme.mode() === 'light'">Leader Campionato</span>
                   <div class="mt-1.5 px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-400 text-sm font-black border border-amber-500/30"
                        [class.bg-amber-100/70]="theme.mode() === 'light'"
@@ -176,18 +193,22 @@
 
                 <!-- 3rd Place (Bronze) -->
                 <div class="podium-step step-p3 flex flex-col items-center text-center order-3" *ngIf="classificationData[2] as r3">
-                  <div class="relative mb-2">
-                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-b from-amber-700/20 to-amber-900/10 border-2 border-amber-600 shadow-md flex items-center justify-center">
-                      <img [src]="getUserAvatar(r3)"
-                           [alt]="getUserDisplayName(r3)"
-                           (error)="assetService.handleManagerError($event)"
-                           class="w-full h-full object-cover">
+                  <a [routerLink]="['/achievements', r3.user_id.id]"
+                     class="group flex flex-col items-center text-center no-underline cursor-pointer transition active:scale-95"
+                     title="Vedi bacheca manager">
+                    <div class="relative mb-2">
+                      <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-b from-amber-700/20 to-amber-900/10 border-2 border-amber-600 shadow-md flex items-center justify-center group-hover:ring-2 group-hover:ring-amber-500 transition-all">
+                        <img [src]="getUserAvatar(r3)"
+                             [alt]="getUserDisplayName(r3)"
+                             (error)="assetService.handleManagerError($event)"
+                             class="w-full h-full object-cover">
+                      </div>
+                      <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-600 text-amber-100 text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-amber-400">#3</span>
                     </div>
-                    <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-600 text-amber-100 text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-amber-400">#3</span>
-                  </div>
-                  <strong class="text-xs sm:text-sm font-black line-clamp-2 leading-tight text-center px-0.5 break-words max-w-full text-zinc-200" [class.text-zinc-800]="theme.mode() === 'light'">
-                    {{ getUserDisplayName(r3) }}
-                  </strong>
+                    <strong class="text-xs sm:text-sm font-black line-clamp-2 leading-tight text-center px-0.5 break-words max-w-full text-zinc-200 group-hover:underline" [class.text-zinc-800]="theme.mode() === 'light'">
+                      {{ getUserDisplayName(r3) }}
+                    </strong>
+                  </a>
                   <span class="text-[10px] text-zinc-400 truncate max-w-full font-medium" [class.text-zinc-500]="theme.mode() === 'light'">3° Posto</span>
                   <div class="mt-1.5 px-2 py-0.5 rounded-lg bg-amber-700/10 text-amber-500 text-xs font-black border border-amber-700/20"
                        [class.bg-amber-100/50]="theme.mode() === 'light'"
@@ -265,9 +286,11 @@
 
                     <!-- UTENTE (Avatar + Name + TU badge + Subtitle) -->
                     <td class="user-col">
-                      <div class="user-info flex items-center gap-2.5 sm:gap-3.5 min-w-0 w-full">
+                      <a [routerLink]="['/achievements', row.user_id.id]"
+                         class="user-info flex items-center gap-2.5 sm:gap-3.5 min-w-0 w-full no-underline cursor-pointer group"
+                         title="Vedi bacheca manager">
                         <div class="user-avatar-wrap relative flex-shrink-0">
-                          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden flex items-center justify-center border shadow-sm"
+                          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden flex items-center justify-center border shadow-sm transition-transform duration-150 group-hover:scale-105"
                                [ngClass]="{
                                  'border-amber-400 ring-2 ring-amber-400/20': i === 0,
                                  'border-slate-300 ring-1 ring-slate-300/20': i === 1,
@@ -295,7 +318,7 @@
                         </div>
                         <div class="user-details min-w-0 flex-1 flex flex-col justify-center">
                           <div class="user-headline flex items-center gap-1.5 flex-wrap">
-                            <span class="username font-bold text-xs sm:text-sm truncate block"
+                            <span class="username font-bold text-xs sm:text-sm truncate block group-hover:underline"
                                   [class.text-zinc-100]="theme.mode() === 'dark' && i > 0"
                                   [class.text-zinc-900]="theme.mode() === 'light' && i > 0"
                                   [class.text-amber-400]="i === 0 && theme.mode() === 'dark'"
@@ -317,7 +340,7 @@
                             <span *ngIf="i > 2 && getManagerStats(row) as st">In gara · {{ st.racesCount }} GP disputati</span>
                           </div>
                         </div>
-                      </div>
+                      </a>
                     </td>
 
                     <!-- ULTIMO GP (Desktop md+) -->

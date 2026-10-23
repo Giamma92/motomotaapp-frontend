@@ -111,20 +111,36 @@
           </div>
         </div>
 
-        <!-- Quick Link to Standings -->
-        <button
-          type="button"
-          (click)="goTo('standings-breakdown')"
-          class="w-full mt-3 py-2.5 px-3.5 rounded-xl flex items-center justify-between text-xs font-bold transition-all duration-200 border cursor-pointer select-none"
-          [ngClass]="theme.mode() === 'light'
-            ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border-black/[0.06]'
-            : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
-          <div class="flex items-center gap-2">
-            <i class="fa-solid fa-trophy text-amber-400 text-xs"></i>
-            <span>{{ 'dashboard.hero.viewStandings' | t }}</span>
-          </div>
-          <i class="fa-solid fa-arrow-right text-[10px] opacity-70"></i>
-        </button>
+        <!-- Quick Links: Standings & Personal Achievements -->
+        <div class="grid grid-cols-2 gap-2 mt-3">
+          <button
+            type="button"
+            (click)="goTo('standings-breakdown')"
+            class="py-2.5 px-3 rounded-xl flex items-center justify-between text-xs font-bold transition-all duration-200 border cursor-pointer select-none"
+            [ngClass]="theme.mode() === 'light'
+              ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border-black/[0.06]'
+              : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
+            <div class="flex items-center gap-1.5 truncate">
+              <i class="fa-solid fa-ranking-star text-amber-400 text-xs"></i>
+              <span class="truncate">{{ 'dashboard.hero.viewStandings' | t }}</span>
+            </div>
+            <i class="fa-solid fa-arrow-right text-[10px] opacity-70 shrink-0"></i>
+          </button>
+
+          <button
+            type="button"
+            (click)="goTo('achievements')"
+            class="py-2.5 px-3 rounded-xl flex items-center justify-between text-xs font-bold transition-all duration-200 border cursor-pointer select-none"
+            [ngClass]="theme.mode() === 'light'
+              ? 'bg-amber-500/10 hover:bg-amber-500/15 text-amber-700 border-amber-500/25'
+              : 'bg-amber-500/15 hover:bg-amber-500/20 text-amber-400 border-amber-500/30'">
+            <div class="flex items-center gap-1.5 truncate">
+              <i class="fa-solid fa-medal text-amber-500 text-xs"></i>
+              <span class="truncate">Mia Bacheca</span>
+            </div>
+            <i class="fa-solid fa-trophy text-[10px] opacity-70 shrink-0"></i>
+          </button>
+        </div>
       </section>
 
         <!-- ──────────────────────────────────────────────
