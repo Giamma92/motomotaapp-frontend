@@ -135,13 +135,39 @@ import { TrophyImageComponent } from '../trophies/trophy-image.component';
           <!-- ════ CARD 3: BADGES & SPECIALITÀ ════ -->
           <section class="rounded-3xl p-5 border relative overflow-hidden shadow-md"
                    [ngClass]="light() ? 'bg-white border-zinc-200' : 'bg-gradient-to-b from-[#141724] to-[#0f121e] border-white/10'">
-            <div class="flex items-center gap-2 mb-4">
-              <i class="fa-solid fa-shapes text-amber-500"></i>
-              <h3 class="text-sm font-black uppercase tracking-wider m-0">Specialità & Traguardi</h3>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-shapes text-amber-500"></i>
+                <h3 class="text-sm font-black uppercase tracking-wider m-0">Specialità & Traguardi</h3>
+              </div>
+
+              <!-- Switcher Tab: Stagione vs Carriera -->
+              <div class="inline-flex p-1 rounded-xl border self-start sm:self-auto"
+                   [ngClass]="light() ? 'bg-zinc-100 border-zinc-200' : 'bg-zinc-900 border-white/10'">
+                <button
+                  type="button"
+                  (click)="activeBadgeTab = 'season'"
+                  class="px-3 py-1 rounded-lg text-xs font-black transition cursor-pointer select-none"
+                  [ngClass]="activeBadgeTab === 'season'
+                    ? (light() ? 'bg-white text-zinc-900 shadow-sm' : 'bg-zinc-800 text-white shadow')
+                    : 'text-zinc-400 hover:text-zinc-200'">
+                  <i class="fa-solid fa-flag-checkered mr-1"></i> Stagione {{ data.currentYear || 2026 }}
+                </button>
+                <button
+                  type="button"
+                  (click)="activeBadgeTab = 'career'"
+                  class="px-3 py-1 rounded-lg text-xs font-black transition cursor-pointer select-none"
+                  [ngClass]="activeBadgeTab === 'career'
+                    ? (light() ? 'bg-white text-zinc-900 shadow-sm' : 'bg-zinc-800 text-white shadow')
+                    : 'text-zinc-400 hover:text-zinc-200'">
+                  <i class="fa-solid fa-globe mr-1"></i> Carriera Globale
+                </button>
+              </div>
             </div>
 
+            <!-- Griglia Badge -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <div *ngFor="let b of data.badges" class="p-3 rounded-2xl border flex items-center gap-3"
+              <div *ngFor="let b of currentBadges()" class="p-3 rounded-2xl border flex items-center gap-3"
                    [ngClass]="b.level > 0 ? (light() ? 'bg-zinc-50 border-zinc-200' : 'bg-white/5 border-white/10') : (light() ? 'bg-zinc-100/50 border-zinc-200/50 opacity-50' : 'bg-white/2 border-white/5 opacity-40')">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0 border"
                      [ngClass]="badgeIconClass(b.level)">
@@ -149,20 +175,20 @@ import { TrophyImageComponent } from '../trophies/trophy-image.component';
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center justify-between gap-1">
-                    <span class="text-xs font-black truncate">{{ badgeName(b.code) }}</span>
+                    <span class="text-xs font-black truncate">{{ b.name || badgeName(b.code) }}</span>
                     <span class="text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.2 rounded"
                           [ngClass]="badgeLevelClass(b.level)">
                       {{ badgeLevelName(b.level) }}
                     </span>
                   </div>
-                  <p class="text-[10.5px] opacity-60 m-0 leading-tight mt-0.5">{{ badgeDesc(b.code) }}</p>
-                  <!-- Progress bar -->
+                  <p class="text-[10.5px] opacity-60 m-0 leading-tight mt-0.5">{{ b.desc || badgeDesc(b.code) }}</p>
+                  <!-- Progress bar assoluta -->
                   <div class="mt-1.5 flex items-center gap-2">
                     <div class="flex-1 h-1 rounded-full overflow-hidden" [ngClass]="light() ? 'bg-zinc-200' : 'bg-white/10'">
                       <div class="h-full rounded-full transition-all" [ngClass]="badgeBarClass(b.level)"
                            [style.width.%]="badgeProgress(b)"></div>
                     </div>
-                    <span class="text-[9.5px] font-black opacity-70">{{ b.value }}{{ b.next ? '/' + b.next : '' }}</span>
+                    <span class="text-[9.5px] font-black opacity-70">{{ b.value }}{{ b.next ? '/' + b.next : (b.level === 3 ? ' (MAX)' : '') }}</span>
                   </div>
                 </div>
               </div>
@@ -254,6 +280,7 @@ export class AchievementsComponent implements OnInit {
   loading = true;
   error = false;
   targetUserId = 'me';
+  activeBadgeTab: 'season' | 'career' = 'season';
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
@@ -381,13 +408,19 @@ export class AchievementsComponent implements OnInit {
     return 'bg-zinc-500';
   }
 
+  currentBadges(): Badge[] {
+    if (!this.data) return [];
+    if (this.activeBadgeTab === 'season') {
+      return this.data.seasonBadges && this.data.seasonBadges.length ? this.data.seasonBadges : this.data.badges;
+    }
+    return this.data.careerBadges && this.data.careerBadges.length ? this.data.careerBadges : this.data.badges;
+  }
+
   badgeProgress(b: Badge): number {
-    if (b.level === 3 || !b.next) return 100;
-    const prev = b.level > 0 ? b.thresholds[b.level - 1] : 0;
-    const range = b.next - prev;
-    if (range <= 0) return 100;
-    const cur = Math.max(0, b.value - prev);
-    return Math.min(100, Math.round((cur / range) * 100));
+    if (b.level === 3) return 100;
+    const target = b.next || (b.thresholds && b.thresholds.length ? b.thresholds[b.thresholds.length - 1] : 1);
+    if (target <= 0) return 100;
+    return Math.min(100, Math.max(0, Math.round((b.value / target) * 100)));
   }
 
   posColor(pos: number): string {

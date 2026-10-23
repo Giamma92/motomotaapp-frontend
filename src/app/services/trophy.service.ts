@@ -79,18 +79,24 @@ export interface UserSeason {
 
 export interface Badge {
   code: string;
+  name?: string;
+  desc?: string;
   icon: string;
   value: number;
   level: number; // 0 = locked, 1 bronze, 2 silver, 3 gold
   thresholds: number[];
   next: number | null;
+  maxThreshold?: number;
 }
 
 export interface Achievements {
   user: TrophyUser;
+  currentYear?: number;
   counts: { gold: number; silver: number; bronze: number; specials: number };
   trophies: UserTrophy[];
   seasons: UserSeason[];
+  seasonBadges?: Badge[];
+  careerBadges?: Badge[];
   badges: Badge[];
   stats: {
     seasons: number;
