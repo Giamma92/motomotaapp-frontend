@@ -21,6 +21,9 @@ import { Subscription } from 'rxjs';
         <span class="notification-badge" *ngIf="unreadCount > 0">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
       </button>
 
+      <!-- Mobile Backdrop Overlay -->
+      <div class="notification-backdrop" *ngIf="isOpen" (click)="closeDropdown($event)"></div>
+
       <div class="notification-dropdown" *ngIf="isOpen" (click)="$event.stopPropagation()">
         <div class="dropdown-header">
           <span class="dropdown-title">Notifiche</span>
@@ -383,16 +386,31 @@ import { Subscription } from 'rxjs';
       color: #71717a;
     }
 
+    .notification-backdrop {
+      display: none;
+    }
+
     @media (max-width: 480px) {
+      .notification-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1050;
+      }
       .notification-dropdown {
         position: fixed;
-        top: var(--app-header-height, 56px);
-        left: 0;
-        right: 0;
-        width: 100%;
-        max-height: calc(100vh - var(--app-header-height, 56px));
-        border-radius: 0;
+        top: calc(env(safe-area-inset-top, 0px) + 16px);
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 60px);
+        border-radius: 24px;
         margin-top: 0;
+        z-index: 1060;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85);
       }
     }
   `]
@@ -453,6 +471,11 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     if (this.isOpen) {
       this.pushService.requestSubscription();
     }
+  }
+
+  closeDropdown(e?: Event): void {
+    e?.stopPropagation();
+    this.isOpen = false;
   }
 
   markAllRead(): void {

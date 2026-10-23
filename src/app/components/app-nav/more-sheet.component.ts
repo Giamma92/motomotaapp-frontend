@@ -8,11 +8,12 @@ import { DashboardService, CalendarRace } from '../../services/dashboard.service
 import { ChampionshipService, ChampionshipConfig } from '../../services/championship.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
+import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 
 @Component({
   selector: 'app-more-sheet',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, TranslatePipe],
+  imports: [CommonModule, RouterLink, RouterLinkActive, TranslatePipe, NotificationBellComponent],
   styleUrl: './more-sheet.component.scss',
   template: `
     @if (isOpen) {
@@ -80,13 +81,18 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
             </div>
           </a>
 
-          <button
-            type="button"
-            (click)="onClose()"
-            class="sheet-close-btn"
-            [attr.aria-label]="'more.close' | t">
-            <i class="fa-solid fa-xmark text-sm"></i>
-          </button>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <!-- Global Notifications Bell inside More Sheet -->
+            <app-notification-bell></app-notification-bell>
+
+            <button
+              type="button"
+              (click)="onClose()"
+              class="sheet-close-btn"
+              [attr.aria-label]="'more.close' | t">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+          </div>
         </div>
 
         <!-- Timer Scadenza Sessione con tasto Rinnova -->

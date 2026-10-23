@@ -48,19 +48,25 @@
             </div>
           </div>
 
-          <!-- Position Badge -->
-          <div
-            class="flex items-center gap-1.5 py-1 px-2.5 sm:py-1.5 sm:px-3 rounded-2xl border font-bold"
-            [ngClass]="currentUserPosition === 1
-              ? 'bg-amber-500/15 border-amber-500/30 text-amber-500'
-              : currentUserPosition === 2
-                ? (theme.mode() === 'light' ? 'bg-zinc-100 border-zinc-300 text-zinc-800' : 'bg-zinc-400/15 border-zinc-400/30 text-zinc-300')
-                : currentUserPosition === 3
-                  ? 'bg-amber-700/15 border-amber-700/30 text-amber-600'
-                  : (theme.mode() === 'light' ? 'bg-zinc-100 border-zinc-200 text-zinc-600' : 'bg-zinc-800/40 border-white/10 text-zinc-400')">
-            <i class="fa-solid text-xs sm:text-sm" [class.fa-crown]="currentUserPosition === 1" [class.fa-medal]="currentUserPosition && currentUserPosition > 1"></i>
-            <span class="text-sm sm:text-base font-black">#{{ currentUserPosition ?? '-' }}</span>
-            <span class="text-[9px] uppercase font-semibold tracking-wider opacity-75">{{ 'dashboard.hero.rankLabel' | t }}</span>
+          <!-- Actions & Position Badge -->
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <!-- Mobile Notification Bell in Hero Card -->
+            <app-notification-bell class="md:hidden"></app-notification-bell>
+
+            <!-- Position Badge -->
+            <div
+              class="flex items-center gap-1.5 py-1 px-2.5 sm:py-1.5 sm:px-3 rounded-2xl border font-bold"
+              [ngClass]="currentUserPosition === 1
+                ? 'bg-amber-500/15 border-amber-500/30 text-amber-500'
+                : currentUserPosition === 2
+                  ? (theme.mode() === 'light' ? 'bg-zinc-100 border-zinc-300 text-zinc-800' : 'bg-zinc-400/15 border-zinc-400/30 text-zinc-300')
+                  : currentUserPosition === 3
+                    ? 'bg-amber-700/15 border-amber-700/30 text-amber-600'
+                    : (theme.mode() === 'light' ? 'bg-zinc-100 border-zinc-200 text-zinc-600' : 'bg-zinc-800/40 border-white/10 text-zinc-400')">
+              <i class="fa-solid text-xs sm:text-sm" [class.fa-crown]="currentUserPosition === 1" [class.fa-medal]="currentUserPosition && currentUserPosition > 1"></i>
+              <span class="text-sm sm:text-base font-black">#{{ currentUserPosition ?? '-' }}</span>
+              <span class="text-[9px] uppercase font-semibold tracking-wider opacity-75">{{ 'dashboard.hero.rankLabel' | t }}</span>
+            </div>
           </div>
         </div>
 

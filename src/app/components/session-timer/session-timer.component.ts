@@ -11,7 +11,8 @@ import { HapticService } from '../../services/haptic.service';
   template: `
     @if (isVisible() && remainingSeconds() > 0) {
       <aside
-        class="fixed top-3 inset-x-3 max-w-md mx-auto z-[80] p-3 rounded-2xl shadow-2xl border backdrop-blur-xl animate-fade-in flex items-center justify-between gap-3 text-xs"
+        class="fixed inset-x-3 max-w-md mx-auto z-[80] p-3 rounded-2xl shadow-2xl border backdrop-blur-xl animate-fade-in flex items-center justify-between gap-3 text-xs"
+        [style.top]="'calc(env(safe-area-inset-top, 0px) + 12px)'"
         [ngClass]="theme.mode() === 'light'
           ? 'bg-amber-50/95 border-amber-200 text-amber-950'
           : 'bg-[#1e1710]/95 border-amber-500/30 text-amber-100'"

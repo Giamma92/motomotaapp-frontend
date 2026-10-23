@@ -169,7 +169,7 @@ details.cockpit-card {
 
 @media (max-width: 767px) {
   .grid-content {
-    padding-top: calc(var(--app-header-height, 60px) + 16px);
+    padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
     padding-inline: 12px;
     padding-bottom: calc(var(--app-bottom-nav-height, 68px) + env(safe-area-inset-bottom, 24px) + 36px) !important;
   }

@@ -29,7 +29,12 @@ router-outlet + * {
   padding: var(--content-offset-top) clamp(12px, 2.8vw, 28px) calc(var(--app-bottom-nav-height, 68px) + 36px);
 }
 
-/* ─── Header (canonical — shared by every page) ───
+/* Sub-pages containing a top back-arrow header need room under the 48px header */
+.page-container:has(.header) {
+  padding-top: calc(48px + env(safe-area-inset-top, 0px) + 14px) !important;
+}
+
+/* ─── Header (canonical — shared by sub-pages with back navigation) ───
    Page headers only provide their own markup:
    <header class="header">
      <button mat-icon-button class="app-back-arrow" …>…</button>
@@ -41,11 +46,12 @@ router-outlet + * {
   top: 0;
   left: 0;
   width: 100%;
-  height: var(--app-header-height);
+  height: 48px;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 clamp(8px, 2.5vw, 20px);
+  padding: env(safe-area-inset-top, 0px) clamp(8px, 2.5vw, 20px) 0;
+  box-sizing: content-box;
   background: var(--header-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -155,11 +161,19 @@ router-outlet + * {
     0 12px 32px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* ─── Responsive ─── */
-@media (min-width: 769px) {
-  /* Desktop: a touch more air under the fixed header.
-     Every page reads this through --content-offset-top. */
+/* ─── Responsive Layout Tokens ─── */
+@media (max-width: 767px) {
+  /* Mobile: Header-less native app experience on primary routes */
   :root {
+    --app-header-height: 0px;
+    --content-offset-top: calc(env(safe-area-inset-top, 0px) + 12px);
+  }
+}
+
+@media (min-width: 768px) {
+  /* Desktop: a touch more air under the fixed top-nav header. */
+  :root {
+    --app-header-height: 48px;
     --content-offset-top: calc(var(--app-header-height) + 18px);
   }
 }

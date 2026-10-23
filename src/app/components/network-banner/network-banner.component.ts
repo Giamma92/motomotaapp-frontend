@@ -33,7 +33,7 @@ import { NetworkStatusService } from '../../services/network-status.service';
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 6px 16px;
+      padding: calc(env(safe-area-inset-top, 0px) + 6px) 16px 6px;
       font-size: 12px;
       font-weight: 500;
       line-height: 1.3;

@@ -10,8 +10,8 @@
   height: 48px;
   z-index: 1000;
   pointer-events: auto;
-  padding: 0 12px;
-  display: flex;
+  padding: 0 20px;
+  display: none; /* Hidden on mobile (< 768px) for native app experience */
   align-items: center;
   justify-content: space-between;
   user-select: none;
@@ -36,8 +36,8 @@
     pointer-events: none;
   }
 
-  @media (min-width: 640px) {
-    padding: 0 20px;
+  @media (min-width: 768px) {
+    display: flex;
   }
 }
 

@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 import { HapticService } from '../../services/haptic.service';
 import { MoreMenuService } from '../../services/more-menu.service';
+import { InAppNotificationService } from '../../services/in-app-notification.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { MoreSheetComponent } from './more-sheet.component';
 
@@ -54,8 +55,11 @@ import { MoreSheetComponent } from './more-sheet.component';
             [class.active]="moreMenu.isOpen() || isMoreActive"
             [attr.aria-label]="'nav.more' | t">
 
-            <div class="nav-icon">
+            <div class="nav-icon relative">
               <i class="fa-solid fa-ellipsis"></i>
+              @if (unreadCount > 0) {
+                <span class="absolute top-0.5 right-1 w-2 h-2 rounded-full bg-red-600 ring-2 ring-zinc-950 animate-pulse"></span>
+              }
             </div>
 
             <span class="nav-label">
@@ -77,8 +81,10 @@ export class AppBottomNavComponent {
   public theme = inject(ThemeService);
   public haptic = inject(HapticService);
   public moreMenu = inject(MoreMenuService);
+  private notificationService = inject(InAppNotificationService);
 
   currentUrl = '/';
+  unreadCount = 0;
 
   mainNavItems = [
     { path: '/', labelKey: 'nav.home', icon: 'fa-solid fa-house' },
@@ -94,6 +100,10 @@ export class AppBottomNavComponent {
     ).subscribe(e => {
       this.currentUrl = e.urlAfterRedirects;
       this.moreMenu.close();
+    });
+
+    this.notificationService.unreadCount$.subscribe(count => {
+      this.unreadCount = count;
     });
   }
 
