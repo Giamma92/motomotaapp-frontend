@@ -13,6 +13,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   selector: 'app-more-sheet',
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive, TranslatePipe],
+  styleUrl: './more-sheet.component.scss',
   template: `
     @if (isOpen) {
       <!-- Backdrop sfocato -->
@@ -25,16 +26,13 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
       <!-- Container: mobile in basso (bottom-sheet), desktop centrato (modal dialog) -->
       <div class="fixed inset-0 z-[70] pointer-events-none flex flex-col justify-end md:justify-center md:items-center p-0 md:p-6">
         <div
-          class="sheet-modal pointer-events-auto w-full max-w-lg md:max-w-md rounded-t-[32px] md:rounded-[32px] p-5 pb-[max(2rem,env(safe-area-inset-bottom,2rem))] md:p-6 md:pb-6 max-h-[88vh] md:max-h-[84vh] overflow-y-auto font-sans shadow-[0_-16px_48px_rgba(0,0,0,0.6)] md:shadow-[0_24px_64px_rgba(0,0,0,0.7)] border-t md:border select-none"
+          class="sheet-modal pointer-events-auto w-full max-w-lg md:max-w-md rounded-t-[32px] md:rounded-[32px] p-5 pb-[max(2rem,env(safe-area-inset-bottom,2rem))] md:p-6 md:pb-6 max-h-[88vh] md:max-h-[84vh] overflow-y-auto font-sans select-none"
         [style.transform]="dragTranslateY > 0 ? 'translateY(' + dragTranslateY + 'px)' : ''"
         [style.transition]="isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)'"
         (touchstart)="onTouchStart($event)"
         (touchmove)="onTouchMove($event)"
         (touchend)="onTouchEnd($event)"
         (touchcancel)="onTouchCancel()"
-        [ngClass]="theme.mode() === 'light'
-          ? 'bg-white/90 backdrop-blur-2xl text-zinc-900 border-black/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_-16px_48px_rgba(0,0,0,0.12)]'
-          : 'bg-[#12151e]/85 backdrop-blur-2xl text-white border-white/15 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_-16px_48px_rgba(0,0,0,0.85)]'"
         role="dialog"
         aria-modal="true"
         [attr.aria-label]="'more.title' | t">
@@ -85,21 +83,14 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
           <button
             type="button"
             (click)="onClose()"
-            class="w-9 h-9 rounded-full flex items-center justify-center transition active:scale-90 cursor-pointer flex-shrink-0 border"
-            [ngClass]="theme.mode() === 'light'
-              ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-200 shadow-sm'
-              : 'bg-white/10 hover:bg-white/15 text-zinc-300 hover:text-white border-white/10 shadow-sm'"
+            class="sheet-close-btn"
             [attr.aria-label]="'more.close' | t">
-            <i class="fa-solid fa-xmark text-base"></i>
+            <i class="fa-solid fa-xmark text-sm"></i>
           </button>
         </div>
 
         <!-- Timer Scadenza Sessione con tasto Rinnova -->
-        <div
-          class="mb-4 px-3.5 py-2.5 rounded-2xl border flex items-center justify-between gap-3 text-xs"
-          [ngClass]="theme.mode() === 'light'
-            ? 'bg-zinc-50/80 border-zinc-200/80 text-zinc-800'
-            : 'bg-zinc-900/50 border-white/5 text-zinc-200'">
+        <div class="sheet-session-card">
           <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center flex-shrink-0">
               <i class="fa-solid fa-clock-rotate-left text-xs"></i>
@@ -118,10 +109,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
             type="button"
             (click)="onRenewSession()"
             [disabled]="sessionRenewing"
-            class="px-2.5 py-1 rounded-xl text-[11px] font-black transition-all active:scale-95 cursor-pointer disabled:opacity-50 flex-shrink-0"
-            [ngClass]="theme.mode() === 'light'
-              ? 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
-              : 'bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/20'">
+            class="sheet-renew-btn">
             {{ sessionRenewing ? ('more.session.renewing' | t) : ('more.session.renew' | t) }}
           </button>
         </div>
@@ -144,10 +132,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 
           <!-- Banner di stato sessione aperta se almeno una è attiva -->
           @if (canAnyShortcut && nextRace) {
-            <div class="mb-2 p-2 px-3 rounded-xl flex items-center justify-between border"
-                 [ngClass]="theme.mode() === 'light'
-                   ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                   : 'bg-emerald-500/15 border-emerald-500/25 text-emerald-400'">
+            <div class="sheet-open-banner">
               <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span class="text-[11px] font-bold">{{ 'more.shortcuts.windowOpen' | t }}</span>
@@ -164,10 +149,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               <a
                 [routerLink]="['/lineups', nextRace.id]"
                 (click)="onNavigate()"
-                class="p-2.5 rounded-2xl border flex flex-col justify-between gap-2.5 no-underline active:scale-95 transition-all shadow-md cursor-pointer"
-                [ngClass]="theme.mode() === 'light'
-                  ? 'bg-gradient-to-b from-red-500/15 to-red-500/5 border-red-500/30'
-                  : 'bg-gradient-to-b from-red-600/30 to-red-600/10 border-red-500/40'">
+                class="sheet-shortcut-card is-open">
                 <div class="flex items-center justify-between">
                   <div class="w-7 h-7 rounded-xl bg-red-600 text-white flex items-center justify-center text-xs shadow-sm shadow-red-600/40">
                     <i class="fa-solid fa-list-check"></i>
@@ -191,9 +173,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                 </div>
               </a>
             } @else {
-              <div
-                class="p-2.5 rounded-2xl border flex flex-col justify-between gap-2.5 select-none opacity-60 cursor-not-allowed"
-                [ngClass]="theme.mode() === 'light' ? 'bg-zinc-100 border-zinc-200/80' : 'bg-zinc-900/40 border-white/5'">
+              <div class="sheet-shortcut-card disabled">
                 <div class="flex items-center justify-between">
                   <div class="w-7 h-7 rounded-xl flex items-center justify-center text-xs"
                        [ngClass]="theme.mode() === 'light' ? 'bg-zinc-200 text-zinc-500' : 'bg-zinc-800 text-zinc-500'">
@@ -216,10 +196,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               <a
                 [routerLink]="['/sprint-bet', nextRace.id]"
                 (click)="onNavigate()"
-                class="p-2.5 rounded-2xl border flex flex-col justify-between gap-2.5 no-underline active:scale-95 transition-all shadow-md cursor-pointer"
-                [ngClass]="theme.mode() === 'light'
-                  ? 'bg-gradient-to-b from-amber-500/20 to-amber-500/5 border-amber-500/35'
-                  : 'bg-gradient-to-b from-amber-500/30 to-amber-500/10 border-amber-500/40'">
+                class="sheet-shortcut-card is-open">
                 <div class="flex items-center justify-between">
                   <div class="w-7 h-7 rounded-xl bg-amber-500 text-zinc-950 flex items-center justify-center text-xs shadow-sm shadow-amber-500/40">
                     <i class="fa-solid fa-bolt"></i>
@@ -243,9 +220,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                 </div>
               </a>
             } @else {
-              <div
-                class="p-2.5 rounded-2xl border flex flex-col justify-between gap-2.5 select-none opacity-60 cursor-not-allowed"
-                [ngClass]="theme.mode() === 'light' ? 'bg-zinc-100 border-zinc-200/80' : 'bg-zinc-900/40 border-white/5'">
+              <div class="sheet-shortcut-card disabled">
                 <div class="flex items-center justify-between">
                   <div class="w-7 h-7 rounded-xl flex items-center justify-center text-xs"
                        [ngClass]="theme.mode() === 'light' ? 'bg-zinc-200 text-zinc-500' : 'bg-zinc-800 text-zinc-500'">
@@ -268,10 +243,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               <a
                 [routerLink]="['/race-bet', nextRace.id]"
                 (click)="onNavigate()"
-                class="p-2.5 rounded-2xl border flex flex-col justify-between gap-2.5 no-underline active:scale-95 transition-all shadow-md cursor-pointer"
-                [ngClass]="theme.mode() === 'light'
-                  ? 'bg-gradient-to-b from-purple-500/20 to-purple-500/5 border-purple-500/35'
-                  : 'bg-gradient-to-b from-purple-500/30 to-purple-500/10 border-purple-500/40'">
+                class="sheet-shortcut-card is-open">
                 <div class="flex items-center justify-between">
                   <div class="w-7 h-7 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xs shadow-sm shadow-purple-600/40">
                     <i class="fa-solid fa-trophy"></i>
@@ -295,9 +267,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                 </div>
               </a>
             } @else {
-              <div
-                class="p-2.5 rounded-2xl border flex flex-col justify-between gap-2.5 select-none opacity-60 cursor-not-allowed"
-                [ngClass]="theme.mode() === 'light' ? 'bg-zinc-100 border-zinc-200/80' : 'bg-zinc-900/40 border-white/5'">
+              <div class="sheet-shortcut-card disabled">
                 <div class="flex items-center justify-between">
                   <div class="w-7 h-7 rounded-xl flex items-center justify-center text-xs"
                        [ngClass]="theme.mode() === 'light' ? 'bg-zinc-200 text-zinc-500' : 'bg-zinc-800 text-zinc-500'">
@@ -321,10 +291,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
             *ngIf="nextRace"
             [routerLink]="['/race-detail', nextRace.id]"
             (click)="onNavigate()"
-            class="w-full mt-2 py-2 px-3 rounded-xl border flex items-center justify-between text-xs font-bold transition-all duration-150 active:scale-[0.99] cursor-pointer no-underline"
-            [ngClass]="theme.mode() === 'light'
-              ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border-zinc-200'
-              : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
+            class="sheet-racehub-btn">
             <div class="flex items-center gap-2">
               <i class="fa-regular fa-calendar-days text-red-500"></i>
               <span>{{ 'more.shortcuts.viewRaceHub' | t }}</span>
@@ -348,10 +315,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               routerLink="/trophies"
               routerLinkActive="ring-2 ring-amber-500/50"
               (click)="onNavigate()"
-              class="group p-3 rounded-2xl border transition-all duration-150 active:scale-98 flex flex-col justify-between gap-2.5 no-underline select-none cursor-pointer"
-              [ngClass]="theme.mode() === 'light'
-                ? 'bg-zinc-50 border-zinc-200/80 hover:bg-zinc-100/70 text-zinc-900 shadow-sm'
-                : 'bg-zinc-900/60 border-white/5 hover:bg-zinc-800/80 text-white shadow-sm'">
+              class="sheet-nav-tile group">
               <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-sm">
                 <i class="fa-solid fa-trophy"></i>
               </div>
@@ -366,10 +330,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               routerLink="/achievements"
               routerLinkActive="ring-2 ring-amber-500/50"
               (click)="onNavigate()"
-              class="group p-3 rounded-2xl border transition-all duration-150 active:scale-98 flex flex-col justify-between gap-2.5 no-underline select-none cursor-pointer"
-              [ngClass]="theme.mode() === 'light'
-                ? 'bg-zinc-50 border-zinc-200/80 hover:bg-zinc-100/70 text-zinc-900 shadow-sm'
-                : 'bg-zinc-900/60 border-white/5 hover:bg-zinc-800/80 text-white shadow-sm'">
+              class="sheet-nav-tile group">
               <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-sm">
                 <i class="fa-solid fa-medal"></i>
               </div>
@@ -384,10 +345,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               routerLink="/profile"
               routerLinkActive="ring-2 ring-red-500/50"
               (click)="onNavigate()"
-              class="group p-3 rounded-2xl border transition-all duration-150 active:scale-98 flex flex-col justify-between gap-2.5 no-underline select-none cursor-pointer"
-              [ngClass]="theme.mode() === 'light'
-                ? 'bg-zinc-50 border-zinc-200/80 hover:bg-zinc-100/70 text-zinc-900 shadow-sm'
-                : 'bg-zinc-900/60 border-white/5 hover:bg-zinc-800/80 text-white shadow-sm'">
+              class="sheet-nav-tile group">
               <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-500 flex items-center justify-center text-sm">
                 <i class="fa-solid fa-user"></i>
               </div>
@@ -402,10 +360,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               routerLink="/settings"
               routerLinkActive="ring-2 ring-red-500/50"
               (click)="onNavigate()"
-              class="group p-3 rounded-2xl border transition-all duration-150 active:scale-98 flex flex-col justify-between gap-2.5 no-underline select-none cursor-pointer"
-              [ngClass]="theme.mode() === 'light'
-                ? 'bg-zinc-50 border-zinc-200/80 hover:bg-zinc-100/70 text-zinc-900 shadow-sm'
-                : 'bg-zinc-900/60 border-white/5 hover:bg-zinc-800/80 text-white shadow-sm'">
+              class="sheet-nav-tile group">
               <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-sm">
                 <i class="fa-solid fa-gear"></i>
               </div>
@@ -420,10 +375,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               routerLink="/standings-breakdown"
               [queryParams]="{ tab: 'breakdown' }"
               (click)="onNavigate()"
-              class="group p-3 rounded-2xl border transition-all duration-150 active:scale-98 flex flex-col justify-between gap-2.5 no-underline select-none cursor-pointer"
-              [ngClass]="theme.mode() === 'light'
-                ? 'bg-zinc-50 border-zinc-200/80 hover:bg-zinc-100/70 text-zinc-900 shadow-sm'
-                : 'bg-zinc-900/60 border-white/5 hover:bg-zinc-800/80 text-white shadow-sm'">
+              class="sheet-nav-tile group">
               <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-sm">
                 <i class="fa-solid fa-chart-line"></i>
               </div>
@@ -438,10 +390,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
               routerLink="/motogp-results"
               routerLinkActive="ring-2 ring-red-500/50"
               (click)="onNavigate()"
-              class="group p-3 rounded-2xl border transition-all duration-150 active:scale-98 flex flex-col justify-between gap-2.5 no-underline select-none cursor-pointer"
-              [ngClass]="theme.mode() === 'light'
-                ? 'bg-zinc-50 border-zinc-200/80 hover:bg-zinc-100/70 text-zinc-900 shadow-sm'
-                : 'bg-zinc-900/60 border-white/5 hover:bg-zinc-800/80 text-white shadow-sm'">
+              class="sheet-nav-tile group">
               <div class="w-8 h-8 rounded-xl bg-red-500/15 text-red-500 flex items-center justify-center text-sm">
                 <i class="fa-solid fa-flag-checkered"></i>
               </div>
@@ -455,10 +404,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
             <button
               type="button"
               (click)="onToggleTheme()"
-              class="group p-3 rounded-2xl border transition-all duration-150 active:scale-98 flex flex-col justify-between gap-2.5 text-left select-none cursor-pointer col-span-2"
-              [ngClass]="theme.mode() === 'light'
-                ? 'bg-zinc-50 border-zinc-200/80 hover:bg-zinc-100/70 text-zinc-900 shadow-sm'
-                : 'bg-zinc-900/60 border-white/5 hover:bg-zinc-800/80 text-white shadow-sm'">
+              class="sheet-nav-tile full-width group text-left">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
                   [ngClass]="theme.mode() === 'light' ? 'bg-amber-500/15 text-amber-500' : 'bg-indigo-500/15 text-indigo-400'">
@@ -490,10 +436,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                 routerLink="/admin"
                 routerLinkActive="ring-2 ring-purple-500/50"
                 (click)="onNavigate()"
-                class="group p-3 rounded-2xl border transition-all duration-150 active:scale-98 flex flex-col justify-between gap-2.5 no-underline select-none cursor-pointer"
-                [ngClass]="theme.mode() === 'light'
-                  ? 'bg-purple-50/60 border-purple-200 hover:bg-purple-100/60 text-zinc-900 shadow-sm'
-                  : 'bg-purple-950/20 border-purple-500/20 hover:bg-purple-950/40 text-white shadow-sm'">
+                class="sheet-nav-tile group">
                 <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm">
                   <i class="fa-solid fa-shield-halved"></i>
                 </div>
@@ -508,10 +451,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
                 routerLink="/translation"
                 routerLinkActive="ring-2 ring-purple-500/50"
                 (click)="onNavigate()"
-                class="group p-3 rounded-2xl border transition-all duration-150 active:scale-98 flex flex-col justify-between gap-2.5 no-underline select-none cursor-pointer"
-                [ngClass]="theme.mode() === 'light'
-                  ? 'bg-purple-50/60 border-purple-200 hover:bg-purple-100/60 text-zinc-900 shadow-sm'
-                  : 'bg-purple-950/20 border-purple-500/20 hover:bg-purple-950/40 text-white shadow-sm'">
+                class="sheet-nav-tile group">
                 <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm">
                   <i class="fa-solid fa-language"></i>
                 </div>
@@ -530,42 +470,14 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
         <button
           type="button"
           (click)="onLogout()"
-          class="w-full mt-1 p-3 rounded-2xl border text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer"
-          [ngClass]="theme.mode() === 'light'
-            ? 'border-red-200 bg-red-50 text-red-600 hover:bg-red-100/70'
-            : 'border-red-500/20 bg-red-600/10 text-red-500 hover:bg-red-600/15'">
+          class="sheet-logout-btn">
           <i class="fa-solid fa-right-from-bracket"></i>
           <span>{{ 'more.logout' | t }}</span>
         </button>
         </div>
       </div>
     }
-  `,
-  styles: [`
-    @keyframes sheetSlideUp {
-      from { transform: translateY(100%); }
-      to { transform: translateY(0); }
-    }
-    @keyframes backdropFadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes modalScaleIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-    .sheet-modal {
-      animation: sheetSlideUp 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    @media (min-width: 768px) {
-      .sheet-modal {
-        animation: modalScaleIn 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      }
-    }
-    .sheet-backdrop {
-      animation: backdropFadeIn 200ms ease-out forwards;
-    }
-  `]
+  `
 })
 export class MoreSheetComponent implements OnInit, OnChanges, OnDestroy {
   ngOnDestroy(): void { if (this.sessionTimerInterval) clearInterval(this.sessionTimerInterval); }

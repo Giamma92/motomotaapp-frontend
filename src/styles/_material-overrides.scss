@@ -94,7 +94,7 @@
   --mat-sys-scrim: #000000;
 }
 
-/* ─── Header Icon Buttons ─── */
+/* ─── Header Icon Buttons (Liquid Glass) ─── */
 .header button[mat-icon-button] {
   display: inline-flex;
   align-items: center;
@@ -107,21 +107,50 @@
   line-height: 1;
   flex-shrink: 0;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-elevated);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 60%, transparent 100%),
+    rgba(22, 26, 36, 0.7) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  color: var(--text-primary) !important;
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.22),
+    0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .header button[mat-icon-button]:hover {
-  transform: translateY(-1px);
-  border-color: var(--border-medium);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-1.5px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.04) 60%, transparent 100%),
+    rgba(28, 33, 46, 0.8) !important;
+  box-shadow:
+    inset 0 1.2px 1.2px 0 rgba(255, 255, 255, 0.35),
+    0 6px 18px rgba(0, 0, 0, 0.42) !important;
 }
 
 .header button[mat-icon-button]:active {
-  transform: translateY(0);
+  transform: scale(0.93) !important;
+}
+
+[data-theme='light'] .header button[mat-icon-button] {
+  border: 1px solid rgba(0, 0, 0, 0.09) !important;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.98) 0%, transparent 60%),
+    rgba(255, 255, 255, 0.85) !important;
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 1),
+    0 2px 8px rgba(0, 0, 0, 0.06) !important;
+
+  &:hover {
+    border-color: rgba(0, 0, 0, 0.16) !important;
+    background: #ffffff !important;
+    box-shadow:
+      inset 0 1px 1px 0 rgba(255, 255, 255, 1),
+      0 4px 14px rgba(0, 0, 0, 0.09) !important;
+  }
 }
 
 .header button[mat-icon-button] i,
@@ -155,13 +184,31 @@
   font-size: 0.88rem;
 }
 
-/* ─── Back Arrow ─── */
+/* ─── Back Arrow (Liquid Glass) ─── */
 .header button.app-back-arrow,
 .header button.app-back-arrow[mat-icon-button] {
-  background: var(--surface-elevated);
-  color: var(--text-primary);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-sm);
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 60%, transparent 100%),
+    rgba(22, 26, 36, 0.7) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  color: var(--text-primary) !important;
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.22),
+    0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme='light'] .header button.app-back-arrow,
+[data-theme='light'] .header button.app-back-arrow[mat-icon-button] {
+  border: 1px solid rgba(0, 0, 0, 0.09) !important;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.98) 0%, transparent 60%),
+    rgba(255, 255, 255, 0.85) !important;
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 1),
+    0 2px 8px rgba(0, 0, 0, 0.06) !important;
 }
 
 /* ─── Card Overrides ─── */
@@ -188,43 +235,87 @@ mat-card-actions.mat-mdc-card-actions.mdc-card__actions {
   flex-wrap: wrap;
 }
 
-/* ─── Raised Buttons ─── */
+/* ─── Raised Buttons (Liquid Glass Red) ─── */
 button.mat-raised-button,
 .mat-mdc-raised-button {
-  background-color: var(--primary-color) !important;
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(255, 255, 255, 0.35) 0%, rgba(239, 68, 68, 0.45) 45%, rgba(185, 28, 28, 0.95) 100%),
+    #c8102e !important;
   color: #ffffff !important;
   min-height: 40px;
-  border-radius: var(--radius-sm);
-  padding-inline: 16px;
-  font-weight: 600;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid rgba(255, 255, 255, 0.32) !important;
+  padding-inline: 18px;
+  font-weight: 700;
   font-family: 'MotoGP Bold', sans-serif;
   font-size: 0.8rem;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.35px;
   text-transform: uppercase;
-  transition: all 0.2s ease;
+  box-shadow:
+    inset 0 1.2px 1.2px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+    0 4px 16px rgba(200, 16, 46, 0.4) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 
-  &:hover {
-    background-color: var(--primary-hover) !important;
-    box-shadow: 0 4px 12px rgba(200, 16, 46, 0.3);
+  &:hover:not(:disabled) {
+    transform: translateY(-1.5px) !important;
+    background:
+      radial-gradient(120% 100% at 50% 0%, rgba(255, 255, 255, 0.48) 0%, rgba(239, 68, 68, 0.55) 45%, rgba(185, 28, 28, 1) 100%),
+      #c8102e !important;
+    border-color: rgba(255, 255, 255, 0.48) !important;
+    box-shadow:
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.55),
+      0 6px 20px rgba(200, 16, 46, 0.5) !important;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.96) !important;
   }
 }
 
-/* ─── Stroked Buttons ─── */
+/* ─── Stroked Buttons (Liquid Glass Outlined) ─── */
 button.mat-stroked-button,
 .mat-mdc-outlined-button {
-  border-color: var(--border-medium) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
   color: var(--text-primary) !important;
-  background: transparent !important;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.08) 0%, transparent 60%),
+    rgba(22, 26, 36, 0.6) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   min-height: 40px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 2px 8px rgba(0, 0, 0, 0.2) !important;
   font-family: 'MotoGP Bold', sans-serif;
   font-size: 0.8rem;
   letter-spacing: 0.3px;
   text-transform: uppercase;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 
-  &:hover {
-    border-color: var(--border-strong) !important;
-    background: rgba(255, 255, 255, 0.04) !important;
+  &:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.28) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: inset 0 1.2px 1.2px 0 rgba(255, 255, 255, 0.25), 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.96) !important;
+  }
+}
+
+[data-theme='light'] button.mat-stroked-button,
+[data-theme='light'] .mat-mdc-outlined-button {
+  border: 1px solid rgba(0, 0, 0, 0.09) !important;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.98) 0%, transparent 60%),
+    rgba(245, 247, 250, 0.85) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+  color: #1e293b !important;
+
+  &:hover:not(:disabled) {
+    border-color: rgba(0, 0, 0, 0.16) !important;
+    background: #ffffff !important;
   }
 }
 

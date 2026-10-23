@@ -2,7 +2,7 @@
    Pattern Library — MotoGP Dark Theme
    ═══════════════════════════════════════ */
 
-/* ─── Nav Chips ─── */
+/* ─── Nav Chips (Liquid Glass) ─── */
 .app-nav-chip {
   min-height: 40px;
   border-radius: var(--radius-md);
@@ -11,26 +11,52 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid var(--border-medium);
-  background: var(--surface-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.10) 0%, transparent 60%),
+    rgba(22, 26, 36, 0.68);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 2px 8px rgba(0, 0, 0, 0.25);
   font-family: 'MotoGP Bold', sans-serif;
   font-size: 0.72rem;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
 
 .app-nav-chip:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--border-strong);
+  transform: translateY(-1.5px);
+  box-shadow:
+    inset 0 1.2px 1.2px 0 rgba(255, 255, 255, 0.28),
+    0 4px 14px rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.26);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.18) 0%, transparent 60%),
+    rgba(28, 33, 46, 0.78);
 }
 
 .app-nav-chip:active {
-  transform: translateY(0);
+  transform: scale(0.96);
+}
+
+[data-theme='light'] .app-nav-chip {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.98) 0%, transparent 60%),
+    rgba(245, 247, 250, 0.88);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 2px 8px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.15);
+  }
 }
 
 .app-nav-chip i,
@@ -52,8 +78,13 @@
 }
 
 .app-nav-chip--accent {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-  border-color: rgba(200, 16, 46, 0.4);
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(255, 255, 255, 0.35) 0%, rgba(239, 68, 68, 0.45) 45%, rgba(185, 28, 28, 0.95) 100%),
+    #c8102e;
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow:
+    inset 0 1.2px 1.2px 0 rgba(255, 255, 255, 0.45),
+    0 4px 14px rgba(200, 16, 46, 0.4);
   color: #ffffff;
 }
 
@@ -78,7 +109,7 @@
   background: rgba(0, 0, 0, 0.04);
 }
 
-/* ─── Icon Buttons ─── */
+/* ─── Icon Buttons (Liquid Glass) ─── */
 .app-nav-icon {
   width: 40px;
   height: 40px;
@@ -88,21 +119,48 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.10) 0%, transparent 60%),
+    rgba(22, 26, 36, 0.68);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
 
 .app-nav-icon:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-1.5px);
+  border-color: rgba(255, 255, 255, 0.26);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.18) 0%, transparent 60%),
+    rgba(28, 33, 46, 0.78);
+  box-shadow:
+    inset 0 1.2px 1.2px 0 rgba(255, 255, 255, 0.28),
+    0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
 .app-nav-icon:active {
-  transform: translateY(0);
+  transform: scale(0.94);
+}
+
+[data-theme='light'] .app-nav-icon {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.98) 0%, transparent 60%),
+    rgba(245, 247, 250, 0.88);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 2px 8px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.15);
+  }
 }
 
 .app-nav-icon i,
