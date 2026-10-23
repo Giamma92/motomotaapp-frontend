@@ -1424,6 +1424,35 @@
   }
 }
 
+/* ── Liquid Glass Containers for Podium & Standings Table ── */
+.motogp-podium-container,
+.table-container,
+.motogp-table-card {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 60%, transparent 100%),
+    linear-gradient(165deg, rgba(28, 32, 42, 0.82) 0%, rgba(18, 21, 28, 0.90) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 24px !important;
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.5),
+    0 16px 40px -8px rgba(0, 0, 0, 0.65) !important;
+}
+
+:host-context([data-theme='light']) .motogp-podium-container,
+:host-context([data-theme='light']) .table-container,
+:host-context([data-theme='light']) .motogp-table-card {
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.25) 60%, transparent 100%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.92) 0%, rgba(244, 246, 250, 0.96) 100%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 1),
+    0 12px 32px rgba(0, 0, 0, 0.08) !important;
+}
+
 /* ── Standings Table Desktop & Responsive Styles ── */
 .standings-table {
   width: 100%;

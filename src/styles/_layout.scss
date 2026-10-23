@@ -117,26 +117,42 @@ router-outlet + * {
   gap: 12px;
 }
 
-/* ─── Card base (Liquid Glass specular feel with 0 blur overhead) ─── */
+/* ─── Universal Card Base (True Liquid Glass with specular sheen, frosted depth and ambient rim) ─── */
 .mat-mdc-card,
-.mdc-card {
+.mdc-card,
+.app-panel,
+.table-card,
+.liquid-glass-card {
+  position: relative;
   background:
-    radial-gradient(120% 100% at 50% 0%, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 60%, transparent 100%),
-    var(--surface-card) !important;
-  border: 1px solid var(--border-subtle) !important;
-  border-radius: var(--radius-lg) !important;
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 60%, transparent 100%),
+    linear-gradient(165deg, rgba(28, 32, 42, 0.82) 0%, rgba(18, 21, 28, 0.90) 100%) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: var(--radius-xl, 20px) !important;
   color: var(--text-primary) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), var(--shadow-card) !important;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease !important;
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.5),
+    0 16px 40px -8px rgba(0, 0, 0, 0.65) !important;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.22s ease !important;
 }
 
 [data-theme='light'] .mat-mdc-card,
-[data-theme='light'] .mdc-card {
+[data-theme='light'] .mdc-card,
+[data-theme='light'] .app-panel,
+[data-theme='light'] .table-card,
+[data-theme='light'] .liquid-glass-card {
   background:
-    radial-gradient(120% 100% at 50% 0%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 60%, transparent 100%),
-    var(--surface-card) !important;
-  border: 1px solid var(--border-subtle) !important;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), var(--shadow-card) !important;
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.25) 60%, transparent 100%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.92) 0%, rgba(244, 246, 250, 0.96) 100%) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 1),
+    0 12px 32px rgba(0, 0, 0, 0.08) !important;
 }
 
 /* ─── Responsive ─── */
