@@ -23,14 +23,13 @@ import { MoreMenuService } from '../../services/more-menu.service';
 import { HapticService } from '../../services/haptic.service';
 import { LoadingService } from '../../services/loading.service';
 import { PullToRefreshComponent } from '../pull-to-refresh/pull-to-refresh.component';
-import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule, MatExpansionModule, TimeFormatPipe, TranslatePipe, PullToRefreshComponent, NotificationBellComponent],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule, MatExpansionModule, TimeFormatPipe, TranslatePipe, PullToRefreshComponent],
   animations: [
     trigger('cardAnimation', [
       transition(':enter', [
