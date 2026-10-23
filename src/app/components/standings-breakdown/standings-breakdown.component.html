@@ -201,19 +201,31 @@
             </div>
 
             <!-- Full Standings Table -->
-            <div class="table-container rounded-2xl border overflow-hidden shadow-sm">
+            <div class="table-container rounded-2xl border overflow-hidden shadow-sm"
+                 [class.border-zinc-800]="theme.mode() === 'dark'"
+                 [class.border-zinc-200]="theme.mode() === 'light'">
               <table class="standings-table w-full">
                 <thead>
-                  <tr>
+                  <tr [class.bg-zinc-950/60]="theme.mode() === 'dark'"
+                      [class.bg-zinc-50]="theme.mode() === 'light'">
                     <th class="rank-col text-center" aria-label="Posizione">
                       <span class="hidden sm:inline">POS</span>
                       <span class="sm:hidden">#</span>
                     </th>
                     <th class="user-col text-left" aria-label="Utente">
-                      <span class="pl-8 sm:pl-9 inline-block">UTENTE</span>
+                      UTENTE
                     </th>
-                    <th class="score-col text-right" aria-label="Punti">
-                      <span class="hidden sm:inline">PUNTI</span>
+                    <th class="last-gp-col text-center hidden md:table-cell" aria-label="Ultimo GP">
+                      ULTIMO GP
+                    </th>
+                    <th class="avg-col text-center hidden lg:table-cell" aria-label="Media Punti">
+                      MEDIA GP
+                    </th>
+                    <th class="podium-col text-center hidden md:table-cell" aria-label="Podi e Vittorie">
+                      PODI
+                    </th>
+                    <th class="score-col text-right" aria-label="Punti Totali">
+                      <span class="hidden sm:inline">PUNTI TOTALI</span>
                       <span class="sm:hidden">PT</span>
                     </th>
                     <th class="gap-col text-right" aria-label="Distacco">
@@ -227,8 +239,10 @@
                       class="standings-row"
                       [class.highlight]="row.user_id.id === loggedUserId"
                       [class.top-three]="i < 3">
+                    
+                    <!-- POS & TREND -->
                     <td class="rank-col text-center">
-                      <div class="flex items-center justify-center">
+                      <div class="flex items-center justify-center gap-1.5 sm:gap-2">
                         <span class="pos-badge" [ngClass]="{
                           'pos-p1': row.position === 1,
                           'pos-p2': row.position === 2,
@@ -237,12 +251,23 @@
                         }">
                           {{ row.position }}
                         </span>
+                        
+                        <!-- Trend indicator (desktop/tablet) -->
+                        <span *ngIf="getManagerStats(row) as st"
+                              class="trend-indicator hidden sm:inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded border"
+                              [ngClass]="st.trend.class"
+                              [title]="st.trend.tooltip">
+                          <i class="fa-solid text-[8px]" [ngClass]="st.trend.icon"></i>
+                          <span class="ml-0.5" *ngIf="st.trend.delta !== 0">{{ st.trend.text }}</span>
+                        </span>
                       </div>
                     </td>
+
+                    <!-- UTENTE (Avatar + Name + TU badge + Subtitle) -->
                     <td class="user-col">
-                      <div class="user-info flex items-center gap-2 min-w-0 w-full overflow-hidden">
+                      <div class="user-info flex items-center gap-2.5 sm:gap-3 min-w-0 w-full">
                         <div class="user-avatar-wrap flex-shrink-0">
-                          <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden flex items-center justify-center border shadow-sm"
+                          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl overflow-hidden flex items-center justify-center border shadow-sm"
                                [ngClass]="{
                                  'border-amber-400 ring-2 ring-amber-400/20': i === 0,
                                  'border-slate-300 ring-1 ring-slate-300/20': i === 1,
@@ -256,40 +281,128 @@
                                  class="w-full h-full object-cover">
                           </div>
                         </div>
-                        <div class="user-details min-w-0 flex-1 flex items-center gap-1 overflow-hidden">
-                          <span class="username font-bold text-xs sm:text-sm truncate block"
-                                [class.text-zinc-100]="theme.mode() === 'dark' && i > 0"
-                                [class.text-zinc-900]="theme.mode() === 'light' && i > 0"
-                                [class.text-amber-400]="i === 0 && theme.mode() === 'dark'"
-                                [class.text-amber-600]="i === 0 && theme.mode() === 'light'">
-                            {{ getUserDisplayName(row) }}
-                          </span>
-                          <span *ngIf="row.user_id.id === loggedUserId"
-                                class="badge-you text-[9px] font-black uppercase px-1 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 flex-shrink-0 leading-none">
-                            TU
-                          </span>
+                        <div class="user-details min-w-0 flex-1 flex flex-col justify-center">
+                          <div class="user-headline flex items-center gap-1.5 flex-wrap">
+                            <span class="username font-bold text-xs sm:text-sm truncate block"
+                                  [class.text-zinc-100]="theme.mode() === 'dark' && i > 0"
+                                  [class.text-zinc-900]="theme.mode() === 'light' && i > 0"
+                                  [class.text-amber-400]="i === 0 && theme.mode() === 'dark'"
+                                  [class.text-amber-600]="i === 0 && theme.mode() === 'light'">
+                              {{ getUserDisplayName(row) }}
+                            </span>
+                            <span *ngIf="row.user_id.id === loggedUserId"
+                                  class="badge-you text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 flex-shrink-0 leading-none">
+                              TU
+                            </span>
+                          </div>
+                          <!-- Desktop Subtitle / Role -->
+                          <div class="user-subtitle text-[11px] truncate hidden sm:block"
+                               [class.text-zinc-400]="theme.mode() === 'dark'"
+                               [class.text-zinc-500]="theme.mode() === 'light'">
+                            <span *ngIf="i === 0" class="text-amber-400/90 font-medium">👑 Leader del Campionato</span>
+                            <span *ngIf="i === 1" class="text-slate-300/90 font-medium">🥈 2° in classifica</span>
+                            <span *ngIf="i === 2" class="text-amber-600/90 font-medium">🥉 3° in classifica</span>
+                            <span *ngIf="i > 2 && getManagerStats(row) as st">In gara · {{ st.racesCount }} GP disputati</span>
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td class="score-col text-right">
-                      <div class="score-display inline-flex items-baseline justify-end gap-0.5">
-                        <span class="score-value font-black text-xs sm:text-sm tracking-tight"
+
+                    <!-- ULTIMO GP (Desktop md+) -->
+                    <td class="last-gp-col text-center hidden md:table-cell" *ngIf="getManagerStats(row) as st">
+                      <div class="flex flex-col items-center justify-center" *ngIf="st.lastRaceScore !== null">
+                        <span class="font-black text-xs sm:text-sm tracking-tight"
                               [ngClass]="{
-                                'text-red-500': row.score < 0,
-                                'text-zinc-100': row.score >= 0 && theme.mode() === 'dark',
-                                'text-zinc-900': row.score >= 0 && theme.mode() === 'light'
+                                'text-emerald-400': st.lastRaceScore > 0,
+                                'text-red-400': st.lastRaceScore < 0,
+                                'text-zinc-400': st.lastRaceScore === 0
                               }">
-                          {{ row.score | number:'1.0-0' }}
+                          {{ st.lastRaceScore > 0 ? '+' : '' }}{{ st.lastRaceScore }}
+                          <span class="text-[9px] font-bold text-zinc-500 uppercase">pt</span>
                         </span>
-                        <span class="score-unit text-[9px] font-bold uppercase text-zinc-400"
+                        <span class="text-[10px] text-zinc-400 truncate max-w-[110px]"
                               [class.text-zinc-500]="theme.mode() === 'light'">
-                          pt
+                          {{ st.lastRaceName }}
                         </span>
                       </div>
+                      <span *ngIf="st.lastRaceScore === null" class="text-xs text-zinc-500">-</span>
                     </td>
+
+                    <!-- MEDIA GP (Desktop lg+) -->
+                    <td class="avg-col text-center hidden lg:table-cell" *ngIf="getManagerStats(row) as st">
+                      <div class="flex flex-col items-center justify-center" *ngIf="st.racesCount > 0">
+                        <span class="font-bold text-xs sm:text-sm"
+                              [class.text-zinc-200]="theme.mode() === 'dark'"
+                              [class.text-zinc-800]="theme.mode() === 'light'">
+                          {{ st.avgScore | number:'1.1-1' }}
+                        </span>
+                        <span class="text-[10px] text-zinc-400"
+                              [class.text-zinc-500]="theme.mode() === 'light'">
+                          pt/GP
+                        </span>
+                      </div>
+                      <span *ngIf="st.racesCount === 0" class="text-xs text-zinc-500">-</span>
+                    </td>
+
+                    <!-- PODI / VITTORIE (Desktop md+) -->
+                    <td class="podium-col text-center hidden md:table-cell" *ngIf="getManagerStats(row) as st">
+                      <div class="flex items-center justify-center gap-1.5" *ngIf="st.podiumsCount > 0 || st.winsCount > 0">
+                        <span *ngIf="st.winsCount > 0"
+                              class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-black bg-amber-400/15 text-amber-400 border border-amber-400/30"
+                              title="Vittorie di tappa">
+                          <i class="fa-solid fa-trophy text-[9px]"></i> {{ st.winsCount }}
+                        </span>
+                        <span *ngIf="st.podiumsCount > 0"
+                              class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-zinc-800 text-zinc-300 border border-zinc-700/60"
+                              [class.bg-zinc-100]="theme.mode() === 'light'"
+                              [class.text-zinc-700]="theme.mode() === 'light'"
+                              [class.border-zinc-300]="theme.mode() === 'light'"
+                              title="Podi totali">
+                          <i class="fa-solid fa-medal text-[9px] text-amber-500"></i> {{ st.podiumsCount }}
+                        </span>
+                      </div>
+                      <span *ngIf="st.podiumsCount === 0 && st.winsCount === 0" class="text-xs text-zinc-500">-</span>
+                    </td>
+
+                    <!-- PUNTI TOTALI -->
+                    <td class="score-col text-right">
+                      <div class="score-display inline-flex flex-col items-end justify-center">
+                        <div class="inline-flex items-baseline justify-end gap-0.5">
+                          <span class="score-value font-black text-xs sm:text-base tracking-tight"
+                                [ngClass]="{
+                                  'text-red-500': row.score < 0,
+                                  'text-zinc-100': row.score >= 0 && theme.mode() === 'dark',
+                                  'text-zinc-900': row.score >= 0 && theme.mode() === 'light'
+                                }">
+                            {{ row.score | number:'1.0-0' }}
+                          </span>
+                          <span class="score-unit text-[9px] font-bold uppercase text-zinc-400"
+                                [class.text-zinc-500]="theme.mode() === 'light'">
+                            pt
+                          </span>
+                        </div>
+                        
+                        <!-- Mini visual bar relative to leader -->
+                        <div class="score-progress-mini w-16 sm:w-20 h-1 rounded-full bg-zinc-800/80 overflow-hidden mt-1 hidden sm:block"
+                             [class.bg-zinc-200]="theme.mode() === 'light'"
+                             *ngIf="classificationData[0] && classificationData[0].score > 0">
+                          <div class="h-full rounded-full transition-all duration-500"
+                               [style.width.%]="progressPct(row.score, classificationData[0].score)"
+                               [ngClass]="{
+                                 'bg-gradient-to-r from-amber-400 to-amber-500': i === 0,
+                                 'bg-gradient-to-r from-slate-400 to-slate-300': i === 1,
+                                 'bg-gradient-to-r from-amber-600 to-amber-700': i === 2,
+                                 'bg-gradient-to-r from-red-500 to-red-600': i > 2
+                               }">
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- DISTACCO -->
                     <td class="gap-col text-right">
                       <ng-container *ngIf="i === 0 || (classificationData[0] && row.score === classificationData[0].score)">
-                        <span class="gap-leader-badge inline-flex items-center justify-center text-[9px] sm:text-xs font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-400 border border-amber-400/30 whitespace-nowrap">
+                        <span class="gap-leader-badge inline-flex items-center justify-center text-[9px] sm:text-xs font-black uppercase px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-400 border border-amber-400/30 whitespace-nowrap shadow-sm">
                           LEADER
                         </span>
                       </ng-container>
@@ -303,6 +416,7 @@
                         </div>
                       </ng-container>
                     </td>
+
                   </tr>
                 </tbody>
               </table>

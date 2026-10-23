@@ -1423,3 +1423,115 @@
     padding: 0.1rem 0.4rem;
   }
 }
+
+/* ── Standings Table Desktop & Responsive Styles ── */
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    padding: 0.85rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid rgba(200, 16, 46, 0.55);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.85rem 0.75rem;
+    vertical-align: middle;
+  }
+
+  tbody tr {
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.035);
+    }
+  }
+
+  /* Robust override for user column to cancel legacy centering from _standings.scss */
+  .user-col {
+    width: auto !important;
+    max-width: none !important;
+    text-align: left !important;
+
+    .user-info {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      text-align: left !important;
+      gap: 0.75rem !important;
+      width: 100% !important;
+
+      .user-avatar-wrap {
+        flex-shrink: 0;
+      }
+
+      .user-details {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        text-align: left !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        gap: 0.15rem !important;
+
+        .user-headline {
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          max-width: 100%;
+        }
+
+        .username {
+          text-align: left !important;
+          margin: 0 !important;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .user-subtitle {
+          line-height: 1.1;
+        }
+      }
+    }
+  }
+
+  .trend-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    line-height: 1;
+    padding: 2px 4.5px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .last-gp-col,
+  .avg-col,
+  .podium-col {
+    white-space: nowrap;
+  }
+
+  .score-col {
+    min-width: 90px;
+  }
+
+  .gap-col {
+    min-width: 95px;
+  }
+}
+
+:host-context([data-theme='light']) .standings-table,
+[data-theme='light'] .standings-table {
+  tbody tr:hover {
+    background: rgba(0, 0, 0, 0.025);
+  }
+}

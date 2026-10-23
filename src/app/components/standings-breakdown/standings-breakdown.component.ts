@@ -27,6 +27,24 @@ export interface MotoGPRiderStanding {
   bestFinish: number;
 }
 
+export interface ManagerStats {
+  userId: string;
+  lastRaceScore: number | null;
+  lastRaceName: string;
+  avgScore: number;
+  racesCount: number;
+  podiumsCount: number;
+  winsCount: number;
+  bestScore: number | null;
+  trend: {
+    delta: number;
+    icon: string;
+    text: string;
+    class: string;
+    tooltip: string;
+  };
+}
+
 type MetricId = 'total' | 'qualifying' | 'race' | 'sprintBet' | 'raceBet';
 
 interface TrendRound {
@@ -191,6 +209,7 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
     this.dashboardService.getClassification(this.currentChampId).subscribe({
       next: (data) => {
         this.classificationData = data;
+        this.managerStatsCache.clear();
         this.loadingStandings = false;
         done?.();
       },
@@ -800,9 +819,127 @@ export class StandingsBreakdownComponent implements OnInit, AfterViewInit, OnDes
     return { min, max, step, ticks };
   }
 
+  private managerStatsCache = new Map<string, ManagerStats>();
+
+  getManagerStats(row: StandingsRow): ManagerStats {
+    const userId = String(row?.user_id?.id || (row as any)?.user_id || '');
+    if (this.managerStatsCache.has(userId)) {
+      return this.managerStatsCache.get(userId)!;
+    }
+    const stats = this.computeStatsForUser(userId, row);
+    this.managerStatsCache.set(userId, stats);
+    return stats;
+  }
+
+  private computeStatsForUser(userId: string, row?: StandingsRow): ManagerStats {
+    const defaultStats: ManagerStats = {
+      userId,
+      lastRaceScore: null,
+      lastRaceName: '',
+      avgScore: 0,
+      racesCount: 0,
+      podiumsCount: 0,
+      winsCount: 0,
+      bestScore: null,
+      trend: {
+        delta: 0,
+        icon: 'fa-minus',
+        text: '=',
+        class: 'text-zinc-400 bg-zinc-500/10 border-zinc-500/20',
+        tooltip: 'Posizione invariata'
+      }
+    };
+
+    if (!userId) return defaultStats;
+
+    if (!this.rows || !this.rows.length) {
+      if (row && Number.isFinite(row.score)) {
+        defaultStats.avgScore = row.score;
+      }
+      return defaultStats;
+    }
+
+    const userRows = this.rows.filter(r => String(r.user_id?.id || '') === userId);
+    const racesCount = userRows.length;
+    defaultStats.racesCount = racesCount;
+
+    if (racesCount > 0) {
+      const sum = userRows.reduce((acc, r) => acc + Number(r.score || 0), 0);
+      defaultStats.avgScore = sum / racesCount;
+      defaultStats.bestScore = Math.max(...userRows.map(r => Number(r.score || 0)));
+    } else if (row && Number.isFinite(row.score)) {
+      defaultStats.avgScore = row.score;
+    }
+
+    // Last completed round score
+    if (this.rounds && this.rounds.length > 0) {
+      const lastRound = this.rounds[this.rounds.length - 1];
+      defaultStats.lastRaceName = lastRound.short || lastRound.label || 'Ultimo GP';
+      const lastRow = userRows.find(r => r.calendar_id?.id === lastRound.id);
+      if (lastRow) {
+        defaultStats.lastRaceScore = Number(lastRow.score || 0);
+      }
+    }
+
+    // Stage wins & podiums in completed rounds
+    if (this.rounds && this.rounds.length > 0) {
+      for (const round of this.rounds) {
+        const roundRows = this.rows
+          .filter(r => r.calendar_id?.id === round.id)
+          .sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
+
+        if (roundRows.length > 0) {
+          if (String(roundRows[0].user_id?.id || '') === userId) {
+            defaultStats.winsCount++;
+          }
+          const top3Users = roundRows.slice(0, 3).map(r => String(r.user_id?.id || ''));
+          if (top3Users.includes(userId)) {
+            defaultStats.podiumsCount++;
+          }
+        }
+      }
+    }
+
+    // Trend calculation vs previous GP
+    const history = this.rankHistory.get(userId);
+    if (history && history.length >= 2) {
+      const curr = history[history.length - 1];
+      const prev = history[history.length - 2];
+      const delta = prev - curr; // > 0 means moved UP (e.g. was 3, now 1 => +2)
+      if (delta > 0) {
+        defaultStats.trend = {
+          delta,
+          icon: 'fa-arrow-up',
+          text: `+${delta}`,
+          class: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30',
+          tooltip: `Guadagnate ${delta} posizioni rispetto al GP precedente`
+        };
+      } else if (delta < 0) {
+        defaultStats.trend = {
+          delta,
+          icon: 'fa-arrow-down',
+          text: `${delta}`,
+          class: 'text-red-400 bg-red-500/15 border-red-500/30',
+          tooltip: `Perse ${Math.abs(delta)} posizioni rispetto al GP precedente`
+        };
+      } else {
+        defaultStats.trend = {
+          delta: 0,
+          icon: 'fa-minus',
+          text: '=',
+          class: 'text-zinc-400 bg-zinc-500/10 border-zinc-500/20',
+          tooltip: 'Posizione invariata rispetto al GP precedente'
+        };
+      }
+    }
+
+    return defaultStats;
+  }
+
   private invalidate(): void {
     this.seriesCache = null;
     this.plotCache = null;
+    this.managerStatsCache.clear();
   }
 
   /* ── Option builders ── */
