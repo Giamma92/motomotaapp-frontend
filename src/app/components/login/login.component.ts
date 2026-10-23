@@ -92,9 +92,24 @@ import { Subscription } from 'rxjs';
           </p>
 
           <ul class="hero-chips">
-            <li><mat-icon aria-hidden="true">leaderboard</mat-icon>{{ 'login.chips.standings' | t }}</li>
-            <li><mat-icon aria-hidden="true">groups</mat-icon>{{ 'login.chips.lineups' | t }}</li>
-            <li><mat-icon aria-hidden="true">flag</mat-icon>{{ 'login.chips.results' | t }}</li>
+            <li>
+              <span class="chip-icon-box">
+                <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+              </span>
+              <span>{{ 'login.chips.standings' | t }}</span>
+            </li>
+            <li>
+              <span class="chip-icon-box">
+                <i class="fa-solid fa-users" aria-hidden="true"></i>
+              </span>
+              <span>{{ 'login.chips.lineups' | t }}</span>
+            </li>
+            <li>
+              <span class="chip-icon-box">
+                <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>
+              </span>
+              <span>{{ 'login.chips.results' | t }}</span>
+            </li>
           </ul>
 
           <div class="hero-divider" aria-hidden="true">
