@@ -19,10 +19,8 @@ import { MoreSheetComponent } from './more-sheet.component';
         class="fixed inset-x-0 bottom-0 z-50 pointer-events-none px-4 pt-0 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] md:bottom-5 md:pb-0 transition-all duration-200"
         [attr.aria-label]="'common.nav.primary' | t">
         <div
-          class="pointer-events-auto max-w-md mx-auto backdrop-blur-2xl rounded-[28px] p-1.5 grid grid-cols-5 gap-1 transition-all duration-200 shadow-2xl"
-          [ngClass]="theme.mode() === 'light'
-            ? 'bg-white/85 ring-1 ring-black/[0.08] shadow-[0_12px_36px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.9)]'
-            : 'bg-zinc-950/80 ring-1 ring-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.75),inset_0_1px_1px_rgba(255,255,255,0.22)]'">
+          class="liquid-glass-dock pointer-events-auto"
+          [class.is-light]="theme.mode() === 'light'">
 
           <!-- 4 Voci Principali -->
           @for (item of mainNavItems; track item.path) {
@@ -32,37 +30,17 @@ import { MoreSheetComponent } from './more-sheet.component';
               routerLinkActive
               #rla="routerLinkActive"
               [routerLinkActiveOptions]="{exact: item.path === '/'}"
-              class="group relative flex flex-col items-center justify-center py-1.5 px-1 rounded-[22px] transition-all duration-200 active:scale-95 no-underline select-none cursor-pointer"
-              [class.bg-red-600/15]="rla.isActive && theme.mode() === 'dark'"
-              [class.shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]]="rla.isActive && theme.mode() === 'dark'"
-              [class.bg-red-600/10]="rla.isActive && theme.mode() === 'light'"
-              [class.shadow-[inset_0_1px_0_rgba(200,16,46,0.2)]]="rla.isActive && theme.mode() === 'light'"
-              [class.text-red-500]="rla.isActive && theme.mode() === 'dark'"
-              [class.text-red-600]="rla.isActive && theme.mode() === 'light'"
-              [class.text-zinc-400]="!rla.isActive && theme.mode() === 'dark'"
-              [class.text-zinc-500]="!rla.isActive && theme.mode() === 'light'"
+              class="nav-item"
+              [class.active]="rla.isActive"
               [attr.aria-label]="item.labelKey | t">
 
-              <!-- Icona con micro-animazione e glow sportivo -->
-              <div
-                class="relative h-6 flex items-center justify-center text-[16px] transition-transform duration-200 group-hover:scale-110"
-                [class.scale-110]="rla.isActive"
-                [class.text-red-500]="rla.isActive && theme.mode() === 'dark'"
-                [class.text-red-600]="rla.isActive && theme.mode() === 'light'"
-                [class.drop-shadow-[0_0_8px_rgba(200,16,46,0.65)]]="rla.isActive && theme.mode() === 'dark'"
-                [class.drop-shadow-[0_0_6px_rgba(200,16,46,0.3)]]="rla.isActive && theme.mode() === 'light'">
+              <!-- Icona con micro-animazione e glow liquid glass -->
+              <div class="nav-icon">
                 <i [class]="item.icon"></i>
               </div>
 
               <!-- Label -->
-              <span
-                class="text-[10px] tracking-tight font-sans mt-0.5 whitespace-nowrap leading-tight transition-all duration-150"
-                [class.font-extrabold]="rla.isActive"
-                [class.font-semibold]="!rla.isActive"
-                [class.text-red-500]="rla.isActive && theme.mode() === 'dark'"
-                [class.text-red-600]="rla.isActive && theme.mode() === 'light'"
-                [class.text-zinc-400]="!rla.isActive && theme.mode() === 'dark'"
-                [class.text-zinc-500]="!rla.isActive && theme.mode() === 'light'">
+              <span class="nav-label">
                 {{ item.labelKey | t }}
               </span>
             </a>
@@ -72,35 +50,15 @@ import { MoreSheetComponent } from './more-sheet.component';
           <button
             type="button"
             (click)="toggleMore()"
-            class="group relative flex flex-col items-center justify-center py-1.5 px-1 rounded-[22px] transition-all duration-200 active:scale-95 border-0 bg-transparent select-none cursor-pointer"
-            [class.bg-red-600/15]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
-            [class.shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
-            [class.bg-red-600/10]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
-            [class.shadow-[inset_0_1px_0_rgba(200,16,46,0.2)]]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
-            [class.text-red-500]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
-            [class.text-red-600]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
-            [class.text-zinc-400]="!(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
-            [class.text-zinc-500]="!(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
+            class="nav-item"
+            [class.active]="moreMenu.isOpen() || isMoreActive"
             [attr.aria-label]="'nav.more' | t">
 
-            <div
-              class="relative h-6 flex items-center justify-center text-[16px] transition-transform duration-200 group-hover:scale-110"
-              [class.scale-110]="moreMenu.isOpen() || isMoreActive"
-              [class.text-red-500]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
-              [class.text-red-600]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
-              [class.drop-shadow-[0_0_8px_rgba(200,16,46,0.65)]]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
-              [class.drop-shadow-[0_0_6px_rgba(200,16,46,0.3)]]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'">
+            <div class="nav-icon">
               <i class="fa-solid fa-ellipsis"></i>
             </div>
 
-            <span
-              class="text-[10px] tracking-tight font-sans mt-0.5 whitespace-nowrap leading-tight transition-all duration-150"
-              [class.font-extrabold]="moreMenu.isOpen() || isMoreActive"
-              [class.font-semibold]="!(moreMenu.isOpen() || isMoreActive)"
-              [class.text-red-500]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
-              [class.text-red-600]="(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'"
-              [class.text-zinc-400]="!(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'dark'"
-              [class.text-zinc-500]="!(moreMenu.isOpen() || isMoreActive) && theme.mode() === 'light'">
+            <span class="nav-label">
               {{ 'nav.more' | t }}
             </span>
           </button>
@@ -110,7 +68,8 @@ import { MoreSheetComponent } from './more-sheet.component';
       <!-- Bottom / Center Modal Altro -->
       <app-more-sheet [isOpen]="moreMenu.isOpen()" (close)="moreMenu.close()"></app-more-sheet>
     }
-  `
+  `,
+  styleUrl: './app-bottom-nav.component.scss'
 })
 export class AppBottomNavComponent {
   private router = inject(Router);

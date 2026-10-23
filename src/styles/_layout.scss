@@ -154,11 +154,4 @@ router-outlet + * {
   .page-shell {
     padding-bottom: calc(var(--app-bottom-nav-height, 68px) + env(safe-area-inset-bottom, 24px) + 36px) !important;
   }
-
-  /* Light theme floating navigation pill */
-  [data-theme='light'] app-bottom-nav nav > div {
-    background-color: rgba(255, 255, 255, 0.90) !important;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
-    --tw-ring-color: rgba(0, 0, 0, 0.08) !important;
-  }
 }
