@@ -71,6 +71,31 @@
   padding-bottom: 24px;
 }
 
+/* On mobile/tablet, dissolve column wrappers so blocks stack linearly in desired order */
+.cockpit-col {
+  display: contents;
+}
+
+.user-hero-card {
+  order: 1;
+}
+
+.next-gp-card {
+  order: 2;
+}
+
+.last-race-card {
+  order: 3;
+}
+
+.team-quota-card {
+  order: 4;
+}
+
+details.cockpit-card {
+  order: 5;
+}
+
 .cockpit-card {
   position: relative;
   border-radius: 24px;
@@ -374,28 +399,28 @@ span.mdc-button__label {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
     grid-template-areas:
-      "user-hero next-gp"
-      "team-quota last-race"
+      "col-left col-right"
       "champ-config champ-config";
     gap: 22px;
     align-items: start;
     padding-bottom: 40px;
   }
 
-  .user-hero-card {
-    grid-area: user-hero;
+  /* Two independent vertical flex columns:
+     Cards in each column stack naturally with no artificial empty gaps */
+  .cockpit-col {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-width: 0;
   }
 
-  .next-gp-card {
-    grid-area: next-gp;
+  .cockpit-col--left {
+    grid-area: col-left;
   }
 
-  .team-quota-card {
-    grid-area: team-quota;
-  }
-
-  .last-race-card {
-    grid-area: last-race;
+  .cockpit-col--right {
+    grid-area: col-right;
   }
 
   details.cockpit-card {

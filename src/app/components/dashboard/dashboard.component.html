@@ -10,7 +10,9 @@
 
     <div class="cockpit-stack">
 
-      <!-- ──────────────────────────────────────────────
+            <!-- ── Left Column (Hero Status + Team Quota) ── -->
+      <div class="cockpit-col cockpit-col--left">
+        <!-- ──────────────────────────────────────────────
            BLOCCO 1: HERO STATUS MANAGER
       ────────────────────────────────────────────── -->
       <section
@@ -125,7 +127,279 @@
         </button>
       </section>
 
-      <!-- ──────────────────────────────────────────────
+        <!-- ──────────────────────────────────────────────
+           BLOCCO 3: TEAM & QUOTA PILOTI (BATTERIA GETTONI)
+      ────────────────────────────────────────────── -->
+      <!-- Loading Skeleton -->
+      <div *ngIf="loadingTeam" class="cockpit-card team-quota-card border animate-pulse bg-zinc-900/60 border-white/10">
+        <div class="h-4 bg-zinc-700/50 rounded w-1/4 mb-3"></div>
+        <div class="h-10 bg-zinc-800/50 rounded-xl mb-2"></div>
+        <div class="h-10 bg-zinc-800/50 rounded-xl mb-2"></div>
+      </div>
+
+      <!-- Active Fantasy Team Card -->
+      <section
+        *ngIf="!loadingTeam && !errorTeam && fantasyTeam"
+        class="cockpit-card team-quota-card"
+        [ngClass]="theme.mode() === 'light'
+          ? 'bg-white/95 border-black/[0.08] shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
+          : 'bg-zinc-900/90 border-white/10 shadow-[0_12px_36px_rgba(0,0,0,0.5)]'">
+
+        <!-- Team Header -->
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-2xl border flex items-center justify-center overflow-hidden shadow-inner"
+              [ngClass]="theme.mode() === 'light' ? 'bg-zinc-100 border-black/10 text-red-600' : 'bg-zinc-800 border-white/10 text-red-500'">
+              <img *ngIf="fantasyTeam.team_image" [src]="fantasyTeam.team_image" alt="{{ fantasyTeam.name }}" class="w-full h-full object-cover">
+              <i *ngIf="!fantasyTeam.team_image" class="fa-solid fa-people-group"></i>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-red-500">{{ 'dashboard.team.title' | t }}</span>
+              <h3 class="text-base font-black tracking-tight leading-tight m-0" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
+                {{ fantasyTeam.name }}
+              </h3>
+            </div>
+          </div>
+
+          <span
+            class="text-[10px] font-semibold py-1 px-2.5 rounded-full border"
+            [ngClass]="theme.mode() === 'light' ? 'border-black/10 text-zinc-500 bg-black/[0.03]' : 'border-white/10 text-zinc-400 bg-transparent'">
+            {{ 'dashboard.team.maxLineups' | t: { count: maxLineups } }}
+          </span>
+        </div>
+
+        <!-- Quota Batteria per ciascun Pilota -->
+        <div class="mt-3.5 flex flex-col gap-2.5">
+
+          <!-- 1° Pilota -->
+          <div
+            *ngIf="fantasyTeam.official_rider_1 as r1"
+            class="p-3.5 rounded-2xl border transition-all duration-150"
+            [ngClass]="theme.mode() === 'light' ? 'bg-zinc-50 border-black/[0.06]' : 'bg-zinc-950/60 border-white/5'">
+            <div class="flex items-center justify-between gap-2 mb-2.5">
+              <div class="flex items-center gap-3 min-w-0">
+                <!-- Rider Headshot Avatar with number badge -->
+                <div class="relative w-11 h-11 flex-shrink-0">
+                  <div
+                    class="w-11 h-11 rounded-2xl overflow-hidden border shadow-sm"
+                    [ngClass]="theme.mode() === 'light' ? 'border-black/10 bg-zinc-100' : 'border-white/10 bg-zinc-900'">
+                    <img
+                      [src]="assetService.getRiderPhotoUrl(r1.number, r1.first_name + ' ' + r1.last_name)"
+                      [alt]="r1.first_name + ' ' + r1.last_name"
+                      class="w-full h-full object-cover object-top squad-rider-img"
+                      (error)="assetService.handleImageError($event)">
+                  </div>
+                  <span
+                    class="absolute -bottom-1 -right-1 py-0.5 px-1.5 rounded-md bg-red-600 text-white font-black text-[9px] shadow-sm tracking-tight border leading-none"
+                    [ngClass]="theme.mode() === 'light' ? 'border-white' : 'border-zinc-900'">
+                    #{{ r1.number }}
+                  </span>
+                </div>
+
+                <div class="truncate">
+                  <span class="text-[9px] font-black uppercase tracking-wider text-red-500 block leading-tight">{{ 'dashboard.team.rider1' | t }}</span>
+                  <span class="text-xs sm:text-sm font-black leading-tight block truncate mt-0.5" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
+                    {{ r1.first_name }} {{ r1.last_name }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Status tag -->
+              <span
+                class="py-1 px-2.5 rounded-xl text-[10px] font-extrabold uppercase flex-shrink-0"
+                [ngClass]="getRemainingUses(r1.id) === 0
+                  ? 'bg-red-500/20 text-red-400'
+                  : getRemainingUses(r1.id) <= 2
+                    ? 'bg-amber-500/20 text-amber-400'
+                    : 'bg-emerald-500/15 text-emerald-400'">
+                {{ getRemainingUses(r1.id) === 0 ? ('dashboard.team.exhausted' | t) : ('dashboard.team.remaining' | t: { count: getRemainingUses(r1.id) }) }}
+              </span>
+            </div>
+
+            <!-- Progress Quota Bar -->
+            <div class="w-full h-2 rounded-full overflow-hidden my-2" [ngClass]="theme.mode() === 'light' ? 'bg-zinc-200' : 'bg-zinc-800/80'">
+              <div
+                class="h-full rounded-full transition-all duration-500"
+                [style.width.%]="getRiderQuotaPct(r1.id)"
+                [ngClass]="getRemainingUses(r1.id) === 0
+                  ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'
+                  : getRemainingUses(r1.id) <= 2
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]'">
+              </div>
+            </div>
+
+            <!-- Meta details -->
+            <div class="flex items-center justify-between text-[11px] font-bold mt-1 text-zinc-400">
+              <span>
+                <strong [class.text-zinc-900]="theme.mode() === 'light'" [class.text-zinc-200]="theme.mode() === 'dark'">{{ getRiderLineupsCount(r1.id) }}</strong> {{ 'dashboard.team.usedCount' | t: { used: '', total: maxLineups } }}
+              </span>
+              <span class="text-[10px] font-semibold text-zinc-400">
+                {{ (getRiderQuotaPct(r1.id) | number:'1.0-0') }}%
+              </span>
+            </div>
+          </div>
+
+          <!-- 2° Pilota -->
+          <div
+            *ngIf="fantasyTeam.official_rider_2 as r2"
+            class="p-3.5 rounded-2xl border transition-all duration-150"
+            [ngClass]="theme.mode() === 'light' ? 'bg-zinc-50 border-black/[0.06]' : 'bg-zinc-950/60 border-white/5'">
+            <div class="flex items-center justify-between gap-2 mb-2.5">
+              <div class="flex items-center gap-3 min-w-0">
+                <!-- Rider Headshot Avatar with number badge -->
+                <div class="relative w-11 h-11 flex-shrink-0">
+                  <div
+                    class="w-11 h-11 rounded-2xl overflow-hidden border shadow-sm"
+                    [ngClass]="theme.mode() === 'light' ? 'border-black/10 bg-zinc-100' : 'border-white/10 bg-zinc-900'">
+                    <img
+                      [src]="assetService.getRiderPhotoUrl(r2.number, r2.first_name + ' ' + r2.last_name)"
+                      [alt]="r2.first_name + ' ' + r2.last_name"
+                      class="w-full h-full object-cover object-top squad-rider-img"
+                      (error)="assetService.handleImageError($event)">
+                  </div>
+                  <span
+                    class="absolute -bottom-1 -right-1 py-0.5 px-1.5 rounded-md bg-red-600 text-white font-black text-[9px] shadow-sm tracking-tight border leading-none"
+                    [ngClass]="theme.mode() === 'light' ? 'border-white' : 'border-zinc-900'">
+                    #{{ r2.number }}
+                  </span>
+                </div>
+
+                <div class="truncate">
+                  <span class="text-[9px] font-black uppercase tracking-wider text-red-500 block leading-tight">{{ 'dashboard.team.rider2' | t }}</span>
+                  <span class="text-xs sm:text-sm font-black leading-tight block truncate mt-0.5" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
+                    {{ r2.first_name }} {{ r2.last_name }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Status tag -->
+              <span
+                class="py-1 px-2.5 rounded-xl text-[10px] font-extrabold uppercase flex-shrink-0"
+                [ngClass]="getRemainingUses(r2.id) === 0
+                  ? 'bg-red-500/20 text-red-400'
+                  : getRemainingUses(r2.id) <= 2
+                    ? 'bg-amber-500/20 text-amber-400'
+                    : 'bg-emerald-500/15 text-emerald-400'">
+                {{ getRemainingUses(r2.id) === 0 ? ('dashboard.team.exhausted' | t) : ('dashboard.team.remaining' | t: { count: getRemainingUses(r2.id) }) }}
+              </span>
+            </div>
+
+            <!-- Progress Quota Bar -->
+            <div class="w-full h-2 rounded-full overflow-hidden my-2" [ngClass]="theme.mode() === 'light' ? 'bg-zinc-200' : 'bg-zinc-800/80'">
+              <div
+                class="h-full rounded-full transition-all duration-500"
+                [style.width.%]="getRiderQuotaPct(r2.id)"
+                [ngClass]="getRemainingUses(r2.id) === 0
+                  ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'
+                  : getRemainingUses(r2.id) <= 2
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]'">
+              </div>
+            </div>
+
+            <!-- Meta details -->
+            <div class="flex items-center justify-between text-[11px] font-bold mt-1 text-zinc-400">
+              <span>
+                <strong [class.text-zinc-900]="theme.mode() === 'light'" [class.text-zinc-200]="theme.mode() === 'dark'">{{ getRiderLineupsCount(r2.id) }}</strong> {{ 'dashboard.team.usedCount' | t: { used: '', total: maxLineups } }}
+              </span>
+              <span class="text-[10px] font-semibold text-zinc-400">
+                {{ (getRiderQuotaPct(r2.id) | number:'1.0-0') }}%
+              </span>
+            </div>
+          </div>
+
+          <!-- Pilota Riserva -->
+          <div
+            *ngIf="fantasyTeam.reserve_rider as rr"
+            class="p-3.5 rounded-2xl border transition-all duration-150"
+            [ngClass]="theme.mode() === 'light' ? 'bg-zinc-50 border-black/[0.06]' : 'bg-zinc-950/60 border-white/5'">
+            <div class="flex items-center justify-between gap-2 mb-2.5">
+              <div class="flex items-center gap-3 min-w-0">
+                <!-- Rider Headshot Avatar with number badge -->
+                <div class="relative w-11 h-11 flex-shrink-0">
+                  <div
+                    class="w-11 h-11 rounded-2xl overflow-hidden border shadow-sm"
+                    [ngClass]="theme.mode() === 'light' ? 'border-black/10 bg-zinc-100' : 'border-white/10 bg-zinc-900'">
+                    <img
+                      [src]="assetService.getRiderPhotoUrl(rr.number, rr.first_name + ' ' + rr.last_name)"
+                      [alt]="rr.first_name + ' ' + rr.last_name"
+                      class="w-full h-full object-cover object-top squad-rider-img"
+                      (error)="assetService.handleImageError($event)">
+                  </div>
+                  <span
+                    class="absolute -bottom-1 -right-1 py-0.5 px-1.5 rounded-md bg-amber-500 text-zinc-950 font-black text-[9px] shadow-sm tracking-tight border leading-none"
+                    [ngClass]="theme.mode() === 'light' ? 'border-white' : 'border-zinc-900'">
+                    #{{ rr.number }}
+                  </span>
+                </div>
+
+                <div class="truncate">
+                  <span class="text-[9px] font-black uppercase tracking-wider text-amber-400 block leading-tight">{{ 'dashboard.team.reserve' | t }}</span>
+                  <span class="text-xs sm:text-sm font-black leading-tight block truncate mt-0.5" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
+                    {{ rr.first_name }} {{ rr.last_name }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Status tag -->
+              <span
+                class="py-1 px-2.5 rounded-xl text-[10px] font-extrabold uppercase flex-shrink-0"
+                [ngClass]="getRemainingUses(rr.id) === 0
+                  ? 'bg-red-500/20 text-red-400'
+                  : getRemainingUses(rr.id) <= 2
+                    ? 'bg-amber-500/20 text-amber-400'
+                    : 'bg-emerald-500/15 text-emerald-400'">
+                {{ getRemainingUses(rr.id) === 0 ? ('dashboard.team.exhausted' | t) : ('dashboard.team.remaining' | t: { count: getRemainingUses(rr.id) }) }}
+              </span>
+            </div>
+
+            <!-- Progress Quota Bar -->
+            <div class="w-full h-2 rounded-full overflow-hidden my-2" [ngClass]="theme.mode() === 'light' ? 'bg-zinc-200' : 'bg-zinc-800/80'">
+              <div
+                class="h-full rounded-full transition-all duration-500"
+                [style.width.%]="getRiderQuotaPct(rr.id)"
+                [ngClass]="getRemainingUses(rr.id) === 0
+                  ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'
+                  : getRemainingUses(rr.id) <= 2
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]'">
+              </div>
+            </div>
+
+            <!-- Meta details -->
+            <div class="flex items-center justify-between text-[11px] font-bold mt-1 text-zinc-400">
+              <span>
+                <strong [class.text-zinc-900]="theme.mode() === 'light'" [class.text-zinc-200]="theme.mode() === 'dark'">{{ getRiderLineupsCount(rr.id) }}</strong> {{ 'dashboard.team.usedCount' | t: { used: '', total: maxLineups } }}
+              </span>
+              <span class="text-[10px] font-semibold text-zinc-400">
+                {{ (getRiderQuotaPct(rr.id) | number:'1.0-0') }}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Link -->
+        <button
+          type="button"
+          (click)="goTo('teams')"
+          class="w-full mt-3.5 py-2.5 px-4 rounded-xl flex items-center justify-between text-xs font-bold transition-all duration-200 border cursor-pointer select-none"
+          [ngClass]="theme.mode() === 'light'
+            ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border-black/[0.06]'
+            : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-people-group text-red-500"></i>
+            <span>{{ 'dashboard.actions.viewAllTeams' | t }}</span>
+          </div>
+          <i class="fa-solid fa-arrow-right text-[11px] opacity-70"></i>
+        </button>
+      </section>
+      </div>
+
+      <!-- ── Right Column (Next GP + Last Completed GP) ── -->
+      <div class="cockpit-col cockpit-col--right">
+        <!-- ──────────────────────────────────────────────
            BLOCCO 2: PROSSIMO GP & ACTION CENTER
       ────────────────────────────────────────────── -->
       <!-- Loading Skeleton -->
@@ -349,8 +623,7 @@
         </details>
       </section>
 
-
-      <!-- ──────────────────────────────────────────────
+        <!-- ──────────────────────────────────────────────
            BLOCCO: ULTIMO GP CONCLUSO (PUNTEGGIO & DETTAGLI)
       ────────────────────────────────────────────── -->
       <section
@@ -651,275 +924,7 @@
           </div>
         </details>
       </section>
-
-      <!-- ──────────────────────────────────────────────
-           BLOCCO 3: TEAM & QUOTA PILOTI (BATTERIA GETTONI)
-      ────────────────────────────────────────────── -->
-      <!-- Loading Skeleton -->
-      <div *ngIf="loadingTeam" class="cockpit-card border animate-pulse bg-zinc-900/60 border-white/10">
-        <div class="h-4 bg-zinc-700/50 rounded w-1/4 mb-3"></div>
-        <div class="h-10 bg-zinc-800/50 rounded-xl mb-2"></div>
-        <div class="h-10 bg-zinc-800/50 rounded-xl mb-2"></div>
       </div>
-
-      <!-- Active Fantasy Team Card -->
-      <section
-        *ngIf="!loadingTeam && !errorTeam && fantasyTeam"
-        class="cockpit-card team-quota-card"
-        [ngClass]="theme.mode() === 'light'
-          ? 'bg-white/95 border-black/[0.08] shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
-          : 'bg-zinc-900/90 border-white/10 shadow-[0_12px_36px_rgba(0,0,0,0.5)]'">
-
-        <!-- Team Header -->
-        <div class="flex items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 rounded-2xl border flex items-center justify-center overflow-hidden shadow-inner"
-              [ngClass]="theme.mode() === 'light' ? 'bg-zinc-100 border-black/10 text-red-600' : 'bg-zinc-800 border-white/10 text-red-500'">
-              <img *ngIf="fantasyTeam.team_image" [src]="fantasyTeam.team_image" alt="{{ fantasyTeam.name }}" class="w-full h-full object-cover">
-              <i *ngIf="!fantasyTeam.team_image" class="fa-solid fa-people-group"></i>
-            </div>
-            <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-red-500">{{ 'dashboard.team.title' | t }}</span>
-              <h3 class="text-base font-black tracking-tight leading-tight m-0" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
-                {{ fantasyTeam.name }}
-              </h3>
-            </div>
-          </div>
-
-          <span
-            class="text-[10px] font-semibold py-1 px-2.5 rounded-full border"
-            [ngClass]="theme.mode() === 'light' ? 'border-black/10 text-zinc-500 bg-black/[0.03]' : 'border-white/10 text-zinc-400 bg-transparent'">
-            {{ 'dashboard.team.maxLineups' | t: { count: maxLineups } }}
-          </span>
-        </div>
-
-        <!-- Quota Batteria per ciascun Pilota -->
-        <div class="mt-3.5 flex flex-col gap-2.5">
-
-          <!-- 1° Pilota -->
-          <div
-            *ngIf="fantasyTeam.official_rider_1 as r1"
-            class="p-3.5 rounded-2xl border transition-all duration-150"
-            [ngClass]="theme.mode() === 'light' ? 'bg-zinc-50 border-black/[0.06]' : 'bg-zinc-950/60 border-white/5'">
-            <div class="flex items-center justify-between gap-2 mb-2.5">
-              <div class="flex items-center gap-3 min-w-0">
-                <!-- Rider Headshot Avatar with number badge -->
-                <div class="relative w-11 h-11 flex-shrink-0">
-                  <div
-                    class="w-11 h-11 rounded-2xl overflow-hidden border shadow-sm"
-                    [ngClass]="theme.mode() === 'light' ? 'border-black/10 bg-zinc-100' : 'border-white/10 bg-zinc-900'">
-                    <img
-                      [src]="assetService.getRiderPhotoUrl(r1.number, r1.first_name + ' ' + r1.last_name)"
-                      [alt]="r1.first_name + ' ' + r1.last_name"
-                      class="w-full h-full object-cover object-top squad-rider-img"
-                      (error)="assetService.handleImageError($event)">
-                  </div>
-                  <span
-                    class="absolute -bottom-1 -right-1 py-0.5 px-1.5 rounded-md bg-red-600 text-white font-black text-[9px] shadow-sm tracking-tight border leading-none"
-                    [ngClass]="theme.mode() === 'light' ? 'border-white' : 'border-zinc-900'">
-                    #{{ r1.number }}
-                  </span>
-                </div>
-
-                <div class="truncate">
-                  <span class="text-[9px] font-black uppercase tracking-wider text-red-500 block leading-tight">{{ 'dashboard.team.rider1' | t }}</span>
-                  <span class="text-xs sm:text-sm font-black leading-tight block truncate mt-0.5" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
-                    {{ r1.first_name }} {{ r1.last_name }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Status tag -->
-              <span
-                class="py-1 px-2.5 rounded-xl text-[10px] font-extrabold uppercase flex-shrink-0"
-                [ngClass]="getRemainingUses(r1.id) === 0
-                  ? 'bg-red-500/20 text-red-400'
-                  : getRemainingUses(r1.id) <= 2
-                    ? 'bg-amber-500/20 text-amber-400'
-                    : 'bg-emerald-500/15 text-emerald-400'">
-                {{ getRemainingUses(r1.id) === 0 ? ('dashboard.team.exhausted' | t) : ('dashboard.team.remaining' | t: { count: getRemainingUses(r1.id) }) }}
-              </span>
-            </div>
-
-            <!-- Progress Quota Bar -->
-            <div class="w-full h-2 rounded-full overflow-hidden my-2" [ngClass]="theme.mode() === 'light' ? 'bg-zinc-200' : 'bg-zinc-800/80'">
-              <div
-                class="h-full rounded-full transition-all duration-500"
-                [style.width.%]="getRiderQuotaPct(r1.id)"
-                [ngClass]="getRemainingUses(r1.id) === 0
-                  ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'
-                  : getRemainingUses(r1.id) <= 2
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'
-                    : 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]'">
-              </div>
-            </div>
-
-            <!-- Meta details -->
-            <div class="flex items-center justify-between text-[11px] font-bold mt-1 text-zinc-400">
-              <span>
-                <strong [class.text-zinc-900]="theme.mode() === 'light'" [class.text-zinc-200]="theme.mode() === 'dark'">{{ getRiderLineupsCount(r1.id) }}</strong> {{ 'dashboard.team.usedCount' | t: { used: '', total: maxLineups } }}
-              </span>
-              <span class="text-[10px] font-semibold text-zinc-400">
-                {{ (getRiderQuotaPct(r1.id) | number:'1.0-0') }}%
-              </span>
-            </div>
-          </div>
-
-          <!-- 2° Pilota -->
-          <div
-            *ngIf="fantasyTeam.official_rider_2 as r2"
-            class="p-3.5 rounded-2xl border transition-all duration-150"
-            [ngClass]="theme.mode() === 'light' ? 'bg-zinc-50 border-black/[0.06]' : 'bg-zinc-950/60 border-white/5'">
-            <div class="flex items-center justify-between gap-2 mb-2.5">
-              <div class="flex items-center gap-3 min-w-0">
-                <!-- Rider Headshot Avatar with number badge -->
-                <div class="relative w-11 h-11 flex-shrink-0">
-                  <div
-                    class="w-11 h-11 rounded-2xl overflow-hidden border shadow-sm"
-                    [ngClass]="theme.mode() === 'light' ? 'border-black/10 bg-zinc-100' : 'border-white/10 bg-zinc-900'">
-                    <img
-                      [src]="assetService.getRiderPhotoUrl(r2.number, r2.first_name + ' ' + r2.last_name)"
-                      [alt]="r2.first_name + ' ' + r2.last_name"
-                      class="w-full h-full object-cover object-top squad-rider-img"
-                      (error)="assetService.handleImageError($event)">
-                  </div>
-                  <span
-                    class="absolute -bottom-1 -right-1 py-0.5 px-1.5 rounded-md bg-red-600 text-white font-black text-[9px] shadow-sm tracking-tight border leading-none"
-                    [ngClass]="theme.mode() === 'light' ? 'border-white' : 'border-zinc-900'">
-                    #{{ r2.number }}
-                  </span>
-                </div>
-
-                <div class="truncate">
-                  <span class="text-[9px] font-black uppercase tracking-wider text-red-500 block leading-tight">{{ 'dashboard.team.rider2' | t }}</span>
-                  <span class="text-xs sm:text-sm font-black leading-tight block truncate mt-0.5" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
-                    {{ r2.first_name }} {{ r2.last_name }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Status tag -->
-              <span
-                class="py-1 px-2.5 rounded-xl text-[10px] font-extrabold uppercase flex-shrink-0"
-                [ngClass]="getRemainingUses(r2.id) === 0
-                  ? 'bg-red-500/20 text-red-400'
-                  : getRemainingUses(r2.id) <= 2
-                    ? 'bg-amber-500/20 text-amber-400'
-                    : 'bg-emerald-500/15 text-emerald-400'">
-                {{ getRemainingUses(r2.id) === 0 ? ('dashboard.team.exhausted' | t) : ('dashboard.team.remaining' | t: { count: getRemainingUses(r2.id) }) }}
-              </span>
-            </div>
-
-            <!-- Progress Quota Bar -->
-            <div class="w-full h-2 rounded-full overflow-hidden my-2" [ngClass]="theme.mode() === 'light' ? 'bg-zinc-200' : 'bg-zinc-800/80'">
-              <div
-                class="h-full rounded-full transition-all duration-500"
-                [style.width.%]="getRiderQuotaPct(r2.id)"
-                [ngClass]="getRemainingUses(r2.id) === 0
-                  ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'
-                  : getRemainingUses(r2.id) <= 2
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'
-                    : 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]'">
-              </div>
-            </div>
-
-            <!-- Meta details -->
-            <div class="flex items-center justify-between text-[11px] font-bold mt-1 text-zinc-400">
-              <span>
-                <strong [class.text-zinc-900]="theme.mode() === 'light'" [class.text-zinc-200]="theme.mode() === 'dark'">{{ getRiderLineupsCount(r2.id) }}</strong> {{ 'dashboard.team.usedCount' | t: { used: '', total: maxLineups } }}
-              </span>
-              <span class="text-[10px] font-semibold text-zinc-400">
-                {{ (getRiderQuotaPct(r2.id) | number:'1.0-0') }}%
-              </span>
-            </div>
-          </div>
-
-          <!-- Pilota Riserva -->
-          <div
-            *ngIf="fantasyTeam.reserve_rider as rr"
-            class="p-3.5 rounded-2xl border transition-all duration-150"
-            [ngClass]="theme.mode() === 'light' ? 'bg-zinc-50 border-black/[0.06]' : 'bg-zinc-950/60 border-white/5'">
-            <div class="flex items-center justify-between gap-2 mb-2.5">
-              <div class="flex items-center gap-3 min-w-0">
-                <!-- Rider Headshot Avatar with number badge -->
-                <div class="relative w-11 h-11 flex-shrink-0">
-                  <div
-                    class="w-11 h-11 rounded-2xl overflow-hidden border shadow-sm"
-                    [ngClass]="theme.mode() === 'light' ? 'border-black/10 bg-zinc-100' : 'border-white/10 bg-zinc-900'">
-                    <img
-                      [src]="assetService.getRiderPhotoUrl(rr.number, rr.first_name + ' ' + rr.last_name)"
-                      [alt]="rr.first_name + ' ' + rr.last_name"
-                      class="w-full h-full object-cover object-top squad-rider-img"
-                      (error)="assetService.handleImageError($event)">
-                  </div>
-                  <span
-                    class="absolute -bottom-1 -right-1 py-0.5 px-1.5 rounded-md bg-amber-500 text-zinc-950 font-black text-[9px] shadow-sm tracking-tight border leading-none"
-                    [ngClass]="theme.mode() === 'light' ? 'border-white' : 'border-zinc-900'">
-                    #{{ rr.number }}
-                  </span>
-                </div>
-
-                <div class="truncate">
-                  <span class="text-[9px] font-black uppercase tracking-wider text-amber-400 block leading-tight">{{ 'dashboard.team.reserve' | t }}</span>
-                  <span class="text-xs sm:text-sm font-black leading-tight block truncate mt-0.5" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
-                    {{ rr.first_name }} {{ rr.last_name }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Status tag -->
-              <span
-                class="py-1 px-2.5 rounded-xl text-[10px] font-extrabold uppercase flex-shrink-0"
-                [ngClass]="getRemainingUses(rr.id) === 0
-                  ? 'bg-red-500/20 text-red-400'
-                  : getRemainingUses(rr.id) <= 2
-                    ? 'bg-amber-500/20 text-amber-400'
-                    : 'bg-emerald-500/15 text-emerald-400'">
-                {{ getRemainingUses(rr.id) === 0 ? ('dashboard.team.exhausted' | t) : ('dashboard.team.remaining' | t: { count: getRemainingUses(rr.id) }) }}
-              </span>
-            </div>
-
-            <!-- Progress Quota Bar -->
-            <div class="w-full h-2 rounded-full overflow-hidden my-2" [ngClass]="theme.mode() === 'light' ? 'bg-zinc-200' : 'bg-zinc-800/80'">
-              <div
-                class="h-full rounded-full transition-all duration-500"
-                [style.width.%]="getRiderQuotaPct(rr.id)"
-                [ngClass]="getRemainingUses(rr.id) === 0
-                  ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'
-                  : getRemainingUses(rr.id) <= 2
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'
-                    : 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]'">
-              </div>
-            </div>
-
-            <!-- Meta details -->
-            <div class="flex items-center justify-between text-[11px] font-bold mt-1 text-zinc-400">
-              <span>
-                <strong [class.text-zinc-900]="theme.mode() === 'light'" [class.text-zinc-200]="theme.mode() === 'dark'">{{ getRiderLineupsCount(rr.id) }}</strong> {{ 'dashboard.team.usedCount' | t: { used: '', total: maxLineups } }}
-              </span>
-              <span class="text-[10px] font-semibold text-zinc-400">
-                {{ (getRiderQuotaPct(rr.id) | number:'1.0-0') }}%
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Footer Link -->
-        <button
-          type="button"
-          (click)="goTo('teams')"
-          class="w-full mt-3.5 py-2.5 px-4 rounded-xl flex items-center justify-between text-xs font-bold transition-all duration-200 border cursor-pointer select-none"
-          [ngClass]="theme.mode() === 'light'
-            ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border-black/[0.06]'
-            : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
-          <div class="flex items-center gap-2">
-            <i class="fa-solid fa-people-group text-red-500"></i>
-            <span>{{ 'dashboard.actions.viewAllTeams' | t }}</span>
-          </div>
-          <i class="fa-solid fa-arrow-right text-[11px] opacity-70"></i>
-        </button>
-      </section>
 
       <!-- ──────────────────────────────────────────────
            BLOCCO 4: REGOLE E DETTAGLI CAMPIONATO (COMPATTO)
