@@ -19,7 +19,7 @@ import { NotificationBellComponent } from '../notification-bell/notification-bel
 
         <!-- Left: Unified Minimal Brand -->
         <div
-          class="flex items-center gap-2.5 cursor-pointer select-none group"
+          class="flex items-center gap-2 cursor-pointer select-none group shrink-0"
           (click)="onBrandClick()"
           role="button"
           tabindex="0"
@@ -29,7 +29,7 @@ import { NotificationBellComponent } from '../notification-bell/notification-bel
           </div>
           <div class="flex items-baseline gap-1">
             <span
-              class="font-black text-sm tracking-tight leading-none"
+              class="font-black text-xs sm:text-sm tracking-tight leading-none"
               [class.text-white]="theme.mode() === 'dark'"
               [class.text-zinc-900]="theme.mode() === 'light'">
               MOTO<span class="text-red-600">MOTA</span>
@@ -39,7 +39,7 @@ import { NotificationBellComponent } from '../notification-bell/notification-bel
         </div>
 
         <!-- Right: Actions & Utilities (Notifications + Theme + Admin) -->
-        <div class="header-actions-dock">
+        <div class="header-actions-dock shrink-0">
           <!-- Admin Shortcut (Visible only to Admin) -->
           @if (isAdmin) {
             <a

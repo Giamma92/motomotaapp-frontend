@@ -73,60 +73,60 @@ import { Subscription } from 'rxjs';
     }
     .notification-bell-btn {
       position: relative;
-      width: 36px;
-      height: 36px;
+      width: 32px;
+      height: 32px;
       padding: 0;
-      border-radius: 12px;
+      border-radius: 10px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background:
-        radial-gradient(120% 100% at 50% 0%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 65%, transparent 100%),
-        rgba(22, 26, 36, 0.65);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       box-shadow:
-        inset 0 1.2px 1.2px 0 rgba(255, 255, 255, 0.25),
-        inset 0 -1px 0 0 rgba(0, 0, 0, 0.4),
-        0 3px 10px rgba(0, 0, 0, 0.25);
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 2px 6px rgba(0, 0, 0, 0.25);
       color: rgba(255, 255, 255, 0.9);
       cursor: pointer;
       user-select: none;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      flex-shrink: 0;
+
+      @media (min-width: 640px) {
+        width: 34px;
+        height: 34px;
+        border-radius: 11px;
+      }
     }
     .notification-bell-btn i {
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1;
     }
     .notification-bell-btn:hover {
       transform: translateY(-1px);
-      border-color: rgba(255, 255, 255, 0.28);
+      border-color: rgba(255, 255, 255, 0.25);
       color: #ffffff;
+      background: rgba(255, 255, 255, 0.12);
       box-shadow:
-        inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.35),
-        0 6px 16px rgba(0, 0, 0, 0.35);
-      background:
-        radial-gradient(120% 100% at 50% 0%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.04) 65%, transparent 100%),
-        rgba(28, 32, 44, 0.75);
+        inset 0 1px 0 rgba(255, 255, 255, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.35);
     }
     .notification-bell-btn:active {
-      transform: scale(0.93);
+      transform: scale(0.92);
     }
     :host-context([data-theme='light']) .notification-bell-btn {
       border: 1px solid rgba(0, 0, 0, 0.08);
-      background:
-        radial-gradient(120% 100% at 50% 0%, rgba(255, 255, 255, 0.98) 0%, rgba(245, 247, 250, 0.8) 100%),
-        rgba(255, 255, 255, 0.85);
+      background: rgba(0, 0, 0, 0.04);
       color: #1e293b;
       box-shadow:
-        inset 0 1.2px 1.2px 0 rgba(255, 255, 255, 1),
-        0 2px 8px rgba(0, 0, 0, 0.06);
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 2px 6px rgba(0, 0, 0, 0.04);
     }
     :host-context([data-theme='light']) .notification-bell-btn:hover {
-      border-color: rgba(0, 0, 0, 0.16);
+      border-color: rgba(0, 0, 0, 0.15);
       color: #0f172a;
-      background: #ffffff;
+      background: rgba(0, 0, 0, 0.07);
     }
     .notification-bell-btn.has-unread i.fa-bell {
       animation: bell-swing 3.2s ease-in-out infinite;
@@ -143,20 +143,28 @@ import { Subscription } from 'rxjs';
     }
     .notification-badge {
       position: absolute;
-      top: -3px;
-      right: -3px;
-      background: #c8102e;
+      top: -2px;
+      right: -2px;
+      background: #e11d48;
       color: #fff;
-      font-size: 9.5px;
+      font-size: 8.5px;
       font-weight: 800;
       line-height: 1;
-      padding: 2px 5px;
+      min-width: 15px;
+      height: 15px;
+      padding: 0 3px;
       border-radius: 999px;
-      min-width: 17px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      box-shadow: 0 0 10px rgba(200, 16, 46, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+      border: 1.5px solid #0b0d13;
+      box-shadow: 0 0 8px rgba(225, 29, 72, 0.7);
       animation: badge-breathe 2.4s ease-in-out infinite;
       pointer-events: none;
+    }
+    :host-context([data-theme='light']) .notification-badge {
+      border-color: #ffffff;
     }
     @keyframes badge-breathe {
       0%, 100% { transform: scale(1); box-shadow: 0 0 8px rgba(200, 16, 46, 0.6); }
