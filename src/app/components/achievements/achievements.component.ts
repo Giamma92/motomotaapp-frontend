@@ -352,6 +352,22 @@ export class AchievementsComponent implements OnInit {
 
   badgeName(code: string): string {
     const names: Record<string, string> = {
+      // Season
+      gp_winner_season: 'Vincitore GP',
+      gp_podium_season: 'Podio GP',
+      pole_man_season: 'Pole Man',
+      sniper_season: 'Cecchino Bet',
+      sprint_king_season: 'Re della Sprint',
+      streak_season: 'Costanza Podi',
+      leader_season: 'Leader Mondiale',
+      // Career
+      champion_career: 'Mondiali Vinti',
+      trophy_collector: 'Collezione Coppe',
+      gp_winner_career: 'Vittorie GP Totali',
+      gp_podium_career: 'Podi GP Totali',
+      streak_career: 'Record Striscia',
+      veteran_career: 'Veterano Fanta',
+      // Legacy codes
       champion: 'Campione',
       gp_winner: 'Vincitore GP',
       gp_podium: 'Podio GP',
@@ -367,6 +383,22 @@ export class AchievementsComponent implements OnInit {
 
   badgeDesc(code: string): string {
     const desc: Record<string, string> = {
+      // Season
+      gp_winner_season: 'Gare vinte come miglior punteggio in stagione',
+      gp_podium_season: 'Gare chiuse tra i primi 3 in stagione',
+      pole_man_season: 'Miglior punteggio qualifiche in stagione',
+      sniper_season: 'Miglior punteggio scommessa gara in stagione',
+      sprint_king_season: 'Miglior scommessa sprint race in stagione',
+      streak_season: 'Podi consecutivi nei GP in stagione',
+      leader_season: 'Gare passate al primo posto in stagione',
+      // Career
+      champion_career: 'Campionati vinti a fine stagione in bacheca',
+      trophy_collector: 'Podi assoluti a fine campionato (1°, 2°, 3°)',
+      gp_winner_career: 'Gare vinte in carriera come miglior punteggio',
+      gp_podium_career: 'Gare chiuse nei primi 3 in carriera',
+      streak_career: 'Miglior striscia di podi consecutivi in carriera',
+      veteran_career: 'Campionati disputati nel corso degli anni',
+      // Legacy codes
       champion: 'Campionati vinti a fine stagione',
       gp_winner: 'Gare vinte come miglior punteggio',
       gp_podium: 'Gare chiuse tra i primi 3',

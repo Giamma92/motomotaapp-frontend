@@ -7,13 +7,14 @@ import { HapticService } from '../../services/haptic.service';
 import { DashboardService, CalendarRace } from '../../services/dashboard.service';
 import { ChampionshipService, ChampionshipConfig } from '../../services/championship.service';
 import { RaceScheduleService } from '../../services/race-schedule.service';
+import { InAppNotificationService, InAppNotification } from '../../services/in-app-notification.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
-import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-more-sheet',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, TranslatePipe, NotificationBellComponent],
+  imports: [CommonModule, RouterLink, RouterLinkActive, TranslatePipe],
   styleUrl: './more-sheet.component.scss',
   template: `
     @if (isOpen) {
@@ -81,19 +82,99 @@ import { NotificationBellComponent } from '../notification-bell/notification-bel
             </div>
           </a>
 
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <!-- Global Notifications Bell inside More Sheet -->
-            <app-notification-bell></app-notification-bell>
-
-            <button
-              type="button"
-              (click)="onClose()"
-              class="sheet-close-btn"
-              [attr.aria-label]="'more.close' | t">
-              <i class="fa-solid fa-xmark text-sm"></i>
-            </button>
-          </div>
+          <button
+            type="button"
+            (click)="onClose()"
+            class="sheet-close-btn flex-shrink-0"
+            [attr.aria-label]="'more.close' | t">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
         </div>
+
+        <!-- Centro Notifiche Dedicato -->
+        <div
+          class="sheet-session-card cursor-pointer group mb-2.5"
+          (click)="toggleNotifications()"
+          role="button"
+          tabindex="0">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div
+              class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+              [ngClass]="unreadCount > 0 ? 'bg-red-500/20 text-red-500' : 'bg-zinc-800 text-zinc-400'">
+              <i class="fa-solid fa-bell text-xs" [class.animate-bounce]="unreadCount > 0"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="font-bold text-[11px] leading-tight flex items-center gap-1.5">
+                <span>Centro Notifiche</span>
+                <span *ngIf="unreadCount > 0" class="text-red-500 text-[10px] font-black">
+                  • {{ unreadCount }} {{ unreadCount === 1 ? 'nuova' : 'nuove' }}
+                </span>
+              </div>
+              <div class="text-[10px] text-zinc-400 truncate">
+                {{ unreadCount > 0 ? 'Tocca per aprire e leggere' : 'Tutte le notifiche lette' }}
+              </div>
+            </div>
+          </div>
+          <span class="sheet-renew-btn" style="border-color: rgba(255, 255, 255, 0.15); color: inherit; background: rgba(255, 255, 255, 0.08);">
+            {{ showingNotifications ? 'Chiudi' : 'Apri' }}
+          </span>
+        </div>
+
+        @if (showingNotifications) {
+          <!-- Notifications Subview -->
+          <div class="mb-4 p-3 rounded-2xl border"
+               [ngClass]="theme.mode() === 'light' ? 'bg-zinc-50 border-black/5' : 'bg-zinc-950/60 border-white/5'">
+            <div class="flex items-center justify-between mb-2 pb-2 border-b"
+                 [ngClass]="theme.mode() === 'light' ? 'border-black/5' : 'border-white/5'">
+              <span class="text-[10px] font-black uppercase tracking-wider text-red-500">
+                Ultime Notifiche
+              </span>
+              <button
+                type="button"
+                *ngIf="unreadCount > 0"
+                (click)="markAllNotificationsRead()"
+                class="text-[10px] font-bold uppercase tracking-wider text-red-400 hover:text-red-300 bg-transparent border-0 cursor-pointer">
+                Segna tutte lette
+              </button>
+            </div>
+
+            <div class="space-y-2 max-h-[45vh] overflow-y-auto">
+              @if (notifications.length === 0) {
+                <div class="py-6 text-center text-zinc-500 text-xs">
+                  <i class="fa-solid fa-bell-slash text-xl mb-1.5 opacity-50 block"></i>
+                  Nessuna notifica
+                </div>
+              } @else {
+                @for (notif of notifications.slice(0, 15); track notif.id) {
+                  <div
+                    class="p-2 rounded-xl border transition-all cursor-pointer flex items-start gap-2.5"
+                    [ngClass]="[
+                      notif.is_read ? 'border-transparent opacity-70 hover:opacity-100' : 'bg-red-500/10 border-red-500/20',
+                      theme.mode() === 'light' && !notif.is_read ? 'bg-red-50 border-red-200' : ''
+                    ]"
+                    (click)="openNotification(notif)">
+                    <div class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-[11px]"
+                         [ngClass]="notif.is_read ? 'bg-zinc-800 text-zinc-400' : 'bg-red-600 text-white'">
+                      <i class="fa-solid" [ngClass]="getNotificationIcon(notif.category)"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="text-xs font-bold leading-tight" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
+                        {{ notif.title }}
+                      </div>
+                      <div class="text-[10.5px] text-zinc-400 mt-0.5 line-clamp-2" *ngIf="notif.body">
+                        {{ notif.body }}
+                      </div>
+                      <div class="text-[9px] text-zinc-500 mt-1">
+                        {{ formatNotifTime(notif.created_at) }}
+                      </div>
+                    </div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-red-600 mt-1.5 flex-shrink-0" *ngIf="!notif.is_read"></div>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        }
 
         <!-- Timer Scadenza Sessione con tasto Rinnova -->
         <div class="sheet-session-card">
@@ -486,7 +567,11 @@ import { NotificationBellComponent } from '../notification-bell/notification-bel
   `
 })
 export class MoreSheetComponent implements OnInit, OnChanges, OnDestroy {
-  ngOnDestroy(): void { if (this.sessionTimerInterval) clearInterval(this.sessionTimerInterval); }
+  ngOnDestroy(): void {
+    if (this.sessionTimerInterval) clearInterval(this.sessionTimerInterval);
+    this.unreadSub?.unsubscribe();
+    this.notifSub?.unsubscribe();
+  }
   isDragging = false;
   dragTranslateY = 0;
   private touchStartY = 0;
@@ -497,6 +582,12 @@ export class MoreSheetComponent implements OnInit, OnChanges, OnDestroy {
   sessionRenewing = false;
   sessionRenewSuccess = false;
   private sessionTimerInterval: any = null;
+
+  showingNotifications = false;
+  unreadCount = 0;
+  notifications: InAppNotification[] = [];
+  private unreadSub?: Subscription;
+  private notifSub?: Subscription;
 
   onTouchStart(e: TouchEvent): void {
     const sheetEl = e.currentTarget as HTMLElement;
@@ -577,6 +668,7 @@ export class MoreSheetComponent implements OnInit, OnChanges, OnDestroy {
   private dashboardService = inject(DashboardService);
   private championshipService = inject(ChampionshipService);
   private raceScheduleService = inject(RaceScheduleService);
+  private notificationService = inject(InAppNotificationService);
 
   userInfo?: UserInfo;
   champId = 0;
@@ -590,6 +682,8 @@ export class MoreSheetComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit(): void {
     this.startSessionTimer();
+    this.unreadSub = this.notificationService.unreadCount$.subscribe(c => this.unreadCount = c);
+    this.notifSub = this.notificationService.notifications$.subscribe(n => this.notifications = n);
     this.authService.getUserInfo().subscribe({
       next: (info) => { this.userInfo = info; },
       error: () => {}
@@ -606,6 +700,8 @@ export class MoreSheetComponent implements OnInit, OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen']?.currentValue === true) {
       this.refreshNextRace();
+    } else if (changes['isOpen']?.currentValue === false) {
+      this.showingNotifications = false;
     }
   }
 
@@ -677,8 +773,57 @@ export class MoreSheetComponent implements OnInit, OnChanges, OnDestroy {
     return this.authService.isCurrentUserAdmin();
   }
 
+  toggleNotifications(): void {
+    this.haptic.light();
+    this.showingNotifications = !this.showingNotifications;
+  }
+
+  markAllNotificationsRead(): void {
+    this.haptic.success();
+    this.notificationService.markAllAsRead().subscribe(() => {
+      this.notificationService.pollNow();
+    });
+  }
+
+  openNotification(notif: InAppNotification): void {
+    this.haptic.light();
+    if (!notif.is_read) {
+      this.notificationService.markAsRead(notif.id).subscribe();
+    }
+    this.onClose();
+    if (notif.link) {
+      this.router.navigateByUrl(notif.link);
+    }
+  }
+
+  getNotificationIcon(category: string): string {
+    switch (category) {
+      case 'lineup': return 'fa-flag-checkered';
+      case 'score_update': return 'fa-chart-line';
+      case 'standing_change': return 'fa-ranking-star';
+      case 'race_cancelled': return 'fa-ban';
+      default: return 'fa-circle-info';
+    }
+  }
+
+  formatNotifTime(dateStr: string): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Adesso';
+    if (diffMin < 60) return `${diffMin}m fa`;
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return `${diffH}h fa`;
+    const diffD = Math.floor(diffMin / 60);
+    if (diffD < 7) return `${diffD}g fa`;
+    return date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+  }
+
   onClose(): void {
     this.haptic.light();
+    this.showingNotifications = false;
     this.close.emit();
   }
 
