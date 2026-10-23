@@ -8,6 +8,27 @@
     <!-- ── Mobile Pull to Refresh Indicator with Starter Rope Feedback ── -->
     <app-pull-to-refresh [isRefreshing]="isRefreshing" (refresh)="reload($event)"></app-pull-to-refresh>
 
+    <!-- ── Mobile Native Transparent Mini-Header (Soluzione 3B) ── -->
+    <header class="mobile-native-topbar md:hidden flex items-center justify-between px-1 mb-2.5" role="banner">
+      <div class="flex items-center gap-2 select-none">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white text-[11px] shadow-sm shadow-red-600/30">
+          <i class="fa-solid fa-flag-checkered"></i>
+        </div>
+        <div class="flex items-baseline gap-1">
+          <span class="font-black text-sm tracking-tight leading-none"
+                [class.text-white]="theme.mode() === 'dark'"
+                [class.text-zinc-900]="theme.mode() === 'light'">
+            MOTO<span class="text-red-600">MOTA</span>
+          </span>
+          <span class="text-[9px] font-black text-red-500 uppercase tracking-wider">GP</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <app-notification-bell></app-notification-bell>
+      </div>
+    </header>
+
     <div class="cockpit-stack">
 
             <!-- ── Left Column (Hero Status + Team Quota) ── -->

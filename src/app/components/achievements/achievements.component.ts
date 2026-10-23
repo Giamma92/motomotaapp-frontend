@@ -135,14 +135,17 @@ import { TrophyImageComponent } from '../trophies/trophy-image.component';
           <!-- ════ SEZIONE 3A: TRAGUARDI STAGIONE (GRAN PREMI 2026) ════ -->
           <section class="rounded-3xl p-5 border relative overflow-hidden shadow-md"
                    [ngClass]="light() ? 'bg-white border-zinc-200' : 'bg-gradient-to-b from-[#141724] to-[#0f121e] border-white/10'">
-            <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-flag-checkered text-red-500"></i>
-                <div>
-                  <h3 class="text-sm font-black uppercase tracking-wider m-0">Traguardi Gran Premi (Stagione {{ data.currentYear || 2026 }})</h3>
+            <div class="flex items-center justify-between mb-3 gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <i class="fa-solid fa-flag-checkered text-red-500 text-base"></i>
+                <div class="min-w-0">
+                  <h3 class="text-sm font-black uppercase tracking-wider m-0 truncate">Traguardi Gran Premi (Stagione {{ data.currentYear || 2026 }})</h3>
                   <p class="text-[10.5px] opacity-60 m-0 mt-0.5">Obiettivi calcolati sulle gare del campionato in corso</p>
                 </div>
               </div>
+              <span class="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-500/15 text-red-500 border border-red-500/25">
+                Stagione 2026
+              </span>
             </div>
 
             <!-- Griglia Badge Stagionali -->
@@ -178,14 +181,17 @@ import { TrophyImageComponent } from '../trophies/trophy-image.component';
           <!-- ════ SEZIONE 3B: TRAGUARDI CARRIERA & GLOBALI (TUTTI GLI ANNI) ════ -->
           <section class="rounded-3xl p-5 border relative overflow-hidden shadow-md"
                    [ngClass]="light() ? 'bg-white border-zinc-200' : 'bg-gradient-to-b from-[#141724] to-[#0f121e] border-white/10'">
-            <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-globe text-amber-500"></i>
-                <div>
-                  <h3 class="text-sm font-black uppercase tracking-wider m-0">Traguardi Carriera (Globali)</h3>
+            <div class="flex items-center justify-between mb-3 gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <i class="fa-solid fa-earth-americas text-amber-500 text-base"></i>
+                <div class="min-w-0">
+                  <h3 class="text-sm font-black uppercase tracking-wider m-0 truncate">Traguardi Carriera (Globali)</h3>
                   <p class="text-[10.5px] opacity-60 m-0 mt-0.5">Storico cumulativo di tutti i campionati e anni disputati</p>
                 </div>
               </div>
+              <span class="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-500 border border-amber-500/25">
+                All-Time
+              </span>
             </div>
 
             <!-- Griglia Badge Carriera -->
@@ -461,6 +467,32 @@ export class AchievementsComponent implements OnInit {
     if (level === 2) return 'bg-zinc-300';
     if (level === 1) return 'bg-orange-400';
     return 'bg-zinc-500';
+  }
+
+  getSeasonBadges(): Badge[] {
+    if (!this.data) return [];
+    if (this.data.seasonBadges && this.data.seasonBadges.length) {
+      return this.data.seasonBadges;
+    }
+    const seasonKeys = [
+      'gp_winner_season', 'gp_podium_season', 'pole_man_season',
+      'sniper_season', 'sprint_king_season', 'streak_season', 'leader_season',
+      'gp_winner', 'gp_podium', 'pole_man', 'sniper', 'sprint_king', 'streak', 'leader'
+    ];
+    return (this.data.badges || []).filter(b => seasonKeys.includes(b.code));
+  }
+
+  getCareerBadges(): Badge[] {
+    if (!this.data) return [];
+    if (this.data.careerBadges && this.data.careerBadges.length) {
+      return this.data.careerBadges;
+    }
+    const careerKeys = [
+      'champion_career', 'trophy_collector', 'gp_winner_career',
+      'gp_podium_career', 'streak_career', 'veteran_career',
+      'champion', 'veteran'
+    ];
+    return (this.data.badges || []).filter(b => careerKeys.includes(b.code));
   }
 
   currentBadges(): Badge[] {
