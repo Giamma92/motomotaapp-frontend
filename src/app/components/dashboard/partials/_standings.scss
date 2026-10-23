@@ -59,10 +59,10 @@
 
   tr:last-child td { border-bottom: none; }
 
-  /* Current user row — subtle red tint with inset shadow (no border-left to avoid table column shift) */
+  /* Current user row — subtle red tint with no harsh border */
   tr.highlight {
     background: linear-gradient(90deg, rgba(200, 16, 46, 0.14), rgba(200, 16, 46, 0.04));
-    box-shadow: inset 3px 0 0 var(--primary-color);
+    box-shadow: none !important;
     border-left: none !important;
     td {
       font-weight: 600;
@@ -73,7 +73,7 @@
   /* Top-three rows — subtle red ramp */
   tr.top-three {
     background: linear-gradient(90deg, rgba(200, 16, 46, 0.10), rgba(200, 16, 46, 0.025));
-    box-shadow: inset 3px 0 0 var(--primary-color);
+    box-shadow: none !important;
     border-left: none !important;
   }
 
@@ -770,13 +770,13 @@ button i {
 
 .standings-table tr.top-three {
   background: linear-gradient(90deg, rgba(200, 16, 46, 0.10), rgba(200, 16, 46, 0.025)) !important;
-  box-shadow: inset 3px 0 0 var(--primary-color) !important;
+  box-shadow: none !important;
   border-left: none !important;
 }
 
 .standings-table tr.highlight {
   background: linear-gradient(90deg, rgba(200, 16, 46, 0.14), rgba(200, 16, 46, 0.04)) !important;
-  box-shadow: inset 3px 0 0 var(--primary-color) !important;
+  box-shadow: none !important;
   border-left: none !important;
 }
 
