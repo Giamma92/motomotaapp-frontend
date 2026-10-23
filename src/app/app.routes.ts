@@ -35,9 +35,14 @@ export const routes: Routes = [
   { path: 'motogp-results/:championshipId/:calendarId', loadComponent: () => import('./components/motogp-results/motogp-results.component').then(m => m.MotoGPResultsComponent) },
   // A route for championship standings breakdown page.
   { path: 'standings-breakdown', loadComponent: () => import('./components/standings-breakdown/standings-breakdown.component').then(m => m.StandingsBreakdownComponent), canActivate: [AuthGuard] },
+  // Trophy History (Hall of Fame)
+  { path: 'trophies', loadComponent: () => import('./components/trophies/trophy-history.component').then(m => m.TrophyHistoryComponent), canActivate: [AuthGuard] },
+  // Achievements / Palmares (current user)
+  { path: 'achievements', loadComponent: () => import('./components/achievements/achievements.component').then(m => m.AchievementsComponent), canActivate: [AuthGuard] },
+  // Achievements of a specific user
+  { path: 'achievements/:userId', loadComponent: () => import('./components/achievements/achievements.component').then(m => m.AchievementsComponent), canActivate: [AuthGuard] },
   // A route for a teams page.
   { path: 'teams', loadComponent: () => import('./components/all-teams/all-teams.component').then(m => m.AllTeamsComponent), canActivate: [AuthGuard] },
   // Wildcard redirect to home
   { path: '**', redirectTo: '' }
 ];
-

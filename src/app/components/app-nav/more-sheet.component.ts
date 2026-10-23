@@ -343,6 +343,42 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
           </span>
 
           <div class="grid grid-cols-2 gap-2.5">
+            <!-- Trophy History (Hall of Fame) -->
+            <a
+              routerLink="/trophies"
+              routerLinkActive="ring-2 ring-amber-500/50"
+              (click)="onNavigate()"
+              class="group p-3 rounded-2xl border transition-all duration-150 active:scale-98 flex flex-col justify-between gap-2.5 no-underline select-none cursor-pointer"
+              [ngClass]="theme.mode() === 'light'
+                ? 'bg-zinc-50 border-zinc-200/80 hover:bg-zinc-100/70 text-zinc-900 shadow-sm'
+                : 'bg-zinc-900/60 border-white/5 hover:bg-zinc-800/80 text-white shadow-sm'">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-sm">
+                <i class="fa-solid fa-trophy"></i>
+              </div>
+              <div>
+                <div class="text-[13px] font-black leading-tight">Trophy History</div>
+                <div class="text-[10.5px] opacity-60 mt-0.5">Albo d'oro & Coppe</div>
+              </div>
+            </a>
+
+            <!-- Achievements & Palmarès -->
+            <a
+              routerLink="/achievements"
+              routerLinkActive="ring-2 ring-amber-500/50"
+              (click)="onNavigate()"
+              class="group p-3 rounded-2xl border transition-all duration-150 active:scale-98 flex flex-col justify-between gap-2.5 no-underline select-none cursor-pointer"
+              [ngClass]="theme.mode() === 'light'
+                ? 'bg-zinc-50 border-zinc-200/80 hover:bg-zinc-100/70 text-zinc-900 shadow-sm'
+                : 'bg-zinc-900/60 border-white/5 hover:bg-zinc-800/80 text-white shadow-sm'">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-sm">
+                <i class="fa-solid fa-medal"></i>
+              </div>
+              <div>
+                <div class="text-[13px] font-black leading-tight">Achievements</div>
+                <div class="text-[10.5px] opacity-60 mt-0.5">Bacheca & Statistiche</div>
+              </div>
+            </a>
+
             <!-- Profilo Utente -->
             <a
               routerLink="/profile"

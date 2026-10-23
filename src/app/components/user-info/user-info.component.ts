@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,6 +17,7 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     FormsModule,
     MatCardModule,
     MatButtonModule,
@@ -139,6 +140,26 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
                   <span *ngIf="aliasDraft" class="font-normal">{{ userInfo.first_name }} {{ userInfo.last_name }} • </span>
                   &#64;{{ userInfo.id }}
                 </p>
+
+                <!-- Link Rapido a Bacheca Trofei / Achievements -->
+                <div class="mt-3 flex items-center justify-center sm:justify-start gap-2">
+                  <a
+                    routerLink="/achievements"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black no-underline transition active:scale-95 border"
+                    [ngClass]="theme.mode() === 'light'
+                      ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border-amber-500/30'
+                      : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border-amber-500/30'">
+                    <i class="fa-solid fa-trophy"></i> Bacheca & Statistiche
+                  </a>
+                  <a
+                    routerLink="/trophies"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black no-underline transition active:scale-95 border"
+                    [ngClass]="theme.mode() === 'light'
+                      ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-200'
+                      : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
+                    <i class="fa-solid fa-timeline"></i> Albo d'Oro
+                  </a>
+                </div>
 
                 <!-- Avatar Preset Veloci -->
                 <div class="mt-3.5 flex items-center justify-center sm:justify-start gap-2">
