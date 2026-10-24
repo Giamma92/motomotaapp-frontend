@@ -126,6 +126,7 @@ export class PullToRefreshComponent implements OnChanges {
   pullDistance = 0;
 
   private isTouching = false;
+  private touchStartX = 0;
   private touchStartY = 0;
   private lastTensionStep = 0;
   private hasSnapped = false;
@@ -148,12 +149,17 @@ export class PullToRefreshComponent implements OnChanges {
 
   @HostListener('window:touchstart', ['$event'])
   onTouchStart(e: TouchEvent): void {
-    if (typeof window !== 'undefined' && window.scrollY <= 0 && !this.isRefreshing) {
-      this.touchStartY = e.touches[0].clientY;
-      this.isTouching = true;
-      this.lastTensionStep = 0;
-      this.hasSnapped = false;
+    if (typeof window === 'undefined' || window.scrollY > 0 || this.isRefreshing) return;
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('header, button, a, input, select, textarea, nav, [role="button"]')) {
+      this.isTouching = false;
+      return;
     }
+    this.touchStartX = e.touches[0].clientX;
+    this.touchStartY = e.touches[0].clientY;
+    this.isTouching = true;
+    this.lastTensionStep = 0;
+    this.hasSnapped = false;
   }
 
   @HostListener('window:touchmove', ['$event'])
@@ -161,10 +167,12 @@ export class PullToRefreshComponent implements OnChanges {
     if (!this.isTouching || this.isRefreshing || typeof window === 'undefined') return;
 
     if (window.scrollY <= 0) {
-      const diff = e.touches[0].clientY - this.touchStartY;
-      if (diff > 0) {
-        // Logarithmic / mechanical resistance curve
-        this.pullDistance = Math.min(85, diff * 0.42);
+      const diffX = Math.abs(e.touches[0].clientX - this.touchStartX);
+      const diffY = e.touches[0].clientY - this.touchStartY;
+      const deadzone = 16;
+      if (diffY > deadzone && diffY > diffX * 1.2) {
+        // Logarithmic / mechanical resistance curve after deadzone
+        this.pullDistance = Math.min(85, (diffY - deadzone) * 0.42);
 
         // Tactile "rope ratchet" tick on every step
         const step = Math.floor(this.pullDistance / 13);
@@ -190,6 +198,8 @@ export class PullToRefreshComponent implements OnChanges {
   onTouchEnd(): void {
     if (!this.isTouching) return;
     this.isTouching = false;
+
+    if (this.pullDistance === 0) return;
 
     if (this.pullDistance >= this.threshold && !this.isRefreshing) {
       this.isRefreshing = true;

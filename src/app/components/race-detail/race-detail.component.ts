@@ -568,7 +568,7 @@ export interface ParticipantCard {
                 <button
                   type="button"
                   class="popular-pick-chip"
-                  *ngFor="let pick of popularPicks"
+                  *ngFor="let pick of popularPicks; trackBy: trackByPickName"
                   [class.popular-pick-chip--active]="selectedRiderFilter === pick.riderName"
                   (click)="toggleRiderFilter(pick.riderName)">
                   <span class="pick-num" *ngIf="pick.number">#{{ pick.number }}</span>
@@ -915,7 +915,7 @@ export interface ParticipantCard {
             <div class="motogp-podium-grid" *ngIf="topThreeMotoGP.length > 0">
               <div
                 class="podium-item"
-                *ngFor="let res of topThreeMotoGP; let idx = index"
+                *ngFor="let res of topThreeMotoGP; let idx = index; trackBy: trackByMotoGPResult"
                 [ngClass]="'podium-item--' + (idx + 1)">
                 <div class="podium-rank-badge">
                   <span>P{{ motogpSessionFilter === 'race' ? (res.race_position || (idx + 1)) : (motogpSessionFilter === 'sprint' ? (res.sprint_position || (idx + 1)) : (res.qualifying_scoring_position || res.qualifying_position || (idx + 1))) }}</span>
@@ -1098,8 +1098,11 @@ export class RaceDetailComponent implements OnInit, OnDestroy {
   private checkScreen() { this.isMobile = window.innerWidth <= 820; }
 
   @HostListener('window:scroll') onWindowScroll() {
-    this.showScrollTop = window.scrollY > 480;
-    this.cdr.markForCheck();
+    const next = window.scrollY > 480;
+    if (next !== this.showScrollTop) {
+      this.showScrollTop = next;
+      this.cdr.markForCheck();
+    }
   }
 
   private currentChampId = 0;
@@ -1387,6 +1390,29 @@ export class RaceDetailComponent implements OnInit, OnDestroy {
     return this.isBetSuccessful(bet) ? 'outcome-tag--win' : 'outcome-tag--loss';
   }
 
+  get hasQualifyingMotoGPResults(): boolean {
+    return (this.motogpResults || []).some(r =>
+      (r.qualifying_scoring_position != null && Number(r.qualifying_scoring_position) > 0) ||
+      (r.qualifying_position != null && Number(r.qualifying_position) > 0) ||
+      (r.qualifying_scoring_points != null && Number(r.qualifying_scoring_points) > 0) ||
+      (r.qualifying_points != null && Number(r.qualifying_points) > 0)
+    );
+  }
+
+  get hasSprintMotoGPResults(): boolean {
+    return (this.motogpResults || []).some(r =>
+      (r.sprint_position != null && Number(r.sprint_position) > 0) ||
+      (r.sprint_points != null && Number(r.sprint_points) > 0)
+    );
+  }
+
+  get hasRaceMotoGPResults(): boolean {
+    return (this.motogpResults || []).some(r =>
+      (r.race_position != null && Number(r.race_position) > 0) ||
+      (r.race_points != null && Number(r.race_points) > 0)
+    );
+  }
+
   getParticipantLineupTotalScore(lineup: LineupsResult | null): number | null {
     if (!lineup) return null;
     const qRiderId = Number((lineup.qualifying_rider_id as any)?.id ?? lineup.qualifying_rider_id);
@@ -1394,11 +1420,11 @@ export class RaceDetailComponent implements OnInit, OnDestroy {
 
     let qScore: number | null = null;
     let rScore: number | null = null;
-    if (qRiderId) {
+    if (qRiderId && this.hasQualifyingMotoGPResults) {
       const qRes = this.findMotoGpResultByRider(qRiderId);
       if (qRes) qScore = Number(qRes.qualifying_scoring_points ?? qRes.qualifying_points ?? 0);
     }
-    if (rRiderId) {
+    if (rRiderId && this.hasRaceMotoGPResults) {
       const rRes = this.findMotoGpResultByRider(rRiderId);
       if (rRes) rScore = Number(rRes.race_points ?? 0);
     }
@@ -1461,12 +1487,12 @@ export class RaceDetailComponent implements OnInit, OnDestroy {
 
       let qualifyingScore: number | null = null;
       let raceScore: number | null = null;
-      if (qRider) {
+      if (qRider && this.hasQualifyingMotoGPResults) {
         const qId = Number(qRider.id ?? qRider);
         const qRes = this.findMotoGpResultByRider(qId);
         if (qRes) qualifyingScore = Number(qRes.qualifying_scoring_points ?? qRes.qualifying_points ?? 0);
       }
-      if (rRider) {
+      if (rRider && this.hasRaceMotoGPResults) {
         const rId = Number(rRider.id ?? rRider);
         const rRes = this.findMotoGpResultByRider(rId);
         if (rRes) raceScore = Number(rRes.race_points ?? 0);
@@ -1869,11 +1895,16 @@ export class RaceDetailComponent implements OnInit, OnDestroy {
   }
   hasBetOutcome(bet: BetResult | null | undefined): boolean {
     if (!bet) return false;
+    if (this.bets.includes(bet)) {
+      if (!this.hasRaceMotoGPResults) return false;
+    } else if (this.sprints.includes(bet)) {
+      if (!this.hasSprintMotoGPResults) return false;
+    }
     const outcome = bet.outcome;
     return outcome !== null && outcome !== undefined && String(outcome).trim() !== '';
   }
   isBetSuccessful(bet: BetResult | null | undefined): boolean {
-    if (!bet) return false;
+    if (!bet || !this.hasBetOutcome(bet)) return false;
     return this.isResultPositive(bet.outcome, bet.points);
   }
   getBetStatusLabel(bet: BetResult | null | undefined): string {
@@ -1896,6 +1927,7 @@ export class RaceDetailComponent implements OnInit, OnDestroy {
     return `${this.getBetStatusLabel(bet)} ${this.formatSignedPoints(delta)}`;
   }
   getLineupQualifyingScore(): number | null {
+    if (!this.hasQualifyingMotoGPResults) return null;
     const riderId = Number((this.myLineup?.qualifying_rider_id as any)?.id ?? this.myLineup?.qualifying_rider_id);
     if (!riderId) return null;
     const result = this.findMotoGpResultByRider(riderId);
@@ -1903,6 +1935,7 @@ export class RaceDetailComponent implements OnInit, OnDestroy {
     return Number(result.qualifying_scoring_points ?? result.qualifying_points ?? 0);
   }
   getLineupRaceScore(): number | null {
+    if (!this.hasRaceMotoGPResults) return null;
     const riderId = Number((this.myLineup?.race_rider_id as any)?.id ?? this.myLineup?.race_rider_id);
     if (!riderId) return null;
     const result = this.findMotoGpResultByRider(riderId);
@@ -2056,6 +2089,15 @@ export class RaceDetailComponent implements OnInit, OnDestroy {
       const posB = b.qualifying_position ?? b.qualifying_scoring_position ?? Number.MAX_SAFE_INTEGER;
       return posA - posB;
     });
+    if (!this.hasRaceMotoGPResults) {
+      if (this.hasSprintMotoGPResults) {
+        this.motogpSessionFilter = 'sprint';
+      } else if (this.hasQualifyingMotoGPResults) {
+        this.motogpSessionFilter = 'qualifying';
+      }
+    } else {
+      this.motogpSessionFilter = 'race';
+    }
     this.qualifyingScoringDrafts = this.motogpResults.reduce((acc, result) => {
       acc[result.id] = result.qualifying_scoring_position ?? result.qualifying_position ?? null;
       return acc;
@@ -2064,4 +2106,5 @@ export class RaceDetailComponent implements OnInit, OnDestroy {
 
   trackByUser = (_: number, item: { user_id: any }) => item?.user_id?.id ?? item?.user_id?.email ?? _;
   trackByMotoGPResult = (_: number, item: MotoGPStoredResult) => item.id;
+  trackByPickName = (_: number, item: { riderName: string }) => item.riderName;
 }

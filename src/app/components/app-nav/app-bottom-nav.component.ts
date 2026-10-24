@@ -116,11 +116,15 @@ export class AppBottomNavComponent {
     });
   }
 
+  get isPrimaryRoute(): boolean {
+    const clean = this.currentUrl.split('?')[0].split('#')[0];
+    return clean === '/' || clean === '/dashboard' || clean === '/calendar' || clean === '/teams' || clean === '/all-teams' || clean === '/standings-breakdown';
+  }
+
   get isVisible(): boolean {
     const token = this.authService.getToken();
     if (!token) return false;
-    const url = this.currentUrl;
-    return !url.startsWith('/login') && !url.startsWith('/reset-password') && !url.startsWith('/admin');
+    return this.isPrimaryRoute;
   }
 
   get isMoreActive(): boolean {

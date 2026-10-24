@@ -1,17 +1,15 @@
 /* ─── Route Entrance Animation (Native App feel, 60 FPS) ─── */
 router-outlet + * {
   display: block;
-  animation: mm-page-enter 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: mm-page-enter 0.18s ease-out;
 }
 
 @keyframes mm-page-enter {
   from {
     opacity: 0;
-    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -29,7 +27,7 @@ router-outlet + * {
   padding: var(--content-offset-top) clamp(12px, 2.8vw, 28px) calc(var(--app-bottom-nav-height, 68px) + 36px);
 }
 
-/* Sub-pages containing a top back-arrow header need room under the 48px header */
+/* Sub-pages containing a top back-arrow header need room under the 48px header and no bottom-nav offset */
 .page-container:has(.header),
 .settings-container:has(.header),
 .bets-container:has(.header),
@@ -37,6 +35,7 @@ router-outlet + * {
 .trophy-page:has(.header),
 .admin-shell:has(.header) {
   padding-top: calc(48px + env(safe-area-inset-top, 0px) + 14px) !important;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
 /* ─── Header (canonical — shared by sub-pages with back navigation) ───
