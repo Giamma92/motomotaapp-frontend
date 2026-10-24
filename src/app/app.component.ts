@@ -12,6 +12,7 @@ import { UpdateService } from './services/update.service';
 import { I18nService, ALLOWED_LANGUAGES } from './services/i18n.service';
 import { AuthService } from './services/auth.service';
 import { UserSettingsService } from './services/user-settings.service';
+import { NavigationService } from './services/navigation.service';
 import { timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
@@ -46,7 +47,8 @@ export class AppComponent {
     private updateService: UpdateService,
     private i18n: I18nService,
     private authService: AuthService,
-    private userSettingsService: UserSettingsService
+    private userSettingsService: UserSettingsService,
+    private navigationService: NavigationService
   ) {
     // 1. Initialize i18n with cached or browser language
     this.i18n.init();

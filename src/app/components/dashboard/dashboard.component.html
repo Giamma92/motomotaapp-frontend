@@ -8,7 +8,19 @@
     <!-- ── Mobile Pull to Refresh Indicator with Starter Rope Feedback ── -->
     <app-pull-to-refresh [isRefreshing]="isRefreshing" (refresh)="reload($event)"></app-pull-to-refresh>
 
-
+    <!-- ── Mobile Top Bar with Brand & Notification Bell (outside .cockpit-card so fixed dropdown is never trapped) ── -->
+    <div class="flex md:hidden items-center justify-between px-1 mb-2.5">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.8)]"></span>
+        <span class="text-xs font-black uppercase tracking-widest"
+          [ngClass]="theme.mode() === 'light' ? 'text-zinc-900' : 'text-white'">
+          MotoMota<span class="text-red-500">GP</span>
+        </span>
+      </div>
+      <div class="flex items-center gap-2">
+        <app-notification-bell></app-notification-bell>
+      </div>
+    </div>
 
     <div class="cockpit-stack">
 

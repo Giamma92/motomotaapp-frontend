@@ -20,6 +20,8 @@ export const routes: Routes = [
   { path: '', loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent), canActivate: [AuthGuard] },
   { path: 'dashboard', redirectTo: '', pathMatch: 'full' },
   { path: 'all-teams', redirectTo: 'teams', pathMatch: 'full' },
+  { path: 'user-info', redirectTo: 'profile', pathMatch: 'full' },
+  { path: 'trophy-history', redirectTo: 'trophies', pathMatch: 'full' },
   // A route for a bet race page.
   { path: 'race-bet/:id', loadComponent: () => import('./components/bets/race-bet/race-bet.component').then(m => m.RaceBetComponent), canActivate: [AuthGuard, RaceAccessGuard] },
   // A route for a sprint bet page.

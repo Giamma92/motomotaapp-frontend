@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, effect, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -82,6 +82,7 @@ export class AppBottomNavComponent {
   public haptic = inject(HapticService);
   public moreMenu = inject(MoreMenuService);
   private notificationService = inject(InAppNotificationService);
+  private cdr = inject(ChangeDetectorRef);
 
   currentUrl = '/';
   unreadCount = 0;
@@ -100,10 +101,18 @@ export class AppBottomNavComponent {
     ).subscribe(e => {
       this.currentUrl = e.urlAfterRedirects;
       this.moreMenu.close();
+      this.cdr.markForCheck();
     });
 
     this.notificationService.unreadCount$.subscribe(count => {
       this.unreadCount = count;
+      this.cdr.markForCheck();
+    });
+
+    effect(() => {
+      this.authService.tokenSignal();
+      this.currentUrl = this.router.url;
+      this.cdr.markForCheck();
     });
   }
 

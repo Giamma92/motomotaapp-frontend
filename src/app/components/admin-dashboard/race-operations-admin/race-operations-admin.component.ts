@@ -654,9 +654,23 @@ export class RaceOperationsAdminComponent implements OnInit, OnChanges {
       next: (res: any) => {
         this.actionLoading = false;
         this.activeAction = null;
-        const count = res?.result?.processedCount ?? 0;
-        const msg = res?.result?.message || res?.message || (count > 0 ? `Trigger completato: ${count} gara/e aggiornata/e con successo!` : 'Verifica completata: nessuna gara in attesa al momento.');
-        this.notificationService.showSuccessMessage(msg);
+        const processed: any[] = res?.processed || res?.result?.processed || [];
+        const successItems = processed.filter(item => item.status === 'success');
+        const waitingItems = processed.filter(item => item.status === 'waiting_for_official_results');
+        const errorItems = processed.filter(item => item.status === 'error');
+        const count = successItems.length || (res?.processedCount ?? res?.result?.processedCount ?? 0);
+
+        if (errorItems.length > 0 && successItems.length === 0) {
+          this.notificationService.showErrorMessage(errorItems[0]?.error || 'Errore durante il calcolo automatico punteggi.');
+        } else if (successItems.length > 0) {
+          const stages = successItems.map(i => `R${i.raceOrder} (${i.stageAchieved || i.targetStage})`).join(', ');
+          this.notificationService.showSuccessMessage(`Trigger completato: aggiornato ${stages}!`);
+        } else if (waitingItems.length > 0) {
+          this.notificationService.showSuccessMessage(waitingItems[0]?.message || 'In attesa dei risultati ufficiali Dorna per la sessione.');
+        } else {
+          const msg = res?.result?.message || res?.message || (count > 0 ? `Trigger completato: ${count} gara/e elaborata/e!` : 'Verifica completata: nessuna sessione in attesa di calcolo al momento.');
+          this.notificationService.showSuccessMessage(msg);
+        }
         this.loadAutoScoreStatus();
         if (this.selectedCalendarId) {
           this.loadSubmissionStatus();

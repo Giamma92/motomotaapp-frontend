@@ -23,13 +23,15 @@ import { MoreMenuService } from '../../services/more-menu.service';
 import { HapticService } from '../../services/haptic.service';
 import { LoadingService } from '../../services/loading.service';
 import { PullToRefreshComponent } from '../pull-to-refresh/pull-to-refresh.component';
+import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule, MatExpansionModule, TimeFormatPipe, TranslatePipe, PullToRefreshComponent],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatMenuModule, MatIconModule, MatExpansionModule, TimeFormatPipe, TranslatePipe, PullToRefreshComponent, NotificationBellComponent],
   animations: [
     trigger('cardAnimation', [
       transition(':enter', [
@@ -92,6 +94,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Race countdown ticker (refreshed every 30s)
   now = Date.now();
   private tickTimer?: ReturnType<typeof setInterval>;
+  private champSub?: Subscription;
 
   constructor(
     private router: Router,
@@ -111,16 +114,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.loggedUserId = this.authService.getUserId();
     this.authService.getUserInfo().subscribe({
       next: (info) => {
         this.userInfo = info;
+        if (info?.id) {
+          this.loggedUserId = String(info.id);
+        }
         this.cdr.markForCheck();
       },
       error: () => {}
     });
 
-    this.championshipService.getChampIdObs().subscribe((champId: number) => {
-      champId > 0 && this.loadDashboardData(champId);
+    this.champSub = this.championshipService.getChampIdObs().subscribe((champId: number) => {
+      this.loggedUserId = this.authService.getUserId();
+      if (champId > 0) {
+        this.loadDashboardData(champId);
+      }
       this.cdr.markForCheck();
     });
 
@@ -132,6 +142,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.champSub?.unsubscribe();
     if (this.tickTimer) {
       clearInterval(this.tickTimer);
       this.tickTimer = undefined;
@@ -160,6 +171,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         console.error('Error fetching classification data:', error);
         this.loadingStandings = false;
         this.errorStandings = true;
+        this.checkAllLoaded();
         this.cdr.markForCheck();
       }
     });
@@ -179,6 +191,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           console.error('Error fetching next race:', error);
           this.errorNext = true;
         }
+        this.checkAllLoaded();
         this.cdr.markForCheck();
       }
     });
@@ -204,6 +217,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           console.error('Error fetching fantasy team:', error);
           this.errorTeam = true;
         }
+        this.checkAllLoaded();
         this.cdr.markForCheck();
       }
     });
@@ -508,11 +522,31 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }).format(date);
   }
 
-  goTo(path: string, extras: any = {}): void {
-    if (path === 'motogp-results') {
-      this.router.navigate(['/motogp-results', this.championshipId, extras]);
+  goTo(path: string, extras?: any): void {
+    const cleanPath = path.replace(/^\//, '');
+    if (cleanPath === 'motogp-results') {
+      if (extras !== undefined && extras !== null && typeof extras !== 'object') {
+        this.router.navigate(['/motogp-results', this.championshipId, extras]);
+      } else {
+        this.router.navigate(['/motogp-results'], typeof extras === 'object' ? extras : undefined);
+      }
+      return;
+    }
+
+    if (cleanPath === 'calendar' || cleanPath === 'teams' || cleanPath === 'achievements' || cleanPath === 'standings-breakdown') {
+      const navExtras = extras && typeof extras === 'object' && ('queryParams' in extras || 'fragment' in extras)
+        ? extras
+        : undefined;
+      this.router.navigate([`/${cleanPath}`], navExtras);
+      return;
+    }
+
+    if (extras !== undefined && extras !== null && typeof extras !== 'object') {
+      this.router.navigate([`/${cleanPath}`, extras]);
+    } else if (extras && typeof extras === 'object' && ('queryParams' in extras || 'fragment' in extras)) {
+      this.router.navigate([`/${cleanPath}`], extras);
     } else {
-      this.router.navigate([`/${path}`, extras]);
+      this.router.navigate([`/${cleanPath}`]);
     }
   }
 

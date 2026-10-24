@@ -1,7 +1,8 @@
 // src/app/race-detail/race-detail.component.ts
-import { Component, OnInit, HostListener, ViewEncapsulation, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ViewEncapsulation, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -94,7 +95,7 @@ export interface ParticipantCard {
       </header>
 
       <main class="main-content" @cardAnimation>
-        <app-pull-to-refresh [isRefreshing]="loading" (refresh)="reload($event)"></app-pull-to-refresh>
+        <app-pull-to-refresh [isRefreshing]="isRefreshing" (refresh)="reload($event)"></app-pull-to-refresh>
         <!-- ── MotoGP Skeleton Loader for Race Detail ── -->
         <div *ngIf="loading" class="w-full space-y-4" aria-hidden="true">
           <div class="sk-racing-card p-6 rounded-3xl" style="height: 180px;">
@@ -1022,9 +1023,11 @@ export interface ParticipantCard {
     </div>
   `
 })
-export class RaceDetailComponent implements OnInit {
+export class RaceDetailComponent implements OnInit, OnDestroy {
   raceId: string | null = null;
   raceName = '';
+  isRefreshing = false;
+  private subs = new Subscription();
 
   sectionFilter: 'all' | 'participants' | 'motogp' | 'admin' = 'all';
   managerViewMode: 'compact' | 'cards' = 'compact';
@@ -1102,7 +1105,13 @@ export class RaceDetailComponent implements OnInit {
   private currentChampId = 0;
 
   reload(done?: () => void): void {
-    if (!this.currentChampId || !this.raceId) { done?.(); return; }
+    if (!this.currentChampId || !this.raceId) {
+      this.isRefreshing = false;
+      done?.();
+      return;
+    }
+    this.isRefreshing = true;
+    this.cdr.markForCheck();
     this.raceDetailService.getRaceDetails(this.currentChampId, this.raceId, { allUsers: true, allCalendar: false }).subscribe({
       next: (data) => {
         this.lineups = data.lineups ?? [];
@@ -1110,54 +1119,93 @@ export class RaceDetailComponent implements OnInit {
         this.bets = data.bets ?? [];
         this.setMotoGPResults(data.motogpResults ?? []);
         this.loading = false;
+        this.isRefreshing = false;
         this.cdr.markForCheck();
         done?.();
       },
-      error: () => done?.()
+      error: () => {
+        this.isRefreshing = false;
+        this.cdr.markForCheck();
+        done?.();
+      }
     });
   }
 
   ngOnInit(): void {
-    this.raceId = this.route.snapshot.paramMap.get('id');
-    const requestedTab = this.route.snapshot.queryParamMap.get('tab') as any;
-    if (['hub', 'participants', 'motogp', 'admin'].includes(requestedTab)) {
-      this.activeTab = requestedTab;
-    }
-    this.championshipService.getChampIdObs().subscribe((champId: number) => {
-      this.currentChampId = champId;
-      if (!champId || !this.raceId) { this.loading = false; this.cdr.markForCheck(); return; }
+    this.subs.add(
+      this.route.queryParamMap.subscribe(qMap => {
+        const requestedTab = qMap.get('tab') as any;
+        if (['hub', 'participants', 'motogp', 'admin'].includes(requestedTab)) {
+          this.activeTab = requestedTab;
+          this.cdr.markForCheck();
+        }
+      })
+    );
 
-      // Data
-      this.raceDetailService.getRaceDetails(champId, this.raceId!, { allUsers: true, allCalendar: false }).subscribe({
-        next: (data) => {
-          this.lineups = data.lineups ?? [];
-          this.sprints = data.sprints ?? [];
-          this.bets = data.bets ?? [];
-          this.setMotoGPResults(data.motogpResults ?? []);
+    this.subs.add(
+      this.route.paramMap.subscribe(pMap => {
+        this.raceId = pMap.get('id');
+        if (this.currentChampId > 0 && this.raceId) {
+          this.loadAllRaceData(this.currentChampId, this.raceId);
+        }
+      })
+    );
+
+    this.subs.add(
+      this.championshipService.getChampIdObs().subscribe((champId: number) => {
+        this.currentChampId = champId;
+        if (!champId || !this.raceId) {
           this.loading = false;
           this.cdr.markForCheck();
-        },
-        error: (err) => { console.error('Error fetching race details:', err); this.loading = false; this.cdr.markForCheck(); }
-      });
+          return;
+        }
+        this.loadAllRaceData(champId, this.raceId);
+      })
+    );
+  }
 
-      // Schedule logic + race name
-      this.raceDetailService.getCalendarRace(champId, this.raceId).subscribe({
-        next: (race) => {
-          this.calendarRace = race;
-          this.raceName = race?.race_id?.name ?? '';
-          this.championshipService.getChampionshipConfig(champId).subscribe({
-            next: (config) => {
-              this.championshipTimeZone = config?.timezone || DateUtils.DEFAULT_CHAMPIONSHIP_TIMEZONE;
-              this.showLineups = true;
-              this.showSprintBet = this.raceScheduleService.canShowSprintBetResults(race, this.championshipTimeZone);
-              this.showRaceBet = this.raceScheduleService.canShowRaceBetResults(race, this.championshipTimeZone);
-              this.cdr.markForCheck();
-            },
-            error: (err) => { console.error('Error fetching championship config:', err); this.cdr.markForCheck(); }
-          });
-        },
-        error: (err) => { console.error('Error fetching race info:', err); this.cdr.markForCheck(); }
-      });
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+    if (this.resizeTimer) {
+      clearTimeout(this.resizeTimer);
+      this.resizeTimer = null;
+    }
+  }
+
+  private loadAllRaceData(champId: number, raceId: string): void {
+    this.loading = true;
+    this.cdr.markForCheck();
+
+    // Data
+    this.raceDetailService.getRaceDetails(champId, raceId, { allUsers: true, allCalendar: false }).subscribe({
+      next: (data) => {
+        this.lineups = data.lineups ?? [];
+        this.sprints = data.sprints ?? [];
+        this.bets = data.bets ?? [];
+        this.setMotoGPResults(data.motogpResults ?? []);
+        this.loading = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => { console.error('Error fetching race details:', err); this.loading = false; this.cdr.markForCheck(); }
+    });
+
+    // Schedule logic + race name
+    this.raceDetailService.getCalendarRace(champId, raceId).subscribe({
+      next: (race) => {
+        this.calendarRace = race;
+        this.raceName = race?.race_id?.name ?? '';
+        this.championshipService.getChampionshipConfig(champId).subscribe({
+          next: (config) => {
+            this.championshipTimeZone = config?.timezone || DateUtils.DEFAULT_CHAMPIONSHIP_TIMEZONE;
+            this.showLineups = true;
+            this.showSprintBet = this.raceScheduleService.canShowSprintBetResults(race, this.championshipTimeZone);
+            this.showRaceBet = this.raceScheduleService.canShowRaceBetResults(race, this.championshipTimeZone);
+            this.cdr.markForCheck();
+          },
+          error: (err) => { console.error('Error fetching championship config:', err); this.cdr.markForCheck(); }
+        });
+      },
+      error: (err) => { console.error('Error fetching race info:', err); this.cdr.markForCheck(); }
     });
   }
 
@@ -1322,7 +1370,11 @@ export class RaceDetailComponent implements OnInit {
   }
 
   goToMotoGPResults(): void {
-    if (this.calendarRace) {
+    const champId = this.currentChampId || this.calendarRace?.championship_id;
+    const calId = this.calendarRace?.id || this.raceId;
+    if (champId && calId) {
+      this.router.navigate(['/motogp-results', champId, calId]);
+    } else if (this.calendarRace) {
       const targetRound = this.calendarRace.race_order || this.calendarRace.race_id?.id || this.calendarRace.id;
       this.router.navigate(['/motogp-results'], { queryParams: { round: targetRound } });
     } else {

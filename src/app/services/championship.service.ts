@@ -1,7 +1,8 @@
 // src/app/services/championship.service.ts
-import { Injectable } from '@angular/core';
+import { Injectable, effect, untracked } from '@angular/core';
 import { BehaviorSubject, Observable, shareReplay } from 'rxjs';
 import { HttpService } from './http.service';
+import { AuthService } from './auth.service';
 
 export interface Championship {
   id: number;
@@ -43,17 +44,49 @@ export class ChampionshipService {
     champId > 0 && this.subjChampId.next(champId);
   }
 
+  private lastToken: string | null | undefined = undefined;
+
   constructor(
-    private httpService: HttpService
+    private httpService: HttpService,
+    private authService: AuthService
   ) {
     this._selectedChampionshipId = 0;
-    this.getDefaultChampionship().subscribe({
-      next: (champ: Championship) => {
-        this.selectedChampionshipId = champ.id;
-      }
-    });
     this.subjChampId = new BehaviorSubject<number>(this._selectedChampionshipId);
     this.subjChampObs = this.subjChampId.asObservable();
+
+    // React to authentication changes: this service can be instantiated before the
+    // user logs in (e.g. by app-level nav components rendered on the login page).
+    // In that case the initial default-championship request fails with 401 and the
+    // dashboard would wait forever for a championship id. Re-fetch whenever the token
+    // changes so that the dashboard loads right after login.
+    this.onTokenChanged(this.authService.getToken());
+    effect(() => {
+      const token = this.authService.tokenSignal();
+      untracked(() => this.onTokenChanged(token));
+    });
+  }
+
+  private onTokenChanged(token: string | null): void {
+    if (token === this.lastToken) return;
+    this.lastToken = token;
+
+    // Drop any cached request built with a previous (or missing) token
+    this.defaultChamp$ = undefined;
+    this.configCache.clear();
+
+    if (!token) {
+      this._selectedChampionshipId = 0;
+      return;
+    }
+
+    this.getDefaultChampionship(true).subscribe({
+      next: (champ: Championship) => {
+        if (champ?.id) {
+          this.selectedChampionshipId = champ.id;
+        }
+      },
+      error: (err) => console.warn('Unable to load default championship', err)
+    });
   }
 
   private defaultChamp$?: Observable<Championship>;
