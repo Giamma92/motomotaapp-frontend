@@ -457,15 +457,17 @@
 /* ═══════════ Dual-Column Layout (Desktop) ═══════════ */
 .bet-form-layout {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
   gap: 16px;
   align-items: start;
 }
 
 .bet-col-left {
+  grid-column: 1;
   display: grid;
   gap: 12px;
   min-width: 0;
+  max-width: 100%;
 
   .rider-grid {
     max-height: min(65vh, 620px);
@@ -473,9 +475,11 @@
 }
 
 .bet-col-right {
+  grid-column: 2;
   display: grid;
   gap: 12px;
   min-width: 0;
+  max-width: 100%;
   position: sticky;
   top: 16px;
 }
@@ -496,6 +500,8 @@
   border-radius: 14px;
   background: var(--surface-elevated);
   transition: border-color 0.18s ease;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .bet-step.step-filled {
@@ -651,6 +657,8 @@
 .rider-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  min-width: 0;
+  max-width: 100%;
   gap: 8px;
   max-height: min(46vh, 420px);
   overflow-y: auto;
@@ -778,10 +786,17 @@
   }
 }
 
+.roster-expandable {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .constructor-filter-pills {
   display: flex;
   gap: 6px;
   overflow-x: auto;
+  min-width: 0;
+  max-width: 100%;
   padding: 2px 0 10px;
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
