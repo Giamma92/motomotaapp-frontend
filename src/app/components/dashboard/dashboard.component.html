@@ -59,6 +59,15 @@
               <h2 class="text-base sm:text-lg font-black tracking-tight leading-tight m-0" [class.text-white]="theme.mode() === 'dark'" [class.text-zinc-900]="theme.mode() === 'light'">
                 {{ 'dashboard.hero.greeting' | t: { name: loggedUserName } }}
               </h2>
+              <!-- Link Richiedi Reset Password all'Admin -->
+              <button
+                type="button"
+                (click)="openRequestResetModal()"
+                class="text-[11px] font-semibold text-zinc-400 hover:text-red-500 transition-colors inline-flex items-center gap-1 cursor-pointer mt-1 bg-transparent border-0 p-0"
+                title="Richiedi reset password all'amministratore">
+                <i class="fa-solid fa-key text-[10px] text-amber-500"></i>
+                <span class="underline">Richiedi reset password all'admin</span>
+              </button>
             </div>
           </div>
 
@@ -1003,4 +1012,58 @@
 
     </div>
   </main>
+
+  <!-- ==========================================
+       MODAL RICHIESTA RESET PASSWORD ALL'ADMIN
+  ========================================== -->
+  <div *ngIf="showResetModal"
+       class="fixed inset-0 z-[100] bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="w-full max-w-md rounded-3xl p-6 border shadow-2xl transition-all"
+         [ngClass]="theme.mode() === 'light' ? 'bg-white border-zinc-200 text-zinc-900' : 'bg-[#141724] border-white/15 text-white'">
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-lg flex-shrink-0">
+          <i class="fa-solid fa-key"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-black m-0 leading-tight">Richiedi Reset Password</h3>
+          <p class="text-xs text-zinc-400 mt-0.5">Account: <strong class="text-red-500">{{ loggedUserName }}</strong></p>
+        </div>
+      </div>
+
+      <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+        Confermi di voler richiedere all'amministratore l'abilitazione del reset password per il tuo account?
+        All'amministratore verrà inviata una notifica (in-app e Telegram). Una volta abilitato il reset, al tuo prossimo accesso ti verrà richiesto di impostare una nuova password.
+      </p>
+
+      <div *ngIf="resetModalMessage"
+           class="p-3 rounded-2xl mb-4 text-xs font-bold flex items-center gap-2"
+           [ngClass]="resetModalSuccess ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/15 text-red-400 border border-red-500/30'">
+        <i class="fa-solid" [class.fa-circle-check]="resetModalSuccess" [class.fa-triangle-exclamation]="!resetModalSuccess"></i>
+        <span>{{ resetModalMessage }}</span>
+      </div>
+
+      <div class="flex items-center justify-end gap-2.5">
+        <button
+          type="button"
+          (click)="closeRequestResetModal()"
+          class="px-4 py-2.5 rounded-2xl border text-xs font-bold transition active:scale-95 cursor-pointer"
+          [ngClass]="theme.mode() === 'light' ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-300' : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'">
+          {{ resetModalSuccess ? 'Chiudi' : 'Annulla' }}
+        </button>
+
+        <button
+          *ngIf="!resetModalSuccess"
+          type="button"
+          (click)="confirmRequestReset()"
+          [disabled]="resetModalLoading"
+          class="px-5 py-2.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs shadow-lg shadow-red-600/30 transition active:scale-95 cursor-pointer flex items-center gap-2">
+          <i *ngIf="resetModalLoading" class="fa-solid fa-circle-notch fa-spin"></i>
+          <i *ngIf="!resetModalLoading" class="fa-solid fa-paper-plane"></i>
+          <span>{{ resetModalLoading ? 'Invio in corso...' : 'Invia Richiesta all\'Admin' }}</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
 </div>

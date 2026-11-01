@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { NavigationService } from '../../services/navigation.service';
 import { ThemeService } from '../../services/theme.service';
 import { AdminService, AdminChampionship } from '../../services/admin.service';
@@ -12,6 +12,7 @@ import { FantasyTeamsAdminComponent } from './fantasy-teams-admin/fantasy-teams-
 import { RidersAdminComponent } from './riders-admin/riders-admin.component';
 import { CalendarAdminComponent } from './calendar-admin/calendar-admin.component';
 import { ChampionshipAdminComponent } from './championship-admin/championship-admin.component';
+import { UsersAdminComponent } from './users-admin/users-admin.component';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -141,6 +142,20 @@ import { ChampionshipAdminComponent } from './championship-admin/championship-ad
               <span>Calendario & Circuiti</span>
             </button>
 
+            
+            <!-- Tab 6: Utenti & Reset Password -->
+            <button
+              type="button"
+              data-tab="users"
+              (click)="activeTab = 'users'"
+              class="px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 whitespace-nowrap active:scale-95 flex-shrink-0"
+              [ngClass]="activeTab === 'users'
+                ? 'bg-red-600 text-white shadow-md shadow-red-600/30'
+                : (theme.mode() === 'light' ? 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100' : 'text-zinc-400 hover:text-white hover:bg-white/5')">
+              <i class="fa-solid fa-users-gear"></i>
+              <span>Utenti & Reset Password</span>
+            </button>
+
             <!-- Tab 5: Campionati -->
             <button
               type="button"
@@ -227,7 +242,7 @@ import { ChampionshipAdminComponent } from './championship-admin/championship-ad
   `]
 })
 export class AdminDashboardComponent implements OnInit {
-  activeTab: 'operations' | 'teams' | 'riders' | 'calendar' | 'championships' = 'operations';
+  activeTab: 'operations' | 'teams' | 'riders' | 'calendar' | 'championships' | 'users' = 'operations';
   championships: AdminChampionship[] = [];
   selectedChampionshipId: number | null = null;
   loading = true;
@@ -237,11 +252,17 @@ export class AdminDashboardComponent implements OnInit {
     private champService: ChampionshipService,
     private navService: NavigationService,
     public theme: ThemeService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.loadChampionships();
+    this.route.queryParams.subscribe((params: any) => {
+      if (params['tab'] === 'users' || params['tab'] === 'operations' || params['tab'] === 'teams' || params['tab'] === 'riders' || params['tab'] === 'calendar' || params['tab'] === 'championships') {
+        this.activeTab = params['tab'];
+      }
+    });
   }
 
   loadChampionships(): void {

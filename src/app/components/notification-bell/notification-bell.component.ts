@@ -513,6 +513,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
       case 'score_update': return 'fa-chart-line';
       case 'standing_change': return 'fa-ranking-star';
       case 'race_cancelled': return 'fa-ban';
+      case 'password_reset': return 'fa-key';
       default: return 'fa-circle-info';
     }
   }

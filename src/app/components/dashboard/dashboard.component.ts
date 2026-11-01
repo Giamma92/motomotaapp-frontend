@@ -59,6 +59,46 @@ export class DashboardComponent implements OnInit, OnDestroy {
   championshipId: number = 0;
   totalRaces?: number;
 
+  showResetModal: boolean = false;
+  resetModalLoading: boolean = false;
+  resetModalMessage: string | null = null;
+  resetModalSuccess: boolean = false;
+
+  openRequestResetModal(): void {
+    this.showResetModal = true;
+    this.resetModalLoading = false;
+    this.resetModalMessage = null;
+    this.resetModalSuccess = false;
+    this.cdr.markForCheck();
+  }
+
+  closeRequestResetModal(): void {
+    this.showResetModal = false;
+    this.cdr.markForCheck();
+  }
+
+  confirmRequestReset(): void {
+    this.resetModalLoading = true;
+    this.resetModalMessage = null;
+    this.cdr.markForCheck();
+
+    this.authService.requestPasswordReset().subscribe({
+      next: (res) => {
+        this.resetModalLoading = false;
+        this.resetModalSuccess = true;
+        this.resetModalMessage = res.message || 'Richiesta inviata all\'amministratore con successo!';
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.resetModalLoading = false;
+        this.resetModalSuccess = false;
+        this.resetModalMessage = err.error?.error || 'Errore durante l\'invio della richiesta.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+
   // New boolean flags for button visibility
   showLineupsButton: boolean = false;
   showSprintBetButton: boolean = false;

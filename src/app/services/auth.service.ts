@@ -118,6 +118,13 @@ export class AuthService {
     return roles?.includes('Admin') || false;
   }
 
+
+  requestPasswordReset(username?: string): Observable<any> {
+    const token = this.getToken();
+    const headers = token ? this.getAuthHeader() : undefined;
+    return this.http.post(`${this.apiUrl}/request-password-reset`, { username }, { headers });
+  }
+
   resetPassword(newPasswordHash: string): Observable<any> {
     const headers = this.getAuthHeader();
     return this.http.put(`${this.apiUrl}/user/password`, { password: newPasswordHash }, { headers });

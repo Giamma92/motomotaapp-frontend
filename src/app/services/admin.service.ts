@@ -58,6 +58,21 @@ export interface AdminChampionshipRider {
   };
 }
 
+
+export interface AdminDetailedUser {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  profile_id?: number;
+  profile_image?: string;
+  last_access?: string;
+  pwd_reset: number;
+  alias?: string | null;
+  pwd_reset_requested?: boolean;
+  pwd_reset_requested_at?: string | null;
+}
+
 export interface AdminUser {
   id: string;
   email: string;
@@ -227,6 +242,19 @@ export class AdminService {
 
   deleteFantasyTeam(championshipId: number, teamId: number): Observable<any> {
     return this.http.genericDelete(`championship/${championshipId}/fantasy_teams/${teamId}`);
+  }
+
+
+  getAdminUsers(): Observable<AdminDetailedUser[]> {
+    return this.http.genericGet<AdminDetailedUser[]>('admin/users');
+  }
+
+  enablePwdReset(userId: string, tempPassword?: string): Observable<any> {
+    return this.http.genericPut(`admin/users/${userId}/enable-pwd-reset`, { tempPassword });
+  }
+
+  disablePwdReset(userId: string): Observable<any> {
+    return this.http.genericPut(`admin/users/${userId}/disable-pwd-reset`, {});
   }
 
   getUsers(): Observable<AdminUser[]> {
