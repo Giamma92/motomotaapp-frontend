@@ -24,7 +24,8 @@ import { UsersAdminComponent } from './users-admin/users-admin.component';
     FantasyTeamsAdminComponent,
     RidersAdminComponent,
     CalendarAdminComponent,
-    ChampionshipAdminComponent
+    ChampionshipAdminComponent,
+    UsersAdminComponent
   ],
   template: `
     <div class="min-h-screen pb-32 font-sans select-none"
@@ -206,6 +207,10 @@ import { UsersAdminComponent } from './users-admin/users-admin.component';
           <!-- Tab 5: Campionati -->
           <div *ngIf="activeTab === 'championships'">
             <app-championship-admin></app-championship-admin>
+          </div>
+          <!-- Tab 6: Utenti & Reset Password -->
+          <div *ngIf="activeTab === 'users'">
+            <app-users-admin></app-users-admin>
           </div>
         </div>
 
